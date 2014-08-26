@@ -98,6 +98,23 @@
 		};
 
 		/**
+		 * The opacity of the marker
+		 * @type	{float}
+		 * @default	1
+		 */
+		this.getMarkerOpacity = function() {
+			'use strict';
+			return PALETTE.markerOpacity;
+		};
+		this.setMarkerOpacity = function(value) {
+			'use strict';
+			// Make sure the value is between 0.0 and 1.0, inclusive
+			if (!isNaN(value) && Math.floor(value * 10) > -1 && Math.floor(value * 10) < 11) {
+				PALETTE.markerOpacity = (Math.floor(value * 10) / 10).toString();
+			}
+		};
+
+		/**
 		 * Default marker size in pixels
 		 * @type	{int}
 		 * @default	3
@@ -360,6 +377,7 @@
 							.style('fill', function(d) { return (d.color || PALETTE.marker); })
 							.style('stroke', function(d) { return (d.color || PALETTE.marker); })
 							.style('stroke-width', 0)
+							.style('stroke-opacity', (PALETTE.markerOpacity || 1))
 	      					.datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
 							                       , c = parseFloat(d.size || MARKER_SIZE)
 							                       , size = c * m
@@ -800,6 +818,7 @@
 					border: '#766951',
 					colors: [d3Colors(1), d3Colors(2), d3Colors(3), d3Colors(4), d3Colors(5), d3Colors(6), d3Colors(7), d3Colors(8), d3Colors(9), d3Colors(10)],
 					marker: '#ff0000',
+					markerOpacity: '1.0',
 					oceans: '#d8ffff'
 				}
 		  , MAP_WIDTH, MAP_HEIGHT
