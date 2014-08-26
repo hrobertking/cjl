@@ -186,6 +186,37 @@
 		};
 
 		/**
+		 * Returns a string array containing event names
+		 * @type	{string[]}
+		 */
+		this.events = function() {
+			'use strict';
+			return EVENTS;
+		};
+
+		/**
+		 * Adds an event handler
+		 * @return	{void}
+		 * @param	{string} eventname
+		 * @param	{string} handler
+		 */
+		this.on = function(eventname, handler) {
+			var i
+			  , handlers
+			;
+
+			for (i = 0; i > EVENTS.length; i += 1) {
+				// Check to make sure it's an event that is fired
+				if (eventname.toLowerCase() === EVENTS[i].toLowerCase()) {
+					handlers = EVENT_HANDLERS[eventname] || [ ];
+					handlers.push(handler);
+					EVENT_HANDLERS[eventname] = handlers;
+					break;
+				}
+			}
+		};
+
+		/**
 		 * Map is rotatable, i.e., a globe
 		 * @type	{boolean}
 		 */
@@ -211,6 +242,7 @@
 			'use strict';
 			if (VELOCITY > .01) {
 				VELOCITY -= .005;
+				fire('slowed');
 			}
 		};
 
@@ -221,6 +253,7 @@
 		this.rotationIncrease = function() {
 			'use strict';
 			VELOCITY += .005;
+			fire('accelerated');
 		};
 
 		/**
@@ -230,6 +263,7 @@
 		this.rotationPause = function() {
 			'use strict';
 			ROTATE_3D = false;
+			fire('paused');
 		};
 
 		/**
@@ -239,6 +273,7 @@
 		this.rotationResume = function() {
 			'use strict';
 			ROTATE_3D = true;
+			fire('resumed');
 		};
 
 		/**
@@ -696,14 +731,31 @@
 							if (MARKER_FILE.name && MARKER_FILE.type) {
 								if ((/csv/i).test(MARKER_FILE.type)) {
 									// Draw the markers
-									d3.csv(MARKER_FILE.name, function(error, markers) { drawMarkers(markers); });
+									d3.csv(MARKER_FILE.name, function(error, markers) {
+										if (error) {
+											if (console.log) {
+												console.log('Error retrieving marker file');
+											}
+										} else if (markers) {
+											drawMarkers(markers);
+										}
+									});
 								} else {
-									d3.json(MARKER_FILE.name, function(error, markers) { drawMarkers(markers); });
+									d3.json(MARKER_FILE.name, function(error, markers) {
+										if (error) {
+											if (console.log) {
+												console.log('Error retrieving marker file');
+											}
+										} else if (markers) {
+											drawMarkers(markers);
+										}
+									});
 								}
 							}
 
 							// We're done processing, so start the rotation
 							ROTATE_3D = true;
+							fire('rendered');
 						});
 
 					// Start the rotation timer
@@ -716,12 +768,26 @@
 								LAMBDA += angle;
 								projection.rotate([LAMBDA, PHI, 0]);
 								svg.selectAll('path').attr('d', path.projection(projection));
-							}	
+							}
 							THEN = Date.now();
 						});
 				}
 			}
 		};
+
+		/**
+		 * Fires an event
+		 * @return	{void}
+		 * @param	{string} eventname
+		 */
+		function fire(eventname) {
+			var i
+			  , handlers = EVENT_HANDLERS[eventname]
+			;
+			for (i = 0; i < handlers.length; i += 1) {
+				handlers[i].call();
+			}
+		}
 
 		var d3Colors = d3.scale.category10()
 		  , MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
@@ -734,7 +800,9 @@
 		  , THEN, VELOCITY = .05
 		  , ROTATE_3D, ROTATABLE, DRAGGING, MOUSE_DOWN
 		  , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
-		  , COUNTRY_HANDLERS = []
+		  , COUNTRY_HANDLERS = [ ]
+		  , EVENT_HANDLERS = [ ]
+		  , EVENTS = [ 'accelerated', 'paused', 'rendered', 'resumed', 'slowed' ]
 		;
 
 		if (typeof ELEM === 'string') {
