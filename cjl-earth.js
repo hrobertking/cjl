@@ -201,13 +201,17 @@
 		 * @param	{string} handler
 		 */
 		this.on = function(eventname, handler) {
-			var i
+			var evt
+			  , i
 			  , handlers
 			;
 
-			for (i = 0; i > EVENTS.length; i += 1) {
+			eventname = (eventname || '').toLowerCase();
+
+			for (i = 0; i < EVENTS.length; i += 1) {
+				evt = (EVENTS[i] || '').toLowerCase();
 				// Check to make sure it's an event that is fired
-				if (eventname.toLowerCase() === EVENTS[i].toLowerCase()) {
+				if (eventname === evt) {
 					handlers = EVENT_HANDLERS[eventname] || [ ];
 					handlers.push(handler);
 					EVENT_HANDLERS[eventname] = handlers;
@@ -782,7 +786,7 @@
 		 */
 		function fire(eventname) {
 			var i
-			  , handlers = EVENT_HANDLERS[eventname]
+			  , handlers = EVENT_HANDLERS[eventname] || [];
 			;
 			for (i = 0; i < handlers.length; i += 1) {
 				handlers[i].call();
@@ -801,7 +805,7 @@
 		  , ROTATE_3D, ROTATABLE, DRAGGING, MOUSE_DOWN
 		  , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
 		  , COUNTRY_HANDLERS = [ ]
-		  , EVENT_HANDLERS = [ ]
+		  , EVENT_HANDLERS = { }
 		  , EVENTS = [ 'accelerated', 'paused', 'rendered', 'resumed', 'slowed' ]
 		;
 
