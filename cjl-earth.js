@@ -153,6 +153,7 @@
 				PALETTE.border = validate(value.border).shift() || PALETTE.border;
 				PALETTE.colors = validate(value.colors) || PALETTE.colors;
 				PALETTE.marker = validate(value.marker).shift() || PALETTE.marker;
+				PALETTE.oceans = validate(value.oceans).shift() || PALETTE.oceans;
 			} else {
 				PALETTE.colors = validate(value) || PALETTE.colors;
 			}
@@ -707,7 +708,7 @@
 								svg.append('g').attr('id', ID)
 										.call(zoom)
 										.append('rect').attr('width', (diameter * 2)).attr('height', diameter)
-											.style('fill', '#d8ffff')
+											.style('fill', PALETTE.oceans)
 											.style('stroke', '#333')
 											.style('stroke-width', '1.5px')
 									;
@@ -715,7 +716,7 @@
 								svg.append('g').attr('id', ID)
 										.call(zoom)
 										.append('path').attr('id', 'oceans').datum({type: 'Sphere'}).attr('d', path)
-											.style('fill', '#d8ffff')
+											.style('fill', PALETTE.oceans)
 											.style('stroke', '#333')
 											.style('stroke-width', '1.5px')
 									;
@@ -796,9 +797,10 @@
 		var d3Colors = d3.scale.category10()
 		  , MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
 		  , PALETTE = {
-					border:'#766951',
+					border: '#766951',
 					colors: [d3Colors(1), d3Colors(2), d3Colors(3), d3Colors(4), d3Colors(5), d3Colors(6), d3Colors(7), d3Colors(8), d3Colors(9), d3Colors(10)],
-					marker:'#ff0000'
+					marker: '#ff0000',
+					oceans: '#d8ffff'
 				}
 		  , MAP_WIDTH, MAP_HEIGHT
 		  , THEN, VELOCITY = .05
