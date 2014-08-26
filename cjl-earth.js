@@ -743,7 +743,7 @@
 							// Draw the countries
 							svg.select('#' + ID).append('g').attr('id', 'countries')
 								.selectAll('path').data(countries).enter().append('path')
-									.attr('class', 'country')
+									.attr('class', function(d, i) { return 'country ' + topoMap(d.id).iso; })
 									.attr('d', path)
 									.style('fill', function(d, i) { d.iso = topoMap(d.id).iso; d.name = topoMap(d.id).name; return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
 									.style('stroke', PALETTE.border)
