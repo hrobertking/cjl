@@ -1,4 +1,5 @@
 [
+	{ "ofid":"", "iata":"ICN", "icao":"RKSI", "latitude":"37.463333", "longitude":"126.44", "altitude":"23", "tz":"8", "dst":"", "name":"Incheon International Airport", "city":"Incheon", "country":"KR" },
 	{ "ofid":"2179", "iata":"AUH", "icao":"OMAA", "latitude":"24.432972", "longitude":"54.651138", "altitude":"88", "tz":"4", "dst":"U", "name":"Abu Dhabi Intl", "city":"Abu Dhabi", "country":"AE" },
 	{ "ofid":"2180", "iata":"AZI", "icao":"OMAD", "latitude":"24.428333", "longitude":"54.458084", "altitude":"16", "tz":"4", "dst":"U", "name":"Bateen", "city":"Abu Dhabi", "country":"AE" },
 	{ "ofid":"2181", "iata":"", "icao":"OMAH", "latitude":"24.073981", "longitude":"52.463644", "altitude":"50", "tz":"4", "dst":"U", "name":"Al Hamra Aux", "city":"Al Hamra", "country":"AE" },
