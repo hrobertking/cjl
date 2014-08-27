@@ -63,6 +63,20 @@
 		};
 
 		/**
+		 * Marker animation, i.e., 'pulse' or 'ping'
+		 * @type	{string}
+		 * @default	"pulse"
+		 */
+		this.getMarkerAnimation = function() {
+			return MARKER_ANIMATION;
+		};
+		this.setMarkerAnimation = function(value) {
+			if ((/^(pulse|ping)$/).test(value)) {
+				MARKER_ANIMATION = value;
+			}
+		};
+
+		/**
 		 * Marker color in hexadecimal format, e.g. #ff0000
 		 * @type	{string}
 		 * @default	"#ff0000"
@@ -163,10 +177,10 @@
 						 return value;
 					}
 				}
-				return;
+				return [ ];
 			}
 
-			if (value.colors || value.marker || value.border) {
+			if (value.colors || value.marker || value.border || value.oceans) {
 				PALETTE.border = validate(value.border).shift() || PALETTE.border;
 				PALETTE.colors = validate(value.colors) || PALETTE.colors;
 				PALETTE.marker = validate(value.marker).shift() || PALETTE.marker;
@@ -387,8 +401,26 @@
 					;
 
 				// Add some visual interest to the markers - pulsing
-				setInterval(pulse, 1500);
+				if (MARKER_ANIMATION === 'ping') {
+					setInterval(ping, 1500);
+				} else {
+					setInterval(pulse, 1500);
+				}
 			}
+			// Make the markers 'pulse' 
+			function ping() {
+				// Larger size markers take pulse more slowly
+				var fade = d3.selectAll('path.marker')
+							.transition()
+								.duration(function(d) { return Math.min(d.size * 250, 1400); })
+								.style('stroke-width', function(d, i) { return d.size; })
+							.transition()
+								.duration(0)
+								.style('stroke-width', 0)
+				;
+			}
+
+			// Make the markers 'pulse' 
 			function pulse() {
 				// Larger size markers take pulse more slowly
 				var fade = d3.selectAll('path.marker')
@@ -813,7 +845,7 @@
 		}
 
 		var d3Colors = d3.scale.category10()
-		  , MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
+		  , MARKER_ANIMATION = 'pulse', MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
 		  , PALETTE = {
 					border: '#766951',
 					colors: [d3Colors(1), d3Colors(2), d3Colors(3), d3Colors(4), d3Colors(5), d3Colors(6), d3Colors(7), d3Colors(8), d3Colors(9), d3Colors(10)],
