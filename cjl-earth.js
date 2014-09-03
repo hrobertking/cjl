@@ -71,7 +71,7 @@
 			return MARKER_ANIMATION;
 		};
 		this.setMarkerAnimation = function(value) {
-			if ((/^(pulse|ping)$/).test(value)) {
+			if ((/^(pulse|ping|none)$/).test(value)) {
 				MARKER_ANIMATION = value;
 			}
 		};
@@ -400,11 +400,17 @@
 							.attr('d', path.pointRadius(2)) //radius of the circle
 					;
 
-				// Add some visual interest to the markers - pulsing
-				if (MARKER_ANIMATION === 'ping') {
-					setInterval(ping, 1500);
-				} else {
-					setInterval(pulse, 1500);
+				// Add some visual interest to the markers via animation
+				switch (MARKER_ANIMATION) {
+					case 'ping':
+						setInterval(ping, 1500);
+						break;
+					case 'pulse':
+						setInterval(pulse, 1500);
+						break;
+					case 'none':
+						d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size; });
+						break;
 				}
 			}
 			// Make the markers 'pulse' 
