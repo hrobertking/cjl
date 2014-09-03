@@ -316,6 +316,8 @@
 		 * Renders the map. If the style presented is '2D', the map is rendered as a flat (Spherical Mercator) map, otherwise, it's rendered as a globe.
 		 * @return	{void}
 		 * @param	{string} style
+		 * @example	var earth = new Cathmhaol.Earth('flatmap', '/js/world-110m.json'); earth.render('2D');
+		 * @example	var earth = new Cathmhaol.Earth('flatmap', '/js/world-110m.json'); earth.render();
 		 */
 		this.render = function(style) {
 			'use strict';
