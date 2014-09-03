@@ -14,7 +14,7 @@
 	var Cathmhaol = window.Cathmhaol || {};
 
 	/**
-	 * Creates a rotating globe.
+	 * Creates a world map. Map can be rendered as 2D (Mercator) or as a globe (default)
 	 *
 	 * @param {string|HTMLElement} elem  The unique ID of the HTML element to contain the object
 	 * @param {string} topo              The URI of a topo file
