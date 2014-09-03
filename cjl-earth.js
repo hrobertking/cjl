@@ -388,7 +388,7 @@
 			function drawMarkers(markers) {
 				svg.select('#' + ID).append('g').attr('id', ID + '-markers')
 						.selectAll('path').data(markers).enter().append('path')
-							.attr('class', 'marker')
+							.attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
 							.attr('data-description', function(d) { return d.description; })
 							.style('fill', function(d) { return (d.color || PALETTE.marker); })
 							.style('stroke', function(d) { return (d.color || PALETTE.marker); })
@@ -398,7 +398,7 @@
 							                       , c = parseFloat(d.size || MARKER_SIZE)
 							                       , size = c * m
 							                     ;
-							                     return { type:'Point', coordinates:[d.lon, d.lat], size:size, color:d.color }; })
+							                     return { type:'Point', coordinates:[(d.longitude || d.lon), (d.latitude || d.lat)], size:size, color:d.color }; })
 							.attr('d', path.pointRadius(2)) //radius of the circle
 					;
 
