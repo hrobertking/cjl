@@ -37,7 +37,52 @@ Requires:
 - *string* getBorderColor: Returns the border color in hexadecimal format, e.g. #000000
 - *HTMLElement* getElement: Returns the HTML element to which the SVG is attached
 - *string* getMarkerColor: Returns the marker color in hexadecimal format
-- *object* getMarkerFile: Returns an object containing the URL of the file containing marker data and the file type, e.g., {name:'/my-markers.csv', type:'csv'}.
+- *object* getMarkerFile: Returns an object containing the URL of the file containing marker data and the file type, e.g., {name:'/my-markers.csv', type:'csv'}.  
+Each marker definition in the marker file must contain 'longitude', 'latitude', and 'size'. If the marker definition contains 'color', the specified color will
+be used as the marker color. If the marker definition contains 'country', the country will be added to the marker class. If the marker definition contains
+'description', the description will be used to populate the 'data-description' attribute of the marker.  
+Example:  
+[  
+&nbsp;&nbsp;{  
+&nbsp;&nbsp;&nbsp;&nbsp;"country": "KR",  
+&nbsp;&nbsp;&nbsp;&nbsp;"latitude": "37.469075",  
+&nbsp;&nbsp;&nbsp;&nbsp;"longitude": "126.450517",  
+&nbsp;&nbsp;&nbsp;&nbsp;"size": 7  
+&nbsp;&nbsp;},  
+&nbsp;&nbsp;{  
+&nbsp;&nbsp;&nbsp;&nbsp;"country": "DE",  
+&nbsp;&nbsp;&nbsp;&nbsp;"latitude": "50.030194",  
+&nbsp;&nbsp;&nbsp;&nbsp;"longitude": "8.588047",  
+&nbsp;&nbsp;&nbsp;&nbsp;"size": 2  
+&nbsp;&nbsp;},  
+&nbsp;&nbsp;{  
+&nbsp;&nbsp;&nbsp;&nbsp;"country": "IT",  
+&nbsp;&nbsp;&nbsp;&nbsp;"latitude": "45.445103",  
+&nbsp;&nbsp;&nbsp;&nbsp;"longitude": "9.276739",  
+&nbsp;&nbsp;&nbsp;&nbsp;"size": 2  
+&nbsp;&nbsp;},  
+&nbsp;&nbsp;{  
+&nbsp;&nbsp;&nbsp;&nbsp;"country": "US",  
+&nbsp;&nbsp;&nbsp;&nbsp;"latitude": "33.942536",  
+&nbsp;&nbsp;&nbsp;&nbsp;"longitude": "-118.408075",  
+&nbsp;&nbsp;&nbsp;&nbsp;"size": 2  
+&nbsp;&nbsp;}    
+]  
+Example:  
+country,latitude,longitude,size,color  
+CA,43.677223,-79.630556,2,#9933CC  
+DE,50.030194,8.588047,2,#660099  
+ES,40.493556,-3.566764,2,#CC00FF  
+FR,48.856389,2.352222,2,#CC99CC  
+GB,51.508056,-0.127778,2,#9933DD  
+IT,38.175958,13.091019,2,#AA00FF  
+IT,45.445103,9.276739,2,#AA00FF  
+US,25.79325,-80.290556,2,#663399  
+US,32.847111,-96.851778,2,#663399  
+US,37.3626,-121.929022,2,#663399  
+US,38.944533,-77.455811,3,#663399  
+US,40.777245,-73.872608,2,#663399  
+US,64.729444,-158.074167,2,#663399  
 - *float* getMarkerSize: Returns the size of the marker
 - *string[]* getPalette: Returns the colors used for countries
 - *string* getTopoFile: Returns the URL of the topoJSON file
