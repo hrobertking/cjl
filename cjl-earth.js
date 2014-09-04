@@ -93,6 +93,20 @@
     };
 
     /**
+     * The column headers of the marker description table. Note: column headers must match the data returned in the marker file
+     * @type     {string[]}
+     */
+    this.getMarkerDescriptionData = function() {
+      'use strict';
+      return MARKER_DESCRIPTION;
+    };
+    this.setMarkerDescriptionData = function(value) {
+      if (value === null || value === undefined || value instanceof Array) {
+        MARKER_DESCRIPTION = value;
+      }
+    };
+
+    /**
      * URI of the marker file, e.g., '/popmap/cities.csv'
      * @type     {string}
      */
@@ -386,6 +400,13 @@
 
       // Draw the location markers based on the data contained in the file
       function drawMarkers(markers) {
+        var table   // the marker description table
+          , thead   // head of the marker description table
+          , tbody   // body of the marker description table
+          , trows   // rows in the marker description table
+          , tcells  // cells in the marker description table
+        ;
+
         svg.select('#' + ID).append('g').attr('id', ID + '-markers')
             .selectAll('path').data(markers).enter().append('path')
               .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
@@ -413,6 +434,40 @@
           case 'none':
             d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size; });
             break;
+        }
+
+        // Add a description table if it has been defined
+        if (MARKER_DESCRIPTION && MARKER_DESCRIPTION.length) {
+          table = d3.select(ELEM).append('table');
+          thead = table.append('thead');
+          tbody = table.append('tbody');
+
+          // append the header row
+          thead.append('tr')
+               .selectAll('th')
+               .data(MARKER_DESCRIPTION)
+               .enter()
+               .append('th')
+                 .text(function(column) { return column; })
+            ;
+
+          // create a row for each object in the markers
+          trows = tbody.selectAll('tr')
+                       .data(markers)
+                       .enter()
+                       .append('tr')
+            ;
+
+          // create a cell in each row for each column
+          tcells = trows.selectAll('td')
+                        .data(function(row) {
+                           return MARKER_DESCRIPTION.map(function(column) {
+                             return {column: column, value: row[column]};
+                           });
+                         })
+                        .enter()
+                        .append('td')
+                          .html(function(d) { return d.value; });
         }
       }
       // Make the markers 'pulse' 
