@@ -57,7 +57,7 @@
       if (typeof value === 'string') {
         value = document.getElementById(value);
       }
-      if (value) {
+      if (value && value.nodeType === 1) {
         ELEM = value;
       }
     };
@@ -707,6 +707,7 @@
         return { topo:id, iso:null, name:null };
       }
 
+      // we only start rendering if we have a containing element
       if (ELEM) {
         var diameter = height || ELEM ? ELEM.clientWidth : 160
           , radius = diameter / 2
@@ -744,7 +745,7 @@
           }
 
           // Create the SVG and initialize the mouse/touch handlers
-          svg = d3.select(ELEM ? '#' + ELEM.id : 'body').append('svg')
+          svg = d3.select(ELEM).append('svg')
               .attr('width', (style === '2D' ? (diameter * 2) : diameter))
               .attr('height', diameter)
               .on('mousedown', mousedown).on('touchstart', mousedown)
@@ -870,10 +871,13 @@
       , EVENTS = [ 'accelerated', 'paused', 'rendered', 'resumed', 'slowed' ]
     ;
 
+    // set the container element
     if (typeof ELEM === 'string') {
       ELEM = document.getElementById(ELEM);
     }
-
+    if (!ELEM || ELEM.nodeType !== 1) {
+      ELEM = document.body;
+    }
     return this;
   };
 
