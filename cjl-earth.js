@@ -1,4 +1,6 @@
 (function (root, factory) {
+  'use strict';
+
   if (typeof define === 'function' && define.amd) {
     define(['d3', 'topojson'], function(d3, topojson) {
       return (root.Cathmhaol = factory(d3, topojson, root));
@@ -35,7 +37,6 @@
      * @default  "#ff0000"
      */
     this.getBorderColor = function() {
-      'use strict';
       return PALETTE.border;
     };
     this.setBorderColor = function(value) {
@@ -49,11 +50,9 @@
      * @type     {string}
      */
     this.getElement = function() {
-      'use strict';
       return ELEM;
     };
     this.setElement = function(value) {
-      'use strict';
       if (typeof value === 'string') {
         value = document.getElementById(value);
       }
@@ -82,11 +81,9 @@
      * @default  "#ff0000"
      */
     this.getMarkerColor = function() {
-      'use strict';
       return PALETTE.marker;
     };
     this.setMarkerColor = function(value) {
-      'use strict';
       if ((/^\#[A-F0-9]{6}/i).test(value)) {
         PALETTE.marker = value;
       }
@@ -97,7 +94,6 @@
      * @type     {string[]}
      */
     this.getMarkerDescriptionData = function() {
-      'use strict';
       return MARKER_DESCRIPTION;
     };
     this.setMarkerDescriptionData = function(value) {
@@ -111,11 +107,9 @@
      * @type     {string}
      */
     this.getMarkerFile = function() {
-      'use strict';
       return MARKER_FILE;
     };
     this.setMarkerFile = function(uri, type) {
-      'use strict';
       if (type) {
         MARKER_FILE.name = uri;
         MARKER_FILE.type = type;
@@ -131,11 +125,9 @@
      * @default  1
      */
     this.getMarkerOpacity = function() {
-      'use strict';
       return PALETTE.markerOpacity;
     };
     this.setMarkerOpacity = function(value) {
-      'use strict';
       // Make sure the value is between 0.0 (transparent) and 1.0 (opaque), inclusive
       if (!isNaN(value) && Math.floor(value * 10) > -1 && Math.floor(value * 10) < 11) {
         PALETTE.markerOpacity = (Math.floor(value * 10) / 10).toString();
@@ -148,11 +140,9 @@
      * @default  3
      */
     this.getMarkerSize = function() {
-      'use strict';
       return MARKER_SIZE;
     };
     this.setMarkerSize = function(value) {
-      'use strict';
       var pc = (/\%/).test(value);
       if (pc) {
         value = value.replace(/\%/, '');
@@ -168,11 +158,9 @@
      * @type     {string[]}
      */
     this.getPalette = function() {
-      'use strict';
       return PALETTE.colors;
     };
     this.setPalette = function(value) {
-      'use strict';
       function validate(value) {
         var i
           , reg = /(\#[A-Z0-9]{6})[^A-Z0-9]?/i
@@ -208,11 +196,9 @@
      * @type     {string}
      */
     this.getTopoFile = function() {
-      'use strict';
       return topo;
     };
     this.setTopoFile = function(value) {
-      'use strict';
       if (typeof value === 'string' && value !== '') {
         topo = value;
       }
@@ -225,7 +211,6 @@
      * @param    {function} handler
      */
     this.addOnCountryClick = function(handler) {
-      'use strict';
       if (typeof handler === 'function') {
         COUNTRY_HANDLERS.push(handler);
       }
@@ -236,7 +221,6 @@
      * @type     {string[]}
      */
     this.events = function() {
-      'use strict';
       return EVENTS;
     };
 
@@ -271,7 +255,6 @@
      * @type     {boolean}
      */
     this.rotatable = function() {
-      'use strict';
       return ROTATABLE;
     };
 
@@ -280,7 +263,6 @@
      * @type     {boolean}
      */
     this.rotating = function() {
-      'use strict';
       return (ROTATABLE && ROTATE_3D);
     };
 
@@ -289,9 +271,8 @@
      * @return   {void}
      */
     this.rotationDecrease = function() {
-      'use strict';
-      if (VELOCITY > .01) {
-        VELOCITY -= .005;
+      if (VELOCITY > 0.01) {
+        VELOCITY -= 0.005;
         fire('slowed');
       }
     };
@@ -301,8 +282,7 @@
      * @return   {void}
      */
     this.rotationIncrease = function() {
-      'use strict';
-      VELOCITY += .005;
+      VELOCITY += 0.005;
       fire('accelerated');
     };
 
@@ -311,7 +291,6 @@
      * @return   {void}
      */
     this.rotationPause = function() {
-      'use strict';
       ROTATE_3D = false;
       fire('paused');
     };
@@ -321,7 +300,6 @@
      * @return   {void}
      */
     this.rotationResume = function() {
-      'use strict';
       ROTATE_3D = true;
       fire('resumed');
     };
@@ -334,8 +312,6 @@
      * @example  var earth = new Cathmhaol.Earth('flatmap', '/js/world-110m.json'); earth.render();
      */
     this.render = function(style) {
-      'use strict';
-
       // Drag handler for dragable regions
       function mousedown(evt) {
         MOUSE_DOWN = new Date();
@@ -391,26 +367,24 @@
       // Draw the location markers based on the data contained in the file
       function drawMarkers(markers) {
         var table   // the marker description table
-          , thead   // head of the marker description table
-          , tbody   // body of the marker description table
           , trows   // rows in the marker description table
           , tcells  // cells in the marker description table
         ;
 
         svg.select('#' + ID).append('g').attr('id', ID + '-markers')
-            .selectAll('path').data(markers).enter().append('path')
-              .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
-              .attr('data-description', function(d) { return d.description; })
-              .style('fill', function(d) { return (d.color || PALETTE.marker); })
-              .style('stroke', function(d) { return (d.color || PALETTE.marker); })
-              .style('stroke-width', 0)
-              .style('stroke-opacity', (PALETTE.markerOpacity || 1))
-                  .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
-                                         , c = parseFloat(d.size || MARKER_SIZE)
-                                         , size = c * m
-                                       ;
-                                       return { type:'Point', coordinates:[(d.longitude || d.lon), (d.latitude || d.lat)], size:size, color:d.color }; })
-              .attr('d', path.pointRadius(2)) //radius of the circle
+           .selectAll('path').data(markers).enter().append('path')
+             .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
+             .attr('data-description', function(d) { return d.description; })
+             .style('fill', function(d) { return (d.color || PALETTE.marker); })
+             .style('stroke', function(d) { return (d.color || PALETTE.marker); })
+             .style('stroke-width', 0)
+             .style('stroke-opacity', (PALETTE.markerOpacity || 1))
+                 .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
+                                        , c = parseFloat(d.size || MARKER_SIZE)
+                                        , size = c * m
+                                      ;
+                                      return { type:'Point', coordinates:[(d.longitude || d.lon), (d.latitude || d.lat)], size:size, color:d.color }; })
+             .attr('d', path.pointRadius(2)) //radius of the circle
           ;
 
         // Add some visual interest to the markers via animation
@@ -428,12 +402,12 @@
 
         // Add a description table if it has been defined
         if (MARKER_DESCRIPTION && MARKER_DESCRIPTION.length) {
-          table = d3.select(ELEM).append('table');
-          thead = table.append('thead');
-          tbody = table.append('tbody');
+          table = d3.select(ELEM).append('table')
+                      .attr('class', 'marker-description')
+            ;
 
           // append the header row
-          thead.append('tr')
+          table.append('tr')
                .selectAll('th')
                .data(MARKER_DESCRIPTION)
                .enter()
@@ -442,7 +416,7 @@
             ;
 
           // create a row for each object in the markers
-          trows = tbody.selectAll('tr')
+          trows = table.selectAll('tr')
                        .data(markers)
                        .enter()
                        .append('tr')
@@ -521,7 +495,7 @@
             { topo:86, iso:"IO", name:"British Indian Ocean Territory" },
             { topo:90, iso:"SB", name:"Solomon Islands" },
             { topo:92, iso:"VG", name:"Virgin Islands, British" },
-            { topo:96, iso:"BN", name:"Brunei Darussalam" }
+            { topo:96, iso:"BN", name:"Brunei Darussalam" },
             { topo:100, iso:"BG", name:"Bulgaria" },
             { topo:104, iso:"MM", name:"Myanmar" },
             { topo:108, iso:"BI", name:"Burundi" },
@@ -740,7 +714,7 @@
             { topo:876, iso:"WF", name:"Wallis and Futuna" },
             { topo:882, iso:"WS", name:"Samoa" },
             { topo:887, iso:"YE", name:"Yemen" },
-            { topo:894, iso:"ZM", name:"Zambia" },
+            { topo:894, iso:"ZM", name:"Zambia" }
           ]
             , i = data.length
         ;
@@ -912,7 +886,7 @@
     }
 
     var d3Colors = d3.scale.category10()
-      , MARKER_ANIMATION = 'pulse', MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
+      , MARKER_ANIMATION = 'pulse', MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
       , PALETTE = {
           border: '#766951',
           colors: [d3Colors(1), d3Colors(2), d3Colors(3), d3Colors(4), d3Colors(5), d3Colors(6), d3Colors(7), d3Colors(8), d3Colors(9), d3Colors(10)],
@@ -921,7 +895,7 @@
           oceans: '#d8ffff'
         }
       , MAP_WIDTH, MAP_HEIGHT
-      , THEN, VELOCITY = .05
+      , THEN, VELOCITY = 0.05
       , ROTATE_3D, ROTATABLE, DRAGGING, MOUSE_DOWN
       , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
       , COUNTRY_HANDLERS = [ ]
