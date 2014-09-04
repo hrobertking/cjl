@@ -336,16 +336,6 @@
     this.render = function(style) {
       'use strict';
 
-      // Country click handler
-      function country_onClick(country) {
-        var i;
-        if (!DRAGGING) {
-          for (i = 0; i < COUNTRY_HANDLERS.length; i += 1) {
-            COUNTRY_HANDLERS[i].call(country);
-          }
-        }
-      }
-
       // Drag handler for dragable regions
       function mousedown(evt) {
         MOUSE_DOWN = new Date();
@@ -844,8 +834,21 @@
                   .style('fill', function(d, i) { d.iso = topoMap(d.id).iso; d.name = topoMap(d.id).name; return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
                   .style('stroke', PALETTE.border)
                   .style('stroke-width', '0.5px')
-                  .on('click', country_onClick)
                 ;
+
+              // Assign the click handlers if defined
+              if (COUNTRY_HANDLERS && COUNTRY_HANDLERS.length) {
+                svg.select('path.country')
+                  .on('click', function country_onClick(country) {
+                     var i;
+                     if (!DRAGGING) {
+                       for (i = 0; i < COUNTRY_HANDLERS.length; i += 1) {
+                         COUNTRY_HANDLERS[i].call(country);
+                       }
+                     }
+                   })
+                ;
+              }
 
               if (MARKER_FILE.name && MARKER_FILE.type) {
                 if ((/csv/i).test(MARKER_FILE.type)) {
