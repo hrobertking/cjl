@@ -438,7 +438,7 @@
                .data(MARKER_DESCRIPTION)
                .enter()
                .append('th')
-                 .text(function(column) { return column; })
+                 .text(function(column) { return column.replace(/\b\w+/g, function(s) { return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase(); }); })
             ;
 
           // create a row for each object in the markers

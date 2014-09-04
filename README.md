@@ -37,6 +37,7 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 - *string* getBorderColor: Returns the border color in hexadecimal format, e.g. #000000
 - *HTMLElement* getElement: Returns the HTML element to which the SVG is attached
 - *string* getMarkerColor: Returns the marker color in hexadecimal format
+- *string[]* getMarkerDescriptionData: Returns a string array containing headers for the marker description table.
 - *object* getMarkerFile: Returns an object containing the URL of the file containing marker data and the file type, e.g., {name:'/my-markers.csv', type:'csv'}. Each marker definition in the marker file must contain 'longitude', 'latitude', and 'size'. If the marker definition contains 'color', the specified color will be used as the marker color. If the marker definition contains 'country', the country will be added to the marker class. If the marker definition contains
 'description', the description will be used to populate the 'data-description' attribute of the marker. Marker file examples are below.
 - *float* getMarkerSize: Returns the size of the marker
@@ -52,6 +53,7 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 - *void* setBorderColor(*string* color): Sets the border color to the provided hexadecimal value
 - *void* setElement(*HTMLElement*|*string* element): Sets the element to attach the SVG
 - *void* setMarkerColor(*string* color): Sets the marker color to the provided hexadecimal value
+- *void* setMarkerDescriptionData(*string[]* headers): Sets the column headers for the marker description table. Note: column headers must match the data returned in the marker file. If headers are defined, a table is added to the container element (appended after the SVG) and data is pulled from the marker file. For example, using setMarkerDescriptionData(['city', 'country', 'amount']) in conjunction with the example CSV file (shown below), will render an HTML table as &lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;City&lt;/th&gt;&lt;th&gt;Country&lt;/th&gt;&lt;th&gt;Amount&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;Toronto&lt;/td&gt;&lt;td&gt;CA&lt;/td&gt;&lt;td&gt;1234&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Frakfurt&lt;/td&gt;&lt;td&gt;DE&lt;/td&gt;&lt;td&gt;5678&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Madrid&lt;/td&gt;&lt;td&gt;ES&lt;/td&gt;&lt;td&gt;9012&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Paris&lt;/td&gt;&lt;td&gt;FR&lt;/td&gt;&lt;td&gt;3456&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;London&lt;/td&gt;&lt;td&gt;GB&lt;/td&gt;&lt;td&gt;7890&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Pantelleria&lt;/td&gt;&lt;td&gt;IT&lt;/td&gt;&lt;td&gt;1234&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Milan&lt;/td&gt;&lt;td&gt;IT&lt;/td&gt;&lt;td&gt;5678&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Miami&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;9012&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Dallas&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;3456&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;San Jose&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;7890&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Washington (DC)&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;1234&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;New York&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;5678&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Nulato&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;9012&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;
 - *void* setMarkerFile(*string*|*object* marker[, *string* type]): Sets the URL of the file containing marker data and the file type. The marker parameter may either be a URL string, if the type is provided, or it may be an object containing the url and type, e.g., {name:'/my-markers.csv', type:'csv'}
 - *void* setMarkerSize(*number*|*string*): Sets the marker size to the size provided. Size may be specified as a number or as a percentage of overall size, e.g., "10%"
 - *void* setPalette(*string[]*|*object* palette): Sets the palette. The palette parameter may either be an array of hexadecimal strings representing colors or it may be an object containing an array of colors as its 'colors' property. It may optionally have the 'border' and 'marker' colors as properties, e.g. {border:'#333333', marker:'#663399', colors:['#ff0000', '#ff3333', '#ff6666', '#ff9999', '#ffcccc', '#ffffff']}
@@ -69,20 +71,20 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 
 *CSV*
 
-    country,latitude,longitude,size,color  
-    CA,43.677223,-79.630556,2,#9933CC  
-    DE,50.030194,8.588047,2,#660099  
-    ES,40.493556,-3.566764,2,#CC00FF  
-    FR,48.856389,2.352222,2,#CC99CC  
-    GB,51.508056,-0.127778,2,#9933DD  
-    IT,38.175958,13.091019,2,#AA00FF  
-    IT,45.445103,9.276739,2,#AA00FF  
-    US,25.79325,-80.290556,2,#663399  
-    US,32.847111,-96.851778,2,#663399  
-    US,37.3626,-121.929022,2,#663399  
-    US,38.944533,-77.455811,3,#663399  
-    US,40.777245,-73.872608,2,#663399  
-    US,64.729444,-158.074167,2,#663399 
+    country,latitude,longitude,size,color,amount,city  
+    CA,43.677223,-79.630556,2,#9933CC,1234,Toronto  
+    DE,50.030194,8.588047,2,#660099,5678,Frakfurt  
+    ES,40.493556,-3.566764,2,#CC00FF,9012,Madrid  
+    FR,48.856389,2.352222,2,#CC99CC,3456,Paris  
+    GB,51.508056,-0.127778,2,#9933DD,7890,London  
+    IT,38.175958,13.091019,2,#AA00FF,1234,Pantelleria  
+    IT,45.445103,9.276739,2,#AA00FF,5678,Milan  
+    US,25.79325,-80.290556,2,#663399,9012,Miami  
+    US,32.847111,-96.851778,2,#663399,3456,Dallas  
+    US,37.3626,-121.929022,2,#663399,7890,San Jose  
+    US,38.944533,-77.455811,3,#663399,1234,Washington (DC)  
+    US,40.777245,-73.872608,2,#663399,5678,New York  
+    US,64.729444,-158.074167,2,#663399,9012,Nulato 
    
 
 ## Licensing
