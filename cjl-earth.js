@@ -367,8 +367,11 @@
       // Draw the location markers based on the data contained in the file
       function drawMarkers(markers) {
         var table   // the marker description table
+          , thead   // the header of the marker description table
+          , tbody   // the body of the marker description table
           , trows   // rows in the marker description table
           , tcells  // cells in the marker description table
+          , css     // stylesheet for the sortable table
         ;
 
         svg.select('#' + ID).append('g').attr('id', ID + '-markers')
@@ -402,21 +405,95 @@
 
         // Add a description table if it has been defined
         if (MARKER_DESCRIPTION && MARKER_DESCRIPTION.length) {
+          // sample style for a scrollable table - hard-coded widths are based on the calculated widths of the header columns
+          //   table.marker-description { border:1px solid #000; box-shadow: 10px 10px 5px #888888; position:absolute; right:10px; top:140px; }
+          //   table.marker-description tbody { height:10em; overflow-y:scroll; }
+          //   table.marker-description th:nth-of-type(1), table.marker-description td:nth-of-type(1) { width:60px; }
+          //   table.marker-description th:nth-of-type(2), table.marker-description td:nth-of-type(2) { width:50px; }
+          //   table.marker-description th:nth-of-type(3), table.marker-description td:nth-of-type(3) { width:170px; }
+          //   table.marker-description th:nth-of-type(4), table.marker-description td:nth-of-type(4) { width:40px; }
+          //   table.marker-description thead, table.marker-description tbody { display:block; }
+
+          // style for a sortable table
+          css = document.getElementById('cjl-sortable-css');
+          if (!css) {
+            css = document.createElement('style');
+            css.setAttribute('id', 'cjl-sortable-css');
+            css.setAttribute('type', 'text/css');
+            // set the arrow style
+            css.innerHTML += '.sortable { cursor:pointer; }\n';
+            css.innerHTML += '.sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }\n';
+            css.innerHTML += '.sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }\n';
+            css.innerHTML += '.sortable.sorted { color:#ff0000; }\n';
+            css.innerHTML += '.sortable.sorted:before { content:"*"; }\n';
+            document.body.appendChild(css);
+          }
+
+          // create the table
           table = d3.select(ELEM).append('table')
                       .attr('class', 'marker-description')
             ;
+          thead = table.append('thead');
+          tbody = table.append('tbody');
 
           // append the header row
-          table.append('tr')
+          thead.append('tr')
                .selectAll('th')
                .data(MARKER_DESCRIPTION)
                .enter()
                .append('th')
-                 .text(function(column) { return column.replace(/\b\w+/g, function(s) { return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase(); }); })
+                 .attr('id', function(d, i) {
+                    return 'marker-description-header-column-' + i;
+                  })
+                 .attr('class', 'sortable')
+                 .text(function(d, i) {
+                    return d.replace(/\b\w+/g, function(s) {
+                      return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
+                    });
+                  })
+                 .on('click', function (d, i) {
+                    var clicked = d3.select('#marker-description-header-column-' + i)
+                      , sorted = d3.select(clicked.node().parentNode).selectAll('.sortable.sorted')
+                      , desc = clicked.classed('desc')
+                    ;
+
+                    // reset the 'sorted' class on siblings
+                    sorted.classed('sorted', false);
+
+                    if (desc) {
+                      clicked.classed({'desc': false, 'sorted': true});
+                      tbody.selectAll('tr').sort(function ascending(a, b) {
+                          a = a[d];  // select the property to compare
+                          b = b[d];  // select the property to compare
+                          if (a !== null && a !== undefined) {
+                            if (a.localeCompare) {
+                              return a.localeCompare(b);
+                            } else {
+                              return a - b;
+                            }
+                          }
+                          return 0;
+                        });
+                    } else {
+                      clicked.classed({'desc': true, 'sorted': true});
+                      tbody.selectAll('tr').sort(function descending(a, b) {
+                          a = a[d];  // select the property to compare
+                          b = b[d];  // select the property to compare
+                          if (b !== null && b !== undefined) {
+                            if (b.localeCompare) {
+                              return b.localeCompare(a);
+                            } else {
+                              return b - a;
+                            }
+                          }
+                          return 0;
+                        });
+                    }
+                  });
             ;
 
           // create a row for each object in the markers
-          trows = table.selectAll('tr')
+          trows = tbody.selectAll('tr')
                        .data(markers)
                        .enter()
                        .append('tr')
