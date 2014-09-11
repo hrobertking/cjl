@@ -88,8 +88,8 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
     US,40.777245,-73.872608,2,#663399,5678,New York  
     US,64.729444,-158.074167,2,#663399,9012,Nulato 
 
-### Earth
-A handy little library for quickly developing a map with location markers. You can see a working prototype over at http://products.cathmhaol.com/prototypes/earth/.
+### ScrollableTable
+A handy little library for quickly developing a scrollable, sortable table.
 
 *object* Cathmhaol.ScrollableTable(*HTMLElement|string* element, *string[]* columns, *object[]* data);  
 Example:
@@ -98,17 +98,28 @@ Example:
      if (error) {
        throw new ReferenceError('Data not available');
      } else if (data) {
-       var table = new Cathmhaol.ScrollableTable(document.body, ['city', 'country', 'latitude', 'longitude'], data);
+       var table = new Cathmhaol.ScrollableTable(document.body, 
+         ['city', 'country', 'latitude', 'longitude'], 
+         data);
      }
     });
+    
     -- will append the following HTML to the document body --
     <table id="cjl-scrollabletable-1410468610353">
       <thead>
         <tr>
-          <th id="cjl-scrollabletable-1410468610353-header-column-0" class="sortable">City</th>
-          <th id="cjl-scrollabletable-1410468610353-header-column-1" class="sortable desc sorted">Country</th>
-          <th id="cjl-scrollabletable-1410468610353-header-column-2" class="sortable">Latitude</th>
-          <th id="cjl-scrollabletable-1410468610353-header-column-3" class="sortable">Longitude</th>
+          <th id="cjl-scrollabletable-1410468610353-header-column-0" class="sortable">
+            City
+          </th>
+          <th id="cjl-scrollabletable-1410468610353-header-column-1" class="sortable desc sorted">
+            Country
+          </th>
+          <th id="cjl-scrollabletable-1410468610353-header-column-2" class="sortable">
+            Latitude
+          </th>
+          <th id="cjl-scrollabletable-1410468610353-header-column-3" class="sortable">
+            Longitude
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -138,19 +149,60 @@ Example:
         </tr>
       </tbody>
     </table>
+    
     -- and the following style (widths may be different, based on font sizes) --
     <style id="cjl-scrollabletable-style" type="text/css">
-      #cjl-scrollabletable-1410468610353 .sortable { cursor:pointer; padding:inherit 0.1em; }
-      #cjl-scrollabletable-1410468610353 .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }
-      #cjl-scrollabletable-1410468610353 .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }
-      #cjl-scrollabletable-1410468610353 .sortable.sorted { color:#ff0000; }
-      #cjl-scrollabletable-1410468610353 { border:1px solid #000; box-shadow:0.5em 0.5em 0.25em rgba(136, 136, 136, 0.5); }
-      #cjl-scrollabletable-1410468610353 tbody { height:10em; overflow-y:scroll; }
-      #cjl-scrollabletable-1410468610353 thead, #cjl-scrollabletable-1410468610353 tbody { display:block; }
-      #cjl-scrollabletable-1410468610353 th:nth-of-type(1), #cjl-scrollabletable-1410468610353 td:nth-of-type(1) { width:185px; }
-      #cjl-scrollabletable-1410468610353 th:nth-of-type(2), #cjl-scrollabletable-1410468610353 td:nth-of-type(2) { width:80px; }
-      #cjl-scrollabletable-1410468610353 th:nth-of-type(3), #cjl-scrollabletable-1410468610353 td:nth-of-type(3) { width:185px; }
-      #cjl-scrollabletable-1410468610353 th:nth-of-type(4), #cjl-scrollabletable-1410468610353 td:nth-of-type(4) { width:185px; }
+      #cjl-scrollabletable-1410468610353 .sortable { 
+        cursor:pointer; 
+        padding:inherit 0.1em; 
+      }
+      #cjl-scrollabletable-1410468610353 .sortable:after { 
+        border-bottom:0.3em solid #000;
+        border-left:0.3em solid transparent;
+        border-right:0.3em solid transparent;
+        bottom:0.75em;
+        content:"";
+        height:0;
+        margin-left:0.1em;
+        position:relative;
+        width:0;
+      }
+      #cjl-scrollabletable-1410468610353 .sortable.desc:after { 
+        border-bottom:none;
+        border-top:0.3em solid #000;
+        top:0.75em;
+      }
+      #cjl-scrollabletable-1410468610353 .sortable.sorted { 
+        color:#ff0000;
+      }
+      #cjl-scrollabletable-1410468610353 { 
+        border:1px solid #000;
+        box-shadow:0.5em 0.5em 0.25em rgba(136, 136, 136, 0.5);
+      }
+      #cjl-scrollabletable-1410468610353 tbody { 
+        height:10em;
+        overflow-y:scroll;
+      }
+      #cjl-scrollabletable-1410468610353 thead, 
+      #cjl-scrollabletable-1410468610353 tbody { 
+        display:block;
+      }
+      #cjl-scrollabletable-1410468610353 th:nth-of-type(1),
+      #cjl-scrollabletable-1410468610353 td:nth-of-type(1) { 
+        width:185px;
+      }
+      #cjl-scrollabletable-1410468610353 th:nth-of-type(2),
+      #cjl-scrollabletable-1410468610353 td:nth-of-type(2) { 
+        width:80px;
+      }
+      #cjl-scrollabletable-1410468610353 th:nth-of-type(3),
+      #cjl-scrollabletable-1410468610353 td:nth-of-type(3) { 
+        width:185px;
+      }
+      #cjl-scrollabletable-1410468610353 th:nth-of-type(4),
+      #cjl-scrollabletable-1410468610353 td:nth-of-type(4) { 
+        width:185px;
+      }
     </style>
 
 
