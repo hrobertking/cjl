@@ -25,6 +25,8 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 * topoJSON --- http://d3js.org/topojson.v1.min.js
 * topoJSONdata --- e.g. world-110m.json
 
+#### Properties
+
 #### Methods
 - *void* addOnCountryClick(*function* handler): Adds an event handler for the click event for a country. Inside the handler, the 'this' keyword, refers to the country clicked, and will have the following properties:
     * type: the string 'Feature'
@@ -63,10 +65,10 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 *JSON*
 
     [
-      { "country":"KR", "latitude":"37.469075", "longitude":"126.450517", "size":7 },
-      { "country":"DE", "latitude":"50.030194", "longitude":"8.588047", "size":2 },
-      { "country":"IT", "latitude":"45.445103", "longitude":"9.276739", "size":2 },
-      { "country":"US", "latitude":"33.942536", "longitude":"-118.408075", "size":2 }
+      { "country":"GB", "city":"London", "latitude":"51.508056", "longitude":"-0.127778", "size":7 },
+      { "country":"DE", "city":"Frankfurt", "latitude":"50.030194", "longitude":"8.588047", "size":3 },
+      { "country":"IT", "city":"Milan", "latitude":"45.445103", "longitude":"9.276739", "size":2 },
+      { "country":"US", "city":"Phoenix", "latitude":"33.4322013855", "longitude":"-112.007003784", "size":5 }
     ]
 
 *CSV*
@@ -85,7 +87,106 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
     US,38.944533,-77.455811,3,#663399,1234,Washington (DC)  
     US,40.777245,-73.872608,2,#663399,5678,New York  
     US,64.729444,-158.074167,2,#663399,9012,Nulato 
-   
+
+### Earth
+A handy little library for quickly developing a map with location markers. You can see a working prototype over at http://products.cathmhaol.com/prototypes/earth/.
+
+*object* Cathmhaol.ScrollableTable(*HTMLElement|string* element, *string[]* columns, *object[]* data);  
+Example:
+
+    d3.csv('/my_rest_api?format=json', function(error, data) {  
+     if (error) {
+       throw new ReferenceError('Data not available');
+     } else if (data) {
+       var table = new Cathmhaol.ScrollableTable(document.body, ['city', 'country', 'latitude', 'longitude'], data);
+     }
+    });
+    -- will append the following HTML to the document body --
+    <table id="cjl-scrollabletable-1410468610353">
+      <thead>
+        <tr>
+          <th id="cjl-scrollabletable-1410468610353-header-column-0" class="sortable">City</th>
+          <th id="cjl-scrollabletable-1410468610353-header-column-1" class="sortable desc sorted">Country</th>
+          <th id="cjl-scrollabletable-1410468610353-header-column-2" class="sortable">Latitude</th>
+          <th id="cjl-scrollabletable-1410468610353-header-column-3" class="sortable">Longitude</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Phoenix</td>
+          <td>US</td>
+          <td>33.4322013855</td>
+          <td>-112.007003784</td>
+        </tr>
+        <tr>
+          <td>Milan</td>
+          <td>IT</td>
+          <td>45.445103</td>
+          <td>9.276739</td>
+        </tr>
+        <tr>
+          <td>London</td>
+          <td>GB</td>
+          <td>51.508056</td>
+          <td>-0.127778</td>
+        </tr>
+        <tr>
+          <td>Frankfurt</td>
+          <td>DE</td>
+          <td>50.030194</td>
+          <td>8.588047</td>
+        </tr>
+      </tbody>
+    </table>
+    -- and the following style (widths may be different, based on font sizes) --
+    <style id="cjl-scrollabletable-style" type="text/css">
+      #cjl-scrollabletable-1410468610353 .sortable { cursor:pointer; padding:inherit 0.1em; }
+      #cjl-scrollabletable-1410468610353 .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }
+      #cjl-scrollabletable-1410468610353 .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }
+      #cjl-scrollabletable-1410468610353 .sortable.sorted { color:#ff0000; }
+      #cjl-scrollabletable-1410468610353 { border:1px solid #000; box-shadow:0.5em 0.5em 0.25em rgba(136, 136, 136, 0.5); }
+      #cjl-scrollabletable-1410468610353 tbody { height:10em; overflow-y:scroll; }
+      #cjl-scrollabletable-1410468610353 thead, #cjl-scrollabletable-1410468610353 tbody { display:block; }
+      #cjl-scrollabletable-1410468610353 th:nth-of-type(1), #cjl-scrollabletable-1410468610353 td:nth-of-type(1) { width:185px; }
+      #cjl-scrollabletable-1410468610353 th:nth-of-type(2), #cjl-scrollabletable-1410468610353 td:nth-of-type(2) { width:80px; }
+      #cjl-scrollabletable-1410468610353 th:nth-of-type(3), #cjl-scrollabletable-1410468610353 td:nth-of-type(3) { width:185px; }
+      #cjl-scrollabletable-1410468610353 th:nth-of-type(4), #cjl-scrollabletable-1410468610353 td:nth-of-type(4) { width:185px; }
+    </style>
+
+
+#### Requires:
+* d3 --- http://d3js.org/d3.v3.min.js
+
+#### Properties
+
+#### Methods
+
+#### Data File Examples
+*JSON*
+
+    [
+      { "country":"GB", "city":"London", "latitude":"51.508056", "longitude":"-0.127778", "size":7 },
+      { "country":"DE", "city":"Frankfurt", "latitude":"50.030194", "longitude":"8.588047", "size":3 },
+      { "country":"IT", "city":"Milan", "latitude":"45.445103", "longitude":"9.276739", "size":2 },
+      { "country":"US", "city":"Phoenix", "latitude":"33.4322013855", "longitude":"-112.007003784", "size":5 }
+    ]
+
+*CSV*
+
+    country,latitude,longitude,size,color,amount,city  
+    CA,43.677223,-79.630556,2,#9933CC,1234,Toronto  
+    DE,50.030194,8.588047,2,#660099,5678,Frakfurt  
+    ES,40.493556,-3.566764,2,#CC00FF,9012,Madrid  
+    FR,48.856389,2.352222,2,#CC99CC,3456,Paris  
+    GB,51.508056,-0.127778,2,#9933DD,7890,London  
+    IT,38.175958,13.091019,2,#AA00FF,1234,Pantelleria  
+    IT,45.445103,9.276739,2,#AA00FF,5678,Milan  
+    US,25.79325,-80.290556,2,#663399,9012,Miami  
+    US,32.847111,-96.851778,2,#663399,3456,Dallas  
+    US,37.3626,-121.929022,2,#663399,7890,San Jose  
+    US,38.944533,-77.455811,3,#663399,1234,Washington (DC)  
+    US,40.777245,-73.872608,2,#663399,5678,New York  
+    US,64.729444,-158.074167,2,#663399,9012,Nulato 
 
 ## Licensing
 

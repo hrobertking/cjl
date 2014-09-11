@@ -26,7 +26,7 @@
    *
    * @author   Robert King (hrobertking@cathmhaol.com)
    *
-   * @example  d3.csv('/my_rest_api?format=csv', function(error, data) { if (error) { throw new ReferenceError('Data not available'); } else if (markers) { var table = new Cathmhaol.ScrollableTable(document.body, ['foo', 'bar', 'snafu'], data); }
+   * @example  d3.csv('/my_rest_api?format=csv', function(error, data) { if (error) { throw new ReferenceError('Data not available'); } else if (data) { var table = new Cathmhaol.ScrollableTable(document.body, ['foo', 'bar', 'snafu'], data); }
    */
   Cathmhaol.ScrollableTable = function(container, columns, data) {
     var id_style = 'cjl-scrollabletable-style'
@@ -55,12 +55,13 @@
       // write the sortable styles so we get the adjusted widths when we write the scrollable styles
       if (style) {
         // style for a sortable table
+        rules = [];
         rules.push('#' + id_table + ' .sortable { cursor:pointer; padding:inherit 0.1em; }');
         rules.push('#' + id_table + ' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
         rules.push('#' + id_table + ' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
         rules.push('#' + id_table + ' .sortable.sorted { color:#ff0000; }');
 
-        style.innerHTML = rules.join('\n');
+        style.innerHTML += rules.join('\n');
 
         if (style.parentNode) {
           style.parentNode.removeChild(style);
@@ -70,7 +71,6 @@
 
       // create the table
       table = d3.select(container).append('table')
-                  .attr('class', 'marker-description')
                   .attr('id', id_table)
         ;
       thead = table.append('thead');
@@ -156,6 +156,7 @@
       // build the stylesheet
       if (style) {
         // style for a scrollable table
+        rules = [];
         rules.push('#' + id_table + ' { border:1px solid #000; box-shadow:0.5em 0.5em 0.25em rgba(136, 136, 136, 0.5); }');
         rules.push('#' + id_table + ' tbody { height:10em; overflow-y:scroll; }');
         rules.push('#' + id_table + ' thead, #' + id_table + ' tbody { display:block; }');
