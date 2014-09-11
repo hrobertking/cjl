@@ -366,12 +366,16 @@
 
       // Draw the location markers based on the data contained in the file
       function drawMarkers(markers) {
-        var table   // the marker description table
-          , thead   // the header of the marker description table
-          , tbody   // the body of the marker description table
-          , trows   // rows in the marker description table
-          , tcells  // cells in the marker description table
-          , css     // stylesheet for the sortable table
+        var id_style = 'cjl-scrollabletable-style'
+          , id_table = 'cjl-scrollabletable-' + (new Date()).getTime()
+          , css = document.getElementById(id_style) || document.createElement('style')
+          , ndx          // loop index
+          , rules = [ ]  // stylesheet rules
+          , table        // the marker description table
+          , tbody        // the body of the marker description table
+          , tcells       // cells in the marker description table
+          , thead        // the header of the marker description table
+          , trows        // rows in the marker description table
         ;
 
         svg.select('#' + ID).append('g').attr('id', ID + '-markers')
@@ -405,33 +409,35 @@
 
         // Add a description table if it has been defined
         if (MARKER_DESCRIPTION && MARKER_DESCRIPTION.length) {
-          // sample style for a scrollable table - hard-coded widths are based on the calculated widths of the header columns
-          //   table.marker-description { border:1px solid #000; box-shadow: 10px 10px 5px #888888; position:absolute; right:10px; top:140px; }
-          //   table.marker-description tbody { height:10em; overflow-y:scroll; }
-          //   table.marker-description th:nth-of-type(1), table.marker-description td:nth-of-type(1) { width:60px; }
-          //   table.marker-description th:nth-of-type(2), table.marker-description td:nth-of-type(2) { width:50px; }
-          //   table.marker-description th:nth-of-type(3), table.marker-description td:nth-of-type(3) { width:170px; }
-          //   table.marker-description th:nth-of-type(4), table.marker-description td:nth-of-type(4) { width:40px; }
-          //   table.marker-description thead, table.marker-description tbody { display:block; }
+          id_style = 'cjl-scrollabletable-style';
+          id_table = 'cjl-scrollabletable-' + (new Date()).getTime();
 
-          // style for a sortable table
-          css = document.getElementById('cjl-sortable-css');
-          if (!css) {
-            css = document.createElement('style');
-            css.setAttribute('id', 'cjl-sortable-css');
+          // build the stylesheet
+          if (css) {
+            css.setAttribute('id', id_style);
             css.setAttribute('type', 'text/css');
-            // set the arrow style
-            css.innerHTML += '.sortable { cursor:pointer; }\n';
-            css.innerHTML += '.sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }\n';
-            css.innerHTML += '.sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }\n';
-            css.innerHTML += '.sortable.sorted { color:#ff0000; }\n';
-            css.innerHTML += '.sortable.sorted:before { content:"*"; }\n';
+          }
+
+          // write the sortable styles so we get the adjusted widths when we write the scrollable styles
+          if (css) {
+            // style for a sortable table
+            rules.push('#' + id_table + ' .sortable { cursor:pointer; padding:inherit 0.1em; }');
+            rules.push('#' + id_table + ' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
+            rules.push('#' + id_table + ' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
+            rules.push('#' + id_table + ' .sortable.sorted { color:#ff0000; }');
+
+            css.innerHTML = rules.join('\n');
+
+            if (css.parentNode) {
+              css.parentNode.removeChild(css);
+            }
             document.body.appendChild(css);
           }
 
           // create the table
           table = d3.select(ELEM).append('table')
                       .attr('class', 'marker-description')
+                      .attr('id', id_table)
             ;
           thead = table.append('thead');
           tbody = table.append('tbody');
@@ -443,7 +449,7 @@
                .enter()
                .append('th')
                  .attr('id', function(d, i) {
-                    return 'marker-description-header-column-' + i;
+                    return id_table + '-header-column-' + i;
                   })
                  .attr('class', 'sortable')
                  .text(function(d, i) {
@@ -452,7 +458,7 @@
                     });
                   })
                  .on('click', function (d, i) {
-                    var clicked = d3.select('#marker-description-header-column-' + i)
+                    var clicked = d3.select('#' + id_table + '-header-column-' + i)
                       , sorted = d3.select(clicked.node().parentNode).selectAll('.sortable.sorted')
                       , desc = clicked.classed('desc')
                     ;
@@ -463,30 +469,32 @@
                     if (desc) {
                       clicked.classed({'desc': false, 'sorted': true});
                       tbody.selectAll('tr').sort(function ascending(a, b) {
+                          var ret = 0;
                           a = a[d];  // select the property to compare
                           b = b[d];  // select the property to compare
                           if (a !== null && a !== undefined) {
                             if (a.localeCompare) {
-                              return a.localeCompare(b);
+                              ret = a.localeCompare(b);
                             } else {
-                              return a - b;
+                              ret = a - b;
                             }
                           }
-                          return 0;
+                          return ret;
                         });
                     } else {
                       clicked.classed({'desc': true, 'sorted': true});
                       tbody.selectAll('tr').sort(function descending(a, b) {
+                          var ret = 0;
                           a = a[d];  // select the property to compare
                           b = b[d];  // select the property to compare
                           if (b !== null && b !== undefined) {
                             if (b.localeCompare) {
-                              return b.localeCompare(a);
+                              ret = b.localeCompare(a);
                             } else {
-                              return b - a;
+                              ret = b - a;
                             }
                           }
-                          return 0;
+                          return ret;
                         });
                     }
                   });
@@ -508,7 +516,37 @@
                          })
                         .enter()
                         .append('td')
-                          .html(function(d) { return d.value; });
+                          .html(function(d) { return d.value; })
+            ;
+
+          // build the stylesheet
+          if (css) {
+            // style for a scrollable table
+            rules.push('#' + id_table + ' { border:1px solid #000; box-shadow:0.5em 0.5em 0.25em rgba(136, 136, 136, 0.5); }');
+            rules.push('#' + id_table + ' tbody { height:10em; overflow-y:scroll; }');
+            rules.push('#' + id_table + ' thead, #' + id_table + ' tbody { display:block; }');
+
+            tcells = document.getElementById(id_table).getElementsByTagName('tr').item(0).childNodes;
+            for (ndx = 0; ndx < tcells.length; ndx += 1) {
+              rules.push('#' + id_table + ' th:nth-of-type(' + (ndx + 1) + '), #' + id_table + ' td:nth-of-type(' + (ndx + 1) + ') { width:' + (tcells.item(ndx).offsetWidth + 15) + 'px; }'); // add 15 pixels to accommodate sort markers
+            }
+
+            css.innerHTML = rules.join('\n');
+
+            if (css.parentNode) {
+              css.parentNode.removeChild(css);
+            }
+            document.body.appendChild(css);
+          }
+
+          // sort the table on the first sortable column by default
+          tcells = document.getElementById(id_table).getElementsByTagName('th');
+          for (ndx = 0; ndx < tcells.length; ndx += 1) {
+            if ((/\bsortable\b/).test(tcells.item(ndx).className)) {
+              tcells.item(ndx).click();
+              break;
+            }
+          }
         }
       }
       // Make the markers 'pulse' 
