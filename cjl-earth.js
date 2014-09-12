@@ -365,21 +365,24 @@
       }
 
       // Draw the location markers based on the data contained in the file
-      function drawMarkers(markers) {
-        var id_style = 'cjl-scrollabletable-style'
-          , id_table = 'cjl-scrollabletable-' + (new Date()).getTime()
-          , css = document.getElementById(id_style) || document.createElement('style')
-          , ndx          // loop index
-          , rules = [ ]  // stylesheet rules
-          , table        // the marker description table
-          , tbody        // the body of the marker description table
-          , tcells       // cells in the marker description table
-          , thead        // the header of the marker description table
-          , trows        // rows in the marker description table
+      function drawMarkers(data) {
+        var columns = MARKER_DESCRIPTION                                                  // a string array containing column names corresponding to property names in D3 data
+          , container = ELEM                                                              // the HTML element that will contain the table
+          , id_style = 'cjl-STable-style'                                                 // id for the style element
+          , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
+          , ndx                                                                           // loop index
+          , rules = [ ]                                                                   // stylesheet rules
+          , style = document.getElementById(id_style) || document.createElement('style')  // the style element for the table
+          , table                                                                         // the table
+          , tbody                                                                         // the body of the table
+          , tcells                                                                        // cells in the table
+          , tfoot                                                                         // the table footer
+          , thead                                                                         // the header of the table
+          , trows                                                                         // rows in the table
         ;
 
         svg.select('#' + ID).append('g').attr('id', ID + '-markers')
-           .selectAll('path').data(markers).enter().append('path')
+           .selectAll('path').data(data).enter().append('path')
              .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
              .attr('data-description', function(d) { return d.description; })
              .style('fill', function(d) { return (d.color || PALETTE.marker); })
@@ -407,61 +410,67 @@
             break;
         }
 
-        // Add a description table if it has been defined
-        if (MARKER_DESCRIPTION && MARKER_DESCRIPTION.length) {
-          id_style = 'cjl-scrollabletable-style';
-          id_table = 'cjl-scrollabletable-' + (new Date()).getTime();
-
+        // Add a description table if it has been defined, using the same logic as cjl-scrollabletable
+        if (columns && columns.length) {
           // build the stylesheet
-          if (css) {
-            css.setAttribute('id', id_style);
-            css.setAttribute('type', 'text/css');
+          if (style) {
+            style.setAttribute('id', id_style);
+            style.setAttribute('type', 'text/css');
           }
 
           // write the sortable styles so we get the adjusted widths when we write the scrollable styles
-          if (css) {
+          if (style) {
             // style for a sortable table
+            rules = [];
             rules.push('#' + id_table + ' .sortable { cursor:pointer; padding:inherit 0.1em; }');
             rules.push('#' + id_table + ' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
             rules.push('#' + id_table + ' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
             rules.push('#' + id_table + ' .sortable.sorted { color:#ff0000; }');
 
-            css.innerHTML = rules.join('\n');
+            style.innerHTML += rules.join('\n');
 
-            if (css.parentNode) {
-              css.parentNode.removeChild(css);
+            if (!style.parentNode) {
+              document.body.appendChild(style);
             }
-            document.body.appendChild(css);
           }
 
           // create the table
-          table = d3.select(ELEM).append('table')
-                      .attr('class', 'marker-description')
+          table = d3.select(container).append('table')
+                      .attr('class', 'scrollable marker-description')
                       .attr('id', id_table)
             ;
           thead = table.append('thead');
+          tfoot = table.append('tfoot');
           tbody = table.append('tbody');
 
           // append the header row
           thead.append('tr')
                .selectAll('th')
-               .data(MARKER_DESCRIPTION)
+               .data(columns)
                .enter()
                .append('th')
-                 .attr('id', function(d, i) {
-                    return id_table + '-header-column-' + i;
+                 .attr('class', function(d, i) {
+                    var issort = (d.sortable === null || d.sortable === undefined) ? true : d.sortable;
+                    return (d.name || d) + (issort ? ' sortable' : '');
                   })
-                 .attr('class', 'sortable')
                  .text(function(d, i) {
-                    return d.replace(/\b\w+/g, function(s) {
+                    var name = d.name || d;
+                    return name.replace(/\b\w+/g, function(s) {
                       return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
                     });
                   })
+            ;
+
+          // attach the click handler
+          thead.selectAll('th.sortable')
                  .on('click', function (d, i) {
-                    var clicked = d3.select('#' + id_table + '-header-column-' + i)
+                    var clicked = d3.select(this)
                       , sorted = d3.select(clicked.node().parentNode).selectAll('.sortable.sorted')
                       , desc = clicked.classed('desc')
                     ;
+
+                    // normalize the data
+                    d = d.name || d;
 
                     // reset the 'sorted' class on siblings
                     sorted.classed('sorted', false);
@@ -497,12 +506,24 @@
                           return ret;
                         });
                     }
-                  });
+                  })
+            ;
+
+          // create the footer
+          tfoot.append('tr')
+               .selectAll('td')
+               .data(columns)
+               .enter()
+               .append('td')
+                 .attr('class', function(d, i) {
+                    return (d.name || d);
+                  })
+                 .html('&nbsp;')
             ;
 
           // create a row for each object in the markers
           trows = tbody.selectAll('tr')
-                       .data(markers)
+                       .data(data)
                        .enter()
                        .append('tr')
             ;
@@ -510,33 +531,38 @@
           // create a cell in each row for each column
           tcells = trows.selectAll('td')
                         .data(function(row) {
-                           return MARKER_DESCRIPTION.map(function(column) {
-                             return {column: column, value: row[column]};
+                           return columns.map(function(column) {
+                             return {column: (column.name || column), value: row[(column.name || column)]};
                            });
                          })
                         .enter()
                         .append('td')
+                          .attr('class', function(d) { return d.column; })
                           .html(function(d) { return d.value; })
             ;
 
           // build the stylesheet
-          if (css) {
+          if (style) {
             // style for a scrollable table
-            rules.push('#' + id_table + ' { border:1px solid #000; box-shadow:0.5em 0.5em 0.25em rgba(136, 136, 136, 0.5); }');
-            rules.push('#' + id_table + ' tbody { height:10em; overflow-y:scroll; }');
-            rules.push('#' + id_table + ' thead, #' + id_table + ' tbody { display:block; }');
+            rules.push('#' + id_table + '.scrollable { display:block; padding:0 0 1.5em 0; }');
+            rules.push('#' + id_table + '.scrollable tbody { height:12em; overflow-y:scroll; }');
+            rules.push('#' + id_table + '.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
+            rules.push('#' + id_table + '.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
+            rules.push('#' + id_table + '.scrollable tfoot { bottom:0; position:absolute; }'); 
+            rules.push('#' + id_table + '.scrollable thead, #' + id_table + ' tfoot, #' + id_table + ' tbody { cursor:default; display:block; margin:0.5em 0; }');
+            rules.push('tbody.banded tr:nth-child(odd) { background-color:rgba(187, 187, 187, 0.8); }');
 
             tcells = document.getElementById(id_table).getElementsByTagName('tr').item(0).childNodes;
             for (ndx = 0; ndx < tcells.length; ndx += 1) {
               rules.push('#' + id_table + ' th:nth-of-type(' + (ndx + 1) + '), #' + id_table + ' td:nth-of-type(' + (ndx + 1) + ') { width:' + (tcells.item(ndx).offsetWidth + 15) + 'px; }'); // add 15 pixels to accommodate sort markers
             }
 
-            css.innerHTML = rules.join('\n');
+            style.innerHTML = rules.join('\n');
 
-            if (css.parentNode) {
-              css.parentNode.removeChild(css);
+            if (style.parentNode) {
+              style.parentNode.removeChild(style);
             }
-            document.body.appendChild(css);
+            document.body.appendChild(style);
           }
 
           // sort the table on the first sortable column by default
