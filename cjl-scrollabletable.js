@@ -18,7 +18,7 @@
   /**
    * Creates a scrollable, sortable table
    *
-   * @param    {string|HTMLElement} container  The unique ID of the HTML element to contain the object
+   * @param    {string|HTMLElement} container  The HTML element that will contain the table
    * @param    {string[]} columns              A string array containing column names corresponding to property names in D3 data
    * @param    {object[]} data                 The D3 data collection
    *
@@ -29,23 +29,21 @@
    * @example  d3.csv('/my_rest_api?format=csv', function(error, data) { if (error) { throw new ReferenceError('Data not available'); } else if (data) { var table = new Cathmhaol.ScrollableTable(document.body, ['foo', 'bar', 'snafu'], data); }
    */
   Cathmhaol.ScrollableTable = function(container, columns, data) {
-    var id_style = 'cjl-scrollabletable-style'
-      , id_table = 'cjl-scrollabletable-' + (new Date()).getTime()
-      , ndx          // loop index
-      , rules = [ ]  // stylesheet rules
-      , style = document.getElementById(id_style) || document.createElement('style')
-      , table        // the marker description table
-      , tbody        // the body of the marker description table
-      , tcells       // cells in the marker description table
-      , thead        // the header of the marker description table
-      , trows        // rows in the marker description table
+    var id_style = 'cjl-STable-style'                                                 // id for the style element
+      , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
+      , ndx                                                                           // loop index
+      , rules = [ ]                                                                   // stylesheet rules
+      , style = document.getElementById(id_style) || document.createElement('style')  // the style element for the table
+      , table                                                                         // the table
+      , tbody                                                                         // the body of the table
+      , tcells                                                                        // cells in the table
+      , tfoot                                                                         // the table footer
+      , thead                                                                         // the header of the table
+      , trows                                                                         // rows in the table
     ;
 
     // Add a description table if it has been defined
     if (columns && columns.length) {
-      id_style = 'cjl-scrollabletable-style';
-      id_table = 'cjl-scrollabletable-' + (new Date()).getTime();
-
       // build the stylesheet
       if (style) {
         style.setAttribute('id', id_style);
@@ -63,17 +61,18 @@
 
         style.innerHTML += rules.join('\n');
 
-        if (style.parentNode) {
-          style.parentNode.removeChild(style);
+        if (!style.parentNode) {
+          document.body.appendChild(style);
         }
-        document.body.appendChild(style);
       }
 
       // create the table
       table = d3.select(container).append('table')
+                  .attr('class', 'scrollable')
                   .attr('id', id_table)
         ;
       thead = table.append('thead');
+      tfoot = table.append('tfoot');
       tbody = table.append('tbody');
 
       // append the header row
@@ -82,20 +81,28 @@
            .data(columns)
            .enter()
            .append('th')
-             .attr('id', function(d, i) {
-                return id_table + '-header-column-' + i;
+             .attr('class', function(d, i) {
+                var issort = (d.sortable === null || d.sortable === undefined) ? true : d.sortable;
+                return (d.name || d) + (issort ? ' sortable' : '');
               })
-             .attr('class', 'sortable')
              .text(function(d, i) {
-                return d.replace(/\b\w+/g, function(s) {
+                var name = d.name || d;
+                return name.replace(/\b\w+/g, function(s) {
                   return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
                 });
               })
+        ;
+
+      // attach the click handler
+      thead.selectAll('th.sortable')
              .on('click', function (d, i) {
-                var clicked = d3.select('#' + id_table + '-header-column-' + i)
+                var clicked = d3.select(this)
                   , sorted = d3.select(clicked.node().parentNode).selectAll('.sortable.sorted')
                   , desc = clicked.classed('desc')
                 ;
+
+                // normalize the data
+                d = d.name || d;
 
                 // reset the 'sorted' class on siblings
                 sorted.classed('sorted', false);
@@ -134,6 +141,18 @@
               })
         ;
 
+      // create the footer
+      tfoot.append('tr')
+           .selectAll('td')
+           .data(columns)
+           .enter()
+           .append('td')
+             .attr('class', function(d, i) {
+                return (d.name || d);
+              })
+             .html('&nbsp;')
+        ;
+
       // create a row for each object in the data
       trows = tbody.selectAll('tr')
                    .data(data)
@@ -145,21 +164,25 @@
       tcells = trows.selectAll('td')
                     .data(function(row) {
                        return columns.map(function(column) {
-                         return {column: column, value: row[column]};
+                         return {column: (column.name || column), value: row[(column.name || column)]};
                        });
                      })
                     .enter()
                     .append('td')
+                      .attr('class', function(d) { return d.column; })
                       .html(function(d) { return d.value; })
         ;
 
       // build the stylesheet
       if (style) {
         // style for a scrollable table
-        rules = [];
-        rules.push('#' + id_table + ' { border:1px solid #000; box-shadow:0.5em 0.5em 0.25em rgba(136, 136, 136, 0.5); }');
-        rules.push('#' + id_table + ' tbody { height:10em; overflow-y:scroll; }');
-        rules.push('#' + id_table + ' thead, #' + id_table + ' tbody { display:block; }');
+        rules.push('#' + id_table + '.scrollable { display:block; padding:0 0 1.5em 0; }');
+        rules.push('#' + id_table + '.scrollable tbody { height:12em; overflow-y:scroll; }');
+        rules.push('#' + id_table + '.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
+        rules.push('#' + id_table + '.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
+        rules.push('#' + id_table + '.scrollable tfoot { bottom:0; position:absolute; }'); 
+        rules.push('#' + id_table + '.scrollable thead, #' + id_table + ' tfoot, #' + id_table + ' tbody { cursor:default; display:block; margin:0.5em 0; }');
+        rules.push('tbody.banded tr:nth-child(odd) { background-color:rgba(187, 187, 187, 0.8); }');
 
         tcells = document.getElementById(id_table).getElementsByTagName('tr').item(0).childNodes;
         for (ndx = 0; ndx < tcells.length; ndx += 1) {
@@ -183,7 +206,6 @@
         }
       }
     }
-
   };
 
   return Cathmhaol;
