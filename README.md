@@ -89,9 +89,15 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
     US,64.729444,-158.074167,2,#663399,9012,Nulato 
 
 ### ScrollableTable
-A handy little library for quickly developing a scrollable, sortable table.
+A handy little library for quickly developing a scrollable, sortable table. The constructor can accept columns specified as strings, e.g.,
+['city', 'country', 'latitude', 'longitude'], objects, e.g., [{name:'city', sortable:true}, {name:'country', sortable:true, sort:true}, 
+{name:'latitude', sortable:true}, {name:'longitude', sortable:false}], or a even a mixture, e.g., [{name:'city', sortable:true}, 'country', 
+{name:'latitude', sortable:false}, {name:'longitude', sortable:false}]. Columns not specified as non-sortable, i.e., without a sortable 
+property equal to false, are treated as sortable. The last column containing the sort property will be used as the initial sort. If no
+column is specified as the default sort, the first sortable column is used.
 
-*object* Cathmhaol.ScrollableTable(*HTMLElement|string* element, *string[]* columns, *object[]* data);  
+
+*object* Cathmhaol.ScrollableTable(*HTMLElement|string* element, *string[]|object[]* columns, *object[]* data);  
 Example:
 
     d3.csv('/my_rest_api?format=json', function(error, data) {  
@@ -108,10 +114,10 @@ Example:
     <table id="cjl-scrollabletable-1410468610353">
       <thead>
         <tr>
-          <th id="cjl-scrollabletable-1410468610353-header-column-0" class="sortable">
+          <th id="cjl-scrollabletable-1410468610353-header-column-0" class="sortable desc sorted">
             City
           </th>
-          <th id="cjl-scrollabletable-1410468610353-header-column-1" class="sortable desc sorted">
+          <th id="cjl-scrollabletable-1410468610353-header-column-1" class="sortable">
             Country
           </th>
           <th id="cjl-scrollabletable-1410468610353-header-column-2" class="sortable">

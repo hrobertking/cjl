@@ -33,6 +33,7 @@
       , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
       , ndx                                                                           // loop index
       , rules = [ ]                                                                   // stylesheet rules
+      , sorted = false                                                                // table has been sorted
       , style = document.getElementById(id_style) || document.createElement('style')  // the style element for the table
       , table                                                                         // the table
       , tbody                                                                         // the body of the table
@@ -198,12 +199,16 @@
       }
 
       // sort the table on the first sortable column by default
-      tcells = document.getElementById(id_table).getElementsByTagName('th');
-      for (ndx = 0; ndx < tcells.length; ndx += 1) {
-        if ((/\bsortable\b/).test(tcells.item(ndx).className)) {
-          tcells.item(ndx).click();
+      ndx = columns.length;
+      while (ndx -= 1 > -1) {
+        if (columns[ndx].sortable !== false && columns[ndx].sort) {
           break;
         }
+      }
+      ndx = Math.max(0, ndx);
+      default_sort = d3.select('th.sortable.' + (columns[ndx].name || columns[ndx])).node() || d3.select('th.sortable').node();
+      if (default_sort) {
+        default_sort.click();
       }
     }
   };
