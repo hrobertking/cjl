@@ -368,6 +368,7 @@
       function drawMarkers(data) {
         var columns = MARKER_DESCRIPTION                                                  // a string array containing column names corresponding to property names in D3 data
           , container = ELEM                                                              // the HTML element that will contain the table
+          , default_sort                                                                  // column to default sort
           , id_style = 'cjl-STable-style'                                                 // id for the style element
           , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
           , ndx                                                                           // loop index
@@ -408,6 +409,19 @@
           case 'none':
             d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size; });
             break;
+        }
+
+        // default the columns
+        if (!columns || !columns.length) {
+          var keys = { }, prop, row;
+          for (row in data) {
+            for (prop in data[row]) {
+              keys[prop] = true;
+            }
+          }
+          for (prop in keys) {
+            columns.push(prop);
+          }
         }
 
         // Add a description table if it has been defined, using the same logic as cjl-scrollabletable
@@ -566,12 +580,16 @@
           }
 
           // sort the table on the first sortable column by default
-          tcells = document.getElementById(id_table).getElementsByTagName('th');
-          for (ndx = 0; ndx < tcells.length; ndx += 1) {
-            if ((/\bsortable\b/).test(tcells.item(ndx).className)) {
-              tcells.item(ndx).click();
+          ndx = columns.length;
+          while (ndx -= 1 > -1) {
+            if (columns[ndx].sortable !== false && columns[ndx].sort) {
               break;
             }
+          }
+          ndx = Math.max(0, ndx);
+          default_sort = d3.select('th.sortable.' + (columns[ndx].name || columns[ndx])).node() || d3.select('th.sortable').node();
+          if (default_sort) {
+            default_sort.click();
           }
         }
       }
