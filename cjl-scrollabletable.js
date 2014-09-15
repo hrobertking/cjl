@@ -31,6 +31,9 @@
   Cathmhaol.ScrollableTable = function(container, columns, data) {
     var id_style = 'cjl-STable-style'                                                 // id for the style element
       , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
+      , keys = { }                                                                    // variable used to obtain keys from the data file if columns are not passed
+      , prop                                                                          // variable used to obtain keys from the data file if columns are not passed
+      , row                                                                           // variable used to obtain keys from the data file if columns are not passed
       , ndx                                                                           // loop index
       , rules = [ ]                                                                   // stylesheet rules
       , sorted = false                                                                // table has been sorted
@@ -42,6 +45,18 @@
       , thead                                                                         // the header of the table
       , trows                                                                         // rows in the table
     ;
+
+    // default the columns
+    if (!columns || !columns.length) {
+      for (row in data) {
+        for (prop in data[row]) {
+          keys[prop] = true;
+        }
+      }
+      for (prop in keys) {
+        columns.push(prop);
+      }
+    }
 
     // Add a description table if it has been defined
     if (columns && columns.length) {
