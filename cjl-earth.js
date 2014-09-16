@@ -496,7 +496,7 @@
                           a = a[d];  // select the property to compare
                           b = b[d];  // select the property to compare
                           if (a !== null && a !== undefined) {
-                            if (a.localeCompare) {
+                            if (a.localeCompare && (isNaN(a) || isNaN(b))) {
                               ret = a.localeCompare(b);
                             } else {
                               ret = a - b;
@@ -511,7 +511,7 @@
                           a = a[d];  // select the property to compare
                           b = b[d];  // select the property to compare
                           if (b !== null && b !== undefined) {
-                            if (b.localeCompare) {
+                            if (b.localeCompare && (isNaN(a) || isNaN(b))) {
                               ret = b.localeCompare(a);
                             } else {
                               ret = b - a;
