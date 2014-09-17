@@ -217,6 +217,18 @@
     };
 
     /**
+     * Adds click event listener for a country
+     * @type     {string}
+     * @return   {void}
+     * @param    {function} handler
+     */
+    this.addOnMarkerClick = function(handler) {
+      if (typeof handler === 'function') {
+        MARKER_HANDLERS.push(handler);
+      }
+    };
+
+    /**
      * Returns a string array containing event names
      * @type     {string[]}
      */
@@ -435,8 +447,8 @@
           // Larger size markers take pulse more slowly
           var fade = d3.selectAll('path.marker')
                 .transition()
-                  .duration(function(d) { return Math.min(d.size * 250, 1400); })
-                  .style('stroke-width', function(d, i) { return d.size; })
+                  .duration(function(d) { return Math.min(d.marker.size * 250, 1400); })
+                  .style('stroke-width', function(d, i) { return d.marker.size; })
                 .transition()
                   .duration(0)
                   .style('stroke-width', 0)
@@ -447,10 +459,10 @@
           // Larger size markers take pulse more slowly
           var fade = d3.selectAll('path.marker')
                 .transition()
-                  .duration(function(d) { return Math.min(d.size * 100, 500); })
-                  .style('stroke-width', function(d, i) { return d.size; })
+                  .duration(function(d) { return Math.min(d.marker.size * 100, 500); })
+                  .style('stroke-width', function(d, i) { return d.marker.size; })
                 .transition()
-                  .duration(function(d, i) { return Math.min(d.size * 200, 1000); })
+                  .duration(function(d, i) { return Math.min(d.marker.size * 200, 1000); })
                   .style('stroke-width', 0)
           ;
         }
@@ -463,11 +475,12 @@
              .style('stroke', function(d) { return (d.color || PALETTE.marker); })
              .style('stroke-width', 0)
              .style('stroke-opacity', (PALETTE.markerOpacity || 1))
-                 .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
-                                        , c = parseFloat(d.size || MARKER_SIZE)
-                                        , size = c * m
-                                      ;
-                                      return { type:'Point', coordinates:[(d.longitude || d.lon), (d.latitude || d.lat)], size:size, color:d.color }; })
+             .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
+                                    , c = parseFloat(d.size || MARKER_SIZE)
+                                    , size = c * m
+                                  ;
+                                  d.size = size;
+                                  return { type:'Point', coordinates:[(d.longitude || d.lon), (d.latitude || d.lat)], marker:d }; })
              .attr('d', path.pointRadius(2)) //radius of the circle
           ;
 
@@ -482,6 +495,20 @@
           case 'none':
             d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size; });
             break;
+        }
+
+        // Assign the click handlers if defined
+        if (MARKER_HANDLERS && MARKER_HANDLERS.length) {
+          svg.selectAll('path.marker')
+            .on('click', function marker_onClick(marker) {
+               var i;
+               if (!DRAGGING) {
+                 for (i = 0; i < MARKER_HANDLERS.length; i += 1) {
+                   MARKER_HANDLERS[i].call(marker);
+                 }
+               }
+             })
+          ;
         }
 
         // default the columns
@@ -1109,7 +1136,7 @@
       , THEN, VELOCITY = 0.05
       , ROTATE_3D, ROTATABLE, DRAGGING, MOUSE_DOWN
       , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
-      , COUNTRY_HANDLERS = [ ]
+      , COUNTRY_HANDLERS = [ ], MARKER_HANDLERS = [ ]
       , EVENT_HANDLERS = { }
       , EVENTS = [ 'accelerated', 'paused', 'rendered', 'resumed', 'slowed' ]
     ;
