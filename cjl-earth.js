@@ -365,9 +365,10 @@
       }
 
       // Draw the location markers based on the data contained in the file
-      function drawMarkers(data) {
+      function drawMarkers() {
         var columns = MARKER_DESCRIPTION                                                  // a string array containing column names corresponding to property names in D3 data
           , container = ELEM                                                              // the HTML element that will contain the table
+          , data = MARKER_DATA                                                            // using the generic 'data' to maintain consistency with scrollabletable
           , default_sort                                                                  // column to default sort
           , id_style = 'cjl-STable-style'                                                 // id for the style element
           , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
@@ -992,7 +993,8 @@
                         console.log('Error retrieving marker file');
                       }
                     } else if (markers) {
-                      drawMarkers(markers);
+                      MARKER_DATA = markers;
+                      drawMarkers();
                     }
                   });
                 } else {
@@ -1002,7 +1004,8 @@
                         console.log('Error retrieving marker file');
                       }
                     } else if (markers) {
-                      drawMarkers(markers);
+                      MARKER_DATA = markers
+                      drawMarkers();
                     }
                   });
                 }
@@ -1045,7 +1048,7 @@
     }
 
     var d3Colors = d3.scale.category10()
-      , MARKER_ANIMATION = 'pulse', MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
+      , MARKER_ANIMATION = 'pulse', MARKER_DATA, MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
       , PALETTE = {
           border: '#766951',
           colors: [d3Colors(1), d3Colors(2), d3Colors(3), d3Colors(4), d3Colors(5), d3Colors(6), d3Colors(7), d3Colors(8), d3Colors(9), d3Colors(10)],
