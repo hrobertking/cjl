@@ -1019,7 +1019,7 @@
 
               // Assign the click handlers if defined
               if (COUNTRY_HANDLERS && COUNTRY_HANDLERS.length) {
-                svg.select('path.country')
+                svg.selectAll('path.country')
                   .on('click', function country_onClick(country) {
                      var i;
                      if (!DRAGGING) {
