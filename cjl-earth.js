@@ -251,6 +251,50 @@
     };
 
     /**
+     * Parses a data table to load marker data
+     * @return   {void}
+     * @param    {string|HTMLElement} table
+     */
+    this.parseMarkerData = function(table) {
+      var hdrs = [ ]
+        , index
+        , tcells
+        , thead
+      ;
+
+      table = (typeof table === 'string') ? document.getElementById(table) : table;
+
+      function data_element(spec, trow) {
+        var ndx, obj = { };
+        for (ndx = 0; ndx < spec.length; ndx += 1) {
+          obj[spec[ndx]] = trow.cells[ndx].innerHTML;
+        }
+        return obj;
+      }
+
+      if (table && table.nodeName.toLowerCase() === 'table') {
+        MARKER_DATA = [ ];
+
+        // parse the table
+        thead = table.getElementsByTagName('thead').item(0);
+        tbody = table.getElementsByTagName('tbody').item(0);
+        if (thead && tbody) {
+          // get the column headers
+          tcells = thead.rows[0].cells
+          for (index = 0; index < tcells.length; index += 1) {
+            hdrs.push(tcells[index].innerHTML);
+          }
+
+          // get the data
+          tcells = tbody.rows;
+          for (index = 0; index < tcells.length; index += 1) {
+            MARKER_DATA.push(new data_element(hdrs, tcells[index]));
+          }
+        }
+      }
+    };
+
+    /**
      * Map is rotatable, i.e., a globe
      * @type     {boolean}
      */
@@ -381,7 +425,35 @@
           , tfoot                                                                         // the table footer
           , thead                                                                         // the header of the table
           , trows                                                                         // rows in the table
+          , keys = { }                                                                    // a collection of keys as they're defined in the dataset
+          , prop                                                                          // property of a specific data element
+          , row                                                                           // a specific data element
         ;
+
+        // Make the markers 'pulse' 
+        function ping() {
+          // Larger size markers take pulse more slowly
+          var fade = d3.selectAll('path.marker')
+                .transition()
+                  .duration(function(d) { return Math.min(d.size * 250, 1400); })
+                  .style('stroke-width', function(d, i) { return d.size; })
+                .transition()
+                  .duration(0)
+                  .style('stroke-width', 0)
+          ;
+        }
+        // Make the markers 'pulse' 
+        function pulse() {
+          // Larger size markers take pulse more slowly
+          var fade = d3.selectAll('path.marker')
+                .transition()
+                  .duration(function(d) { return Math.min(d.size * 100, 500); })
+                  .style('stroke-width', function(d, i) { return d.size; })
+                .transition()
+                  .duration(function(d, i) { return Math.min(d.size * 200, 1000); })
+                  .style('stroke-width', 0)
+          ;
+        }
 
         svg.select('#' + ID).append('g').attr('id', ID + '-markers')
            .selectAll('path').data(data).enter().append('path')
@@ -414,7 +486,7 @@
 
         // default the columns
         if (!columns || !columns.length) {
-          var keys = { }, prop, row;
+          columns = [ ];
           for (row in data) {
             for (prop in data[row]) {
               keys[prop] = true;
@@ -593,31 +665,6 @@
             default_sort.click();
           }
         }
-      }
-      // Make the markers 'pulse' 
-      function ping() {
-        // Larger size markers take pulse more slowly
-        var fade = d3.selectAll('path.marker')
-              .transition()
-                .duration(function(d) { return Math.min(d.size * 250, 1400); })
-                .style('stroke-width', function(d, i) { return d.size; })
-              .transition()
-                .duration(0)
-                .style('stroke-width', 0)
-        ;
-      }
-
-      // Make the markers 'pulse' 
-      function pulse() {
-        // Larger size markers take pulse more slowly
-        var fade = d3.selectAll('path.marker')
-              .transition()
-                .duration(function(d) { return Math.min(d.size * 100, 500); })
-                .style('stroke-width', function(d, i) { return d.size; })
-              .transition()
-                .duration(function(d, i) { return Math.min(d.size * 200, 1000); })
-                .style('stroke-width', 0)
-        ;
       }
 
       // topoJSON to ISO 3166 Alpha-2 code map
@@ -1009,6 +1056,8 @@
                     }
                   });
                 }
+              } else if (MARKER_DATA.length) {
+                drawMarkers();
               }
 
               // We're done processing, so start the rotation
@@ -1048,7 +1097,7 @@
     }
 
     var d3Colors = d3.scale.category10()
-      , MARKER_ANIMATION = 'pulse', MARKER_DATA, MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
+      , MARKER_ANIMATION = 'pulse', MARKER_DATA = [], MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
       , PALETTE = {
           border: '#766951',
           colors: [d3Colors(1), d3Colors(2), d3Colors(3), d3Colors(4), d3Colors(5), d3Colors(6), d3Colors(7), d3Colors(8), d3Colors(9), d3Colors(10)],
