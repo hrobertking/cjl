@@ -50,8 +50,9 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 - *boolean* rotating: Returns true when the map is actively rotating.
 - *void* rotationDecrease: Slows the rotation
 - *void* rotationIncrease: Speeds up the rotation
-- *void* rotationPause: Stops the rotation
+- *void* rotationPause: Pauses the rotation until it is resumed explicitly or by the end of a drag event.
 - *void* rotationResume: Restarts the rotation
+- *void* rotationStop: Stops the rotation until it is resumed
 
 #### Marker File Examples
 *JSON*

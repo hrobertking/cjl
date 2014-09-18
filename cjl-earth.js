@@ -253,8 +253,6 @@
         , thead
       ;
 
-      table = (typeof table === 'string') ? document.getElementById(table) : table;
-
       function data_element(spec, trow) {
         var ndx, obj = { };
         for (ndx = 0; ndx < spec.length; ndx += 1) {
@@ -263,25 +261,40 @@
         return obj;
       }
 
-      if (table && table.nodeName.toLowerCase() === 'table') {
-        MARKER_DATA = [ ];
+      try {
+        // make sure the marker table flag is reset, in case the table parameter is null
+        MARKER_TABLE = false;
 
-        // parse the table
-        thead = table.getElementsByTagName('thead').item(0);
-        tbody = table.getElementsByTagName('tbody').item(0);
-        if (thead && tbody) {
-          // get the column headers
-          tcells = thead.rows[0].cells
-          for (index = 0; index < tcells.length; index += 1) {
-            hdrs.push(tcells[index].innerHTML);
-          }
+        // normalize the parameter to an HTMLElement
+        table = (typeof table === 'string') ? document.getElementById(table) : (table.nodeType === 1) ? table : null;
 
-          // get the data
-          tcells = tbody.rows;
-          for (index = 0; index < tcells.length; index += 1) {
-            MARKER_DATA.push(new data_element(hdrs, tcells[index]));
+        if (table && table.nodeName.toLowerCase() === 'table') {
+          MARKER_DATA = [ ];
+
+          // parse the table
+          thead = table.getElementsByTagName('thead').item(0);
+          tbody = table.getElementsByTagName('tbody').item(0);
+          if (thead && tbody) {
+            // get the column headers
+            tcells = thead.rows[0].cells
+            for (index = 0; index < tcells.length; index += 1) {
+              hdrs.push(tcells[index].innerHTML);
+            }
+
+            // get the data
+            tcells = tbody.rows;
+            for (index = 0; index < tcells.length; index += 1) {
+              MARKER_DATA.push(new data_element(hdrs, tcells[index]));
+            }
+
+            // set the flag so we don't generate the data table again
+            MARKER_TABLE = true;
+
+            // fire the event to show we have the data
+            fire('marker-data');
           }
         }
+      } catch (err) {
       }
     };
 
@@ -336,7 +349,16 @@
      */
     this.rotationResume = function() {
       ROTATE_3D = true;
+      ROTATE_STOPPED = false;
       fire('resumed');
+    };
+
+    /**
+     * Stops the rotation
+     * @return   {void}
+     */
+    this.rotationStop = function() {
+      ROTATE_STOPPED = true;
     };
 
     /**
@@ -798,7 +820,8 @@
 
           // Start the rotation timer
           d3.timer(function spin() {
-              if (ROTATABLE && ROTATE_3D) {
+              // if the map can rotate - i.e., is a sphere - and has not been stopped and is not paused
+              if (ROTATABLE && !ROTATE_STOPPED && ROTATE_3D) {
                 var tick = (Date.now() - THEN)
                   , angle = VELOCITY * tick
                 ;
@@ -894,7 +917,7 @@
            .attr('d', PROJECTION_PATH.pointRadius(2)) //radius of the circle
         ;
 
-      // Add some visual interest to the markers via animation
+      // add some visual interest to the markers via animation
       switch (MARKER_ANIMATION) {
         case 'ping':
           setInterval(ping, 1500);
@@ -907,7 +930,7 @@
           break;
       }
 
-      // Assign the click handlers if defined
+      // assign the click handlers if defined
       if (MARKER_HANDLERS && MARKER_HANDLERS.length) {
         d3.select('#' + ID + '-markers').selectAll('path.marker')
           .on('click', function marker_onClick(marker) {
@@ -921,21 +944,8 @@
         ;
       }
 
-      // default the columns
-      if (!columns || !columns.length) {
-        columns = [ ];
-        for (row in data) {
-          for (prop in data[row]) {
-            keys[prop] = true;
-          }
-        }
-        for (prop in keys) {
-          columns.push(prop);
-        }
-      }
-
-      // Add a description table if it has been defined, using the same logic as cjl-scrollabletable
-      if (columns && columns.length) {
+      // add a data table if one does not exist and columns have been specified, using the same logic as cjl-scrollabletable
+      if (!MARKER_TABLE && columns && columns.length) {
         // build the stylesheet
         if (style) {
           style.setAttribute('id', id_style);
@@ -1104,18 +1114,18 @@
       }
     }
 
-    var d3Colors = d3.scale.category10()
-      , MARKER_ANIMATION = 'pulse', MARKER_DATA = [], MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
+    var D3COLORS = d3.scale.category10()
+      , MARKER_ANIMATION = 'pulse', MARKER_DATA = [], MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_RELATIVE_SIZE = false, MARKER_SIZE = 3, MARKER_TABLE = false
       , PALETTE = {
           border: '#766951',
-          colors: [d3Colors(1), d3Colors(2), d3Colors(3), d3Colors(4), d3Colors(5), d3Colors(6), d3Colors(7), d3Colors(8), d3Colors(9), d3Colors(10)],
+          colors: [D3COLORS(1), D3COLORS(2), D3COLORS(3), D3COLORS(4), D3COLORS(5), D3COLORS(6), D3COLORS(7), D3COLORS(8), D3COLORS(9), D3COLORS(10)],
           marker: '#ff0000',
           markerOpacity: '1.0',
           oceans: '#d8ffff'
         }
       , MAP_WIDTH, MAP_HEIGHT
       , THEN, VELOCITY = 0.05
-      , DRAGGING, PROJECTION_PATH, MOUSE_DOWN, ROTATE_3D, ROTATABLE
+      , DRAGGING = false, PROJECTION_PATH, MOUSE_DOWN = false, ROTATE_3D = false, ROTATE_STOPPED = false, ROTATABLE = false
       , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
       , COUNTRY_HANDLERS = [ ], MARKER_HANDLERS = [ ]
       , EVENT_HANDLERS = { }
