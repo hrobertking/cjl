@@ -1035,7 +1035,7 @@
               }
 
               // Draw the countries
-              svg.select('#' + ID).append('g').attr('id', 'countries')
+              svg.select('#' + ID).append('g').attr('id', ID + '-countries')
                 .selectAll('path').data(countries).enter().append('path')
                   .attr('class', function(d, i) { return 'country ' + topoMap(d.id).iso; })
                   .attr('d', path)
