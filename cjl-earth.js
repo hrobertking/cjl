@@ -446,7 +446,7 @@
           ;
         }
 
-        svg.select('#' + ID).append('g').attr('id', ID + '-markers')
+        svg.select('#' + ID + '-map').append('g').attr('id', ID + '-markers')
            .selectAll('path').data(data).enter().append('path')
              .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
              .attr('data-description', function(d) { return d.description; })
@@ -978,6 +978,7 @@
 
           // Create the SVG and initialize the mouse/touch handlers
           svg = d3.select(ELEM).append('svg')
+              .attr('id', ID)
               .attr('width', (style === '2D' ? (diameter * 2) : diameter))
               .attr('height', diameter)
               .on('mousedown', mousedown).on('touchstart', mousedown)
@@ -996,17 +997,17 @@
 
               // Draw the globe
               if (style === '2D') {
-                svg.append('g').attr('id', ID)
+                svg.append('g').attr('id', ID + '-map')
                     .call(zoom)
-                    .append('rect').attr('width', (diameter * 2)).attr('height', diameter)
+                    .append('rect').attr('id', ID + '-oceans').attr('width', (diameter * 2)).attr('height', diameter)
                       .style('fill', PALETTE.oceans)
                       .style('stroke', '#333')
                       .style('stroke-width', '1.5px')
                   ;
               } else {
-                svg.append('g').attr('id', ID)
+                svg.append('g').attr('id', ID + '-map')
                     .call(zoom)
-                    .append('path').attr('id', 'oceans').datum({type: 'Sphere'}).attr('d', path)
+                    .append('path').attr('id', ID + '-oceans').datum({type: 'Sphere'}).attr('d', path)
                       .style('fill', PALETTE.oceans)
                       .style('stroke', '#333')
                       .style('stroke-width', '1.5px')
@@ -1014,7 +1015,7 @@
               }
 
               // Draw the countries
-              svg.select('#' + ID).append('g').attr('id', ID + '-countries')
+              svg.select('#' + ID + '-map').append('g').attr('id', ID + '-countries')
                 .selectAll('path').data(countries).enter().append('path')
                   .attr('class', function(d, i) { return 'country ' + topoMap(d.id).iso; })
                   .attr('d', path)
