@@ -20,7 +20,8 @@
    *
    * @param {string|HTMLElement} elem  The unique ID of the HTML element to contain the object
    * @param {string} topo              The URI of a topo file
-   * @param {number} size              The diameter of the globe in pixels
+   * @param {number} size              The diameter of the globe or the height of the map in pixels
+   * @param {string} style             The style to use - '2D' renders a Mercator projection everything else is a globe
    *
    * @requires d3            http://d3js.org/d3.v3.min.js
    * @requires d3.geo        http://d3js.org/d3.geo.projection.v0.min.js
@@ -178,6 +179,17 @@
         PALETTE.colors = validate(value) || PALETTE.colors;
       }
       return PALETTE;
+    };
+
+    /**
+     * The style of the map to generate
+     * @type     {string}
+     */
+    this.style = function(value) {
+      if (value === '2D') {
+        MAP_STYLE = value;
+      }
+      return MAP_STYLE;
     };
 
     /**
@@ -687,6 +699,11 @@
         return { topo:id, iso:null, name:null };
       }
 
+      // set the style if it's passed in
+      if (style) {
+        MAP_STYLE = style;
+      }
+
       // we only start rendering if we have a containing element
       if (ELEM) {
         var diameter = height || ELEM ? ELEM.clientWidth : 160
@@ -705,7 +722,7 @@
           THEN = Date.now()
           ROTATE_3D = false;
 
-          if (style === '2D') {
+          if (MAP_STYLE === '2D') {
             projection = d3.geo.mercator()                                                    // Use a Mercator format
                   .center([0, 5])                                                             // Make the center 0° W longitude and 5° N latitude
                   .translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
@@ -725,7 +742,7 @@
           // Create the SVG and initialize the mouse/touch handlers
           d3.select(ELEM).append('svg')
               .attr('id', ID)
-              .attr('width', (style === '2D' ? (diameter * 2) : diameter))
+              .attr('width', (MAP_STYLE === '2D' ? (diameter * 2) : diameter))
               .attr('height', diameter)
               .on('mousedown', mousedown).on('touchstart', mousedown)
               .on('mousemove', mousemove).on('touchmove', mousemove)
@@ -742,7 +759,7 @@
               ;
 
               // Draw the globe
-              if (style === '2D') {
+              if (MAP_STYLE === '2D') {
                 d3.select('#' + ID).append('g').attr('id', ID + '-map')
                     .call(zoom)
                     .append('rect').attr('id', ID + '-oceans').attr('width', (diameter * 2)).attr('height', diameter)
@@ -861,6 +878,7 @@
         , default_sort                                                                  // column to default sort
         , id_style = 'cjl-STable-style'                                                 // id for the style element
         , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
+        , markers                                                                       // the markers HTMLElement collection
         , ndx                                                                           // loop index
         , rules = [ ]                                                                   // stylesheet rules
         , style = document.getElementById(id_style) || document.createElement('style')  // the style element for the table
@@ -900,216 +918,230 @@
         ;
       }
 
-      d3.select('#' + ID + '-map').append('g').attr('id', ID + '-markers')
-         .selectAll('path').data(data).enter().append('path')
-           .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
-           .attr('data-description', function(d) { return d.description; })
-           .style('fill', function(d) { return (d.color || PALETTE.marker); })
-           .style('stroke', function(d) { return (d.color || PALETTE.marker); })
-           .style('stroke-width', 0)
-           .style('stroke-opacity', (PALETTE.markerOpacity || 1))
-           .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
-                                  , c = parseFloat(d.size || MARKER_SIZE)
-                                  , size = c * m
-                                ;
-                                d.size = size;
-                                return { type:'Point', coordinates:[(d.longitude || d.lon), (d.latitude || d.lat)], marker:d }; })
-           .attr('d', PROJECTION_PATH.pointRadius(2)) //radius of the circle
-        ;
-
-      // add some visual interest to the markers via animation
-      switch (MARKER_ANIMATION) {
-        case 'ping':
-          setInterval(ping, 1500);
-          break;
-        case 'pulse':
-          setInterval(pulse, 1500);
-          break;
-        case 'none':
-          d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size; });
-          break;
-      }
-
-      // assign the click handlers if defined
-      if (MARKER_HANDLERS && MARKER_HANDLERS.length) {
-        d3.select('#' + ID + '-markers').selectAll('path.marker')
-          .on('click', function marker_onClick(marker) {
-             var i;
-             if (!DRAGGING) {
-               for (i = 0; i < MARKER_HANDLERS.length; i += 1) {
-                 MARKER_HANDLERS[i].call(marker);
-               }
-             }
-           })
-        ;
-      }
-
-      // add a data table if one does not exist and columns have been specified, using the same logic as cjl-scrollabletable
-      if (!MARKER_TABLE && columns && columns.length) {
-        // build the stylesheet
-        if (style) {
-          style.setAttribute('id', id_style);
-          style.setAttribute('type', 'text/css');
+      // if the map has not been rendered yet then call the render method, otherwise, go ahead and draw the markers
+      if (!document.getElementById(ID + '-map')) {
+        self.render();
+      } else {
+        // delete all the existing markers
+        markers = document.getElementById(ID + '-markers');
+        if (markers) {
+          while (markers.firstChild) {
+            markers.removeChild(markers.firstChild);
+          }
         }
 
-        // write the sortable styles so we get the adjusted widths when we write the scrollable styles
-        if (style) {
-          // style for a sortable table
-          rules = [];
-          rules.push('#' + id_table + ' .sortable { cursor:pointer; padding:inherit 0.1em; }');
-          rules.push('#' + id_table + ' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
-          rules.push('#' + id_table + ' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
-          rules.push('#' + id_table + ' .sortable.sorted { color:#ff0000; }');
+        // add the markers using the data provided
+        d3.select('#' + ID + '-map').append('g').attr('id', ID + '-markers')
+           .selectAll('path').data(data).enter().append('path')
+             .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
+             .attr('data-description', function(d) { return d.description; })
+             .style('fill', function(d) { return (d.color || PALETTE.marker); })
+             .style('stroke', function(d) { return (d.color || PALETTE.marker); })
+             .style('stroke-width', 0)
+             .style('stroke-opacity', (PALETTE.markerOpacity || 1))
+             .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
+                                    , c = parseFloat(d.size || MARKER_SIZE)
+                                    , size = c * m
+                                  ;
+                                  d.size = size;
+                                  return { type:'Point', coordinates:[(d.longitude || d.lon), (d.latitude || d.lat)], marker:d }; })
+             .attr('d', PROJECTION_PATH.pointRadius(2)) //radius of the circle
+          ;
 
-          style.innerHTML += rules.join('\n');
+        // add some visual interest to the markers via animation
+        switch (MARKER_ANIMATION) {
+          case 'ping':
+            setInterval(ping, 1500);
+            break;
+          case 'pulse':
+            setInterval(pulse, 1500);
+            break;
+          case 'none':
+            d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size; });
+            break;
+        }
 
-          if (!style.parentNode) {
+        // assign the click handlers if defined
+        if (MARKER_HANDLERS && MARKER_HANDLERS.length) {
+          d3.select('#' + ID + '-markers').selectAll('path.marker')
+            .on('click', function marker_onClick(marker) {
+               var i;
+               if (!DRAGGING) {
+                 for (i = 0; i < MARKER_HANDLERS.length; i += 1) {
+                   MARKER_HANDLERS[i].call(marker);
+                 }
+               }
+             })
+          ;
+        }
+
+        // add a data table if one does not exist and columns have been specified, using the same logic as cjl-scrollabletable
+        if (!MARKER_TABLE && columns && columns.length) {
+          // build the stylesheet
+          if (style) {
+            style.setAttribute('id', id_style);
+            style.setAttribute('type', 'text/css');
+          }
+
+          // write the sortable styles so we get the adjusted widths when we write the scrollable styles
+          if (style) {
+            // style for a sortable table
+            rules = [];
+            rules.push('#' + id_table + ' .sortable { cursor:pointer; padding:inherit 0.1em; }');
+            rules.push('#' + id_table + ' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
+            rules.push('#' + id_table + ' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
+            rules.push('#' + id_table + ' .sortable.sorted { color:#ff0000; }');
+
+            style.innerHTML += rules.join('\n');
+
+            if (!style.parentNode) {
+              document.body.appendChild(style);
+            }
+          }
+
+          // create the table
+          table = d3.select(container).append('table')
+                      .attr('class', 'scrollable marker-description')
+                      .attr('id', id_table)
+            ;
+          thead = table.append('thead');
+          tfoot = table.append('tfoot');
+          tbody = table.append('tbody');
+
+          // append the header row
+          thead.append('tr')
+               .selectAll('th')
+               .data(columns)
+               .enter()
+               .append('th')
+                 .attr('class', function(d, i) {
+                    var issort = (d.sortable === null || d.sortable === undefined) ? true : d.sortable;
+                    return (d.name || d) + (issort ? ' sortable' : '');
+                  })
+                 .text(function(d, i) {
+                    var name = d.name || d;
+                    return name.replace(/\b\w+/g, function(s) {
+                      return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
+                    });
+                  })
+            ;
+
+          // attach the click handler
+          thead.selectAll('th.sortable')
+                 .on('click', function (d, i) {
+                    var clicked = d3.select(this)
+                      , sorted = d3.select(clicked.node().parentNode).selectAll('.sortable.sorted')
+                      , desc = clicked.classed('desc')
+                    ;
+
+                    // normalize the data
+                    d = d.name || d;
+
+                    // reset the 'sorted' class on siblings
+                    sorted.classed('sorted', false);
+
+                    if (desc) {
+                      clicked.classed({'desc': false, 'sorted': true});
+                      tbody.selectAll('tr').sort(function ascending(a, b) {
+                          var ret = 0;
+                          a = a[d];  // select the property to compare
+                          b = b[d];  // select the property to compare
+                          if (a !== null && a !== undefined) {
+                            if (a.localeCompare && (isNaN(a) || isNaN(b))) {
+                              ret = a.localeCompare(b);
+                            } else {
+                              ret = a - b;
+                            }
+                          }
+                          return ret;
+                        });
+                    } else {
+                      clicked.classed({'desc': true, 'sorted': true});
+                      tbody.selectAll('tr').sort(function descending(a, b) {
+                          var ret = 0;
+                          a = a[d];  // select the property to compare
+                          b = b[d];  // select the property to compare
+                          if (b !== null && b !== undefined) {
+                            if (b.localeCompare && (isNaN(a) || isNaN(b))) {
+                              ret = b.localeCompare(a);
+                            } else {
+                              ret = b - a;
+                            }
+                          }
+                          return ret;
+                        });
+                    }
+                  })
+            ;
+
+          // create the footer
+          tfoot.append('tr')
+               .selectAll('td')
+               .data(columns)
+               .enter()
+               .append('td')
+                 .attr('class', function(d, i) {
+                    return (d.name || d);
+                  })
+                 .html('&nbsp;')
+            ;
+
+          // create a row for each object in the markers
+          trows = tbody.selectAll('tr')
+                       .data(data)
+                       .enter()
+                       .append('tr')
+            ;
+
+          // create a cell in each row for each column
+          tcells = trows.selectAll('td')
+                        .data(function(row) {
+                           return columns.map(function(column) {
+                             return {column: (column.name || column), value: row[(column.name || column)]};
+                           });
+                         })
+                        .enter()
+                        .append('td')
+                          .attr('class', function(d) { return d.column; })
+                          .html(function(d) { return d.value; })
+            ;
+
+          // build the stylesheet
+          if (style) {
+            // style for a scrollable table
+            rules.push('#' + id_table + '.scrollable { display:block; padding:0 0 1.5em 0; }');
+            rules.push('#' + id_table + '.scrollable tbody { height:12em; overflow-y:scroll; }');
+            rules.push('#' + id_table + '.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
+            rules.push('#' + id_table + '.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
+            rules.push('#' + id_table + '.scrollable tfoot { bottom:0; position:absolute; }'); 
+            rules.push('#' + id_table + '.scrollable thead, #' + id_table + ' tfoot, #' + id_table + ' tbody { cursor:default; display:block; margin:0.5em 0; }');
+            rules.push('tbody.banded tr:nth-child(odd) { background-color:rgba(187, 187, 187, 0.8); }');
+
+            tcells = document.getElementById(id_table).getElementsByTagName('tr').item(0).childNodes;
+            for (ndx = 0; ndx < tcells.length; ndx += 1) {
+              rules.push('#' + id_table + ' th:nth-of-type(' + (ndx + 1) + '), #' + id_table + ' td:nth-of-type(' + (ndx + 1) + ') { width:' + (tcells.item(ndx).offsetWidth + 15) + 'px; }'); // add 15 pixels to accommodate sort markers
+            }
+
+            style.innerHTML = rules.join('\n');
+
+            if (style.parentNode) {
+              style.parentNode.removeChild(style);
+            }
             document.body.appendChild(style);
           }
-        }
 
-        // create the table
-        table = d3.select(container).append('table')
-                    .attr('class', 'scrollable marker-description')
-                    .attr('id', id_table)
-          ;
-        thead = table.append('thead');
-        tfoot = table.append('tfoot');
-        tbody = table.append('tbody');
-
-        // append the header row
-        thead.append('tr')
-             .selectAll('th')
-             .data(columns)
-             .enter()
-             .append('th')
-               .attr('class', function(d, i) {
-                  var issort = (d.sortable === null || d.sortable === undefined) ? true : d.sortable;
-                  return (d.name || d) + (issort ? ' sortable' : '');
-                })
-               .text(function(d, i) {
-                  var name = d.name || d;
-                  return name.replace(/\b\w+/g, function(s) {
-                    return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
-                  });
-                })
-          ;
-
-        // attach the click handler
-        thead.selectAll('th.sortable')
-               .on('click', function (d, i) {
-                  var clicked = d3.select(this)
-                    , sorted = d3.select(clicked.node().parentNode).selectAll('.sortable.sorted')
-                    , desc = clicked.classed('desc')
-                  ;
-
-                  // normalize the data
-                  d = d.name || d;
-
-                  // reset the 'sorted' class on siblings
-                  sorted.classed('sorted', false);
-
-                  if (desc) {
-                    clicked.classed({'desc': false, 'sorted': true});
-                    tbody.selectAll('tr').sort(function ascending(a, b) {
-                        var ret = 0;
-                        a = a[d];  // select the property to compare
-                        b = b[d];  // select the property to compare
-                        if (a !== null && a !== undefined) {
-                          if (a.localeCompare && (isNaN(a) || isNaN(b))) {
-                            ret = a.localeCompare(b);
-                          } else {
-                            ret = a - b;
-                          }
-                        }
-                        return ret;
-                      });
-                  } else {
-                    clicked.classed({'desc': true, 'sorted': true});
-                    tbody.selectAll('tr').sort(function descending(a, b) {
-                        var ret = 0;
-                        a = a[d];  // select the property to compare
-                        b = b[d];  // select the property to compare
-                        if (b !== null && b !== undefined) {
-                          if (b.localeCompare && (isNaN(a) || isNaN(b))) {
-                            ret = b.localeCompare(a);
-                          } else {
-                            ret = b - a;
-                          }
-                        }
-                        return ret;
-                      });
-                  }
-                })
-          ;
-
-        // create the footer
-        tfoot.append('tr')
-             .selectAll('td')
-             .data(columns)
-             .enter()
-             .append('td')
-               .attr('class', function(d, i) {
-                  return (d.name || d);
-                })
-               .html('&nbsp;')
-          ;
-
-        // create a row for each object in the markers
-        trows = tbody.selectAll('tr')
-                     .data(data)
-                     .enter()
-                     .append('tr')
-          ;
-
-        // create a cell in each row for each column
-        tcells = trows.selectAll('td')
-                      .data(function(row) {
-                         return columns.map(function(column) {
-                           return {column: (column.name || column), value: row[(column.name || column)]};
-                         });
-                       })
-                      .enter()
-                      .append('td')
-                        .attr('class', function(d) { return d.column; })
-                        .html(function(d) { return d.value; })
-          ;
-
-        // build the stylesheet
-        if (style) {
-          // style for a scrollable table
-          rules.push('#' + id_table + '.scrollable { display:block; padding:0 0 1.5em 0; }');
-          rules.push('#' + id_table + '.scrollable tbody { height:12em; overflow-y:scroll; }');
-          rules.push('#' + id_table + '.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
-          rules.push('#' + id_table + '.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
-          rules.push('#' + id_table + '.scrollable tfoot { bottom:0; position:absolute; }'); 
-          rules.push('#' + id_table + '.scrollable thead, #' + id_table + ' tfoot, #' + id_table + ' tbody { cursor:default; display:block; margin:0.5em 0; }');
-          rules.push('tbody.banded tr:nth-child(odd) { background-color:rgba(187, 187, 187, 0.8); }');
-
-          tcells = document.getElementById(id_table).getElementsByTagName('tr').item(0).childNodes;
-          for (ndx = 0; ndx < tcells.length; ndx += 1) {
-            rules.push('#' + id_table + ' th:nth-of-type(' + (ndx + 1) + '), #' + id_table + ' td:nth-of-type(' + (ndx + 1) + ') { width:' + (tcells.item(ndx).offsetWidth + 15) + 'px; }'); // add 15 pixels to accommodate sort markers
+          // sort the table on the first sortable column by default
+          ndx = columns.length;
+          while (ndx -= 1 > -1) {
+            if (columns[ndx].sortable !== false && columns[ndx].sort) {
+              break;
+            }
           }
-
-          style.innerHTML = rules.join('\n');
-
-          if (style.parentNode) {
-            style.parentNode.removeChild(style);
+          ndx = Math.max(0, ndx);
+          default_sort = d3.select('th.sortable.' + (columns[ndx].name || columns[ndx])).node() || d3.select('th.sortable').node();
+          if (default_sort) {
+            default_sort.click();
           }
-          document.body.appendChild(style);
-        }
-
-        // sort the table on the first sortable column by default
-        ndx = columns.length;
-        while (ndx -= 1 > -1) {
-          if (columns[ndx].sortable !== false && columns[ndx].sort) {
-            break;
-          }
-        }
-        ndx = Math.max(0, ndx);
-        default_sort = d3.select('th.sortable.' + (columns[ndx].name || columns[ndx])).node() || d3.select('th.sortable').node();
-        if (default_sort) {
-          default_sort.click();
         }
       }
     }
@@ -1123,13 +1155,14 @@
           markerOpacity: '1.0',
           oceans: '#d8ffff'
         }
-      , MAP_WIDTH, MAP_HEIGHT
+      , MAP_WIDTH, MAP_HEIGHT, MAP_STYLE
       , THEN, VELOCITY = 0.05
       , DRAGGING = false, PROJECTION_PATH, MOUSE_DOWN = false, ROTATE_3D = false, ROTATE_STOPPED = false, ROTATABLE = false
       , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
       , COUNTRY_HANDLERS = [ ], MARKER_HANDLERS = [ ]
       , EVENT_HANDLERS = { }
       , EVENTS = [ 'accelerated', 'paused', 'rendered', 'resumed', 'slowed' ]
+      , self = this
     ;
 
     // subscribe the drawMarkers function to the 'marker-data' event
