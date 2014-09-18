@@ -379,7 +379,7 @@
             LAMBDA = lambda(pos[0]);
             PHI = phi(pos[1]);
             projection.rotate([LAMBDA, PHI]);
-            svg.selectAll('path').attr('d', path.projection(projection));
+            d3.select('#' + ID).selectAll('path').attr('d', path.projection(projection));
           }
         }
       }
@@ -446,7 +446,7 @@
           ;
         }
 
-        svg.select('#' + ID + '-map').append('g').attr('id', ID + '-markers')
+        d3.select('#' + ID + '-map').append('g').attr('id', ID + '-markers')
            .selectAll('path').data(data).enter().append('path')
              .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
              .attr('data-description', function(d) { return d.description; })
@@ -478,7 +478,7 @@
 
         // Assign the click handlers if defined
         if (MARKER_HANDLERS && MARKER_HANDLERS.length) {
-          svg.selectAll('path.marker')
+          d3.select('#' + ID + '-markers').selectAll('path.marker')
             .on('click', function marker_onClick(marker) {
                var i;
                if (!DRAGGING) {
@@ -946,7 +946,6 @@
           , projection
           , LAMBDA = 0
           , PHI = 0
-          , svg
           , path
           , g
           , zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed)
@@ -977,7 +976,7 @@
           }
 
           // Create the SVG and initialize the mouse/touch handlers
-          svg = d3.select(ELEM).append('svg')
+          d3.select(ELEM).append('svg')
               .attr('id', ID)
               .attr('width', (style === '2D' ? (diameter * 2) : diameter))
               .attr('height', diameter)
@@ -991,13 +990,13 @@
           // Load the topography and draw the detail in the callback
           d3.json(topo, function(error, world) {
                var countries = topojson.feature(world, world.objects.countries).features
-                , color = d3.scale.ordinal().range(PALETTE.colors)
-                    , neighbors = topojson.neighbors(world.objects.countries.geometries)
+                 , color = d3.scale.ordinal().range(PALETTE.colors)
+                 , neighbors = topojson.neighbors(world.objects.countries.geometries)
               ;
 
               // Draw the globe
               if (style === '2D') {
-                svg.append('g').attr('id', ID + '-map')
+                d3.select('#' + ID).append('g').attr('id', ID + '-map')
                     .call(zoom)
                     .append('rect').attr('id', ID + '-oceans').attr('width', (diameter * 2)).attr('height', diameter)
                       .style('fill', PALETTE.oceans)
@@ -1005,7 +1004,7 @@
                       .style('stroke-width', '1.5px')
                   ;
               } else {
-                svg.append('g').attr('id', ID + '-map')
+                d3.select('#' + ID).append('g').attr('id', ID + '-map')
                     .call(zoom)
                     .append('path').attr('id', ID + '-oceans').datum({type: 'Sphere'}).attr('d', path)
                       .style('fill', PALETTE.oceans)
@@ -1015,7 +1014,7 @@
               }
 
               // Draw the countries
-              svg.select('#' + ID + '-map').append('g').attr('id', ID + '-countries')
+              d3.select('#' + ID + '-map').append('g').attr('id', ID + '-countries')
                 .selectAll('path').data(countries).enter().append('path')
                   .attr('class', function(d, i) { return 'country ' + topoMap(d.id).iso; })
                   .attr('d', path)
@@ -1026,7 +1025,7 @@
 
               // Assign the click handlers if defined
               if (COUNTRY_HANDLERS && COUNTRY_HANDLERS.length) {
-                svg.selectAll('path.country')
+                d3.select('#' + ID + '-countries').selectAll('path.country')
                   .on('click', function country_onClick(country) {
                      var i;
                      if (!DRAGGING) {
@@ -1081,7 +1080,7 @@
 
                 LAMBDA += angle;
                 projection.rotate([LAMBDA, PHI, 0]);
-                svg.selectAll('path').attr('d', path.projection(projection));
+                d3.select('#' + ID).selectAll('path').attr('d', path.projection(projection));
               }
               THEN = Date.now();
             });
