@@ -261,6 +261,7 @@
     this.parseMarkerData = function(table) {
       var hdrs = [ ]
         , index
+        , tbody
         , tcells
         , thead
       ;
@@ -278,7 +279,8 @@
         MARKER_TABLE = false;
 
         // normalize the parameter to an HTMLElement
-        table = (typeof table === 'string') ? document.getElementById(table) : (table.nodeType === 1) ? table : null;
+        table = (typeof table === 'string') ? document.getElementById(table) : table;
+        table = (table.nodeType === 1) ? table : null;
 
         if (table && table.nodeName.toLowerCase() === 'table') {
           MARKER_DATA = [ ];
@@ -854,20 +856,6 @@
     };
 
     /**
-     * Fires an event
-     * @return   {void}
-     * @param    {string} eventname
-     */
-    function fire(eventname) {
-      var i
-        , handlers = EVENT_HANDLERS[eventname] || [];
-      ;
-      for (i = 0; i < handlers.length; i += 1) {
-        handlers[i].call();
-      }
-    }
-
-    /**
      * Draws the location markers based on the marker data
      * @return   {void}
      */
@@ -933,18 +921,18 @@
         // add the markers using the data provided
         d3.select('#' + ID + '-map').append('g').attr('id', ID + '-markers')
            .selectAll('path').data(data).enter().append('path')
-             .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
-             .attr('data-description', function(d) { return d.description; })
-             .style('fill', function(d) { return (d.color || PALETTE.marker); })
-             .style('stroke', function(d) { return (d.color || PALETTE.marker); })
+             .attr('class', function(d) { return 'marker' + ((d.country || d.Country || '') ? ' ' + (d.country || d.Country || '') : ''); })
+             .attr('data-description', function(d) { return (d.description || d.Description); })
+             .style('fill', function(d) { return (d.color || d.Color || PALETTE.marker); })
+             .style('stroke', function(d) { return (d.color || d.Color || PALETTE.marker); })
              .style('stroke-width', 0)
              .style('stroke-opacity', (PALETTE.markerOpacity || 1))
              .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
-                                    , c = parseFloat(d.size || MARKER_SIZE)
+                                    , c = parseFloat(d.size || d.Size || MARKER_SIZE)
                                     , size = c * m
                                   ;
                                   d.size = size;
-                                  return { type:'Point', coordinates:[(d.longitude || d.lon), (d.latitude || d.lat)], marker:d }; })
+                                  return { type:'Point', coordinates:[(d.longitude || d.Longitude || d.lon || d.Lon), (d.latitude || d.Latitude || d.lat || d.Lat)], marker:d }; })
              .attr('d', PROJECTION_PATH.pointRadius(2)) //radius of the circle
           ;
 
@@ -1143,6 +1131,20 @@
             default_sort.click();
           }
         }
+      }
+    }
+
+    /**
+     * Fires an event
+     * @return   {void}
+     * @param    {string} eventname
+     */
+    function fire(eventname) {
+      var i
+        , handlers = EVENT_HANDLERS[eventname] || [];
+      ;
+      for (i = 0; i < handlers.length; i += 1) {
+        handlers[i].call();
       }
     }
 
