@@ -58,6 +58,14 @@
     };
 
     /**
+     * Returns a string array containing event names
+     * @type     {string[]}
+     */
+    this.events = function() {
+      return EVENTS;
+    };
+
+    /**
      * Marker animation, i.e., 'pulse' or 'ping'
      * @type     {string}
      * @default  "pulse"
@@ -208,14 +216,6 @@
     };
 
     /**
-     * Returns a string array containing event names
-     * @type     {string[]}
-     */
-    this.events = function() {
-      return EVENTS;
-    };
-
-    /**
      * Adds an event handler
      * @return   {void}
      * @param    {string} eventname
@@ -231,7 +231,7 @@
 
       for (i = 0; i < EVENTS.length; i += 1) {
         evt = (EVENTS[i] || '').toLowerCase();
-        // Check to make sure it's an event that is fired
+        // Check to make sure it's an event that is published
         if (eventname === evt) {
           handlers = EVENT_HANDLERS[eventname] || [ ];
           handlers.push(handler);
@@ -772,7 +772,7 @@
                       }
                     } else if (markers) {
                       MARKER_DATA = markers;
-                      drawMarkers();
+                      fire('marker-data');
                     }
                   });
                 } else {
@@ -783,12 +783,12 @@
                       }
                     } else if (markers) {
                       MARKER_DATA = markers
-                      drawMarkers();
+                      fire('marker-data');
                     }
                   });
                 }
               } else if (MARKER_DATA.length) {
-                drawMarkers();
+                fire('marker-data');
               }
 
               // We're done processing, so start the rotation
@@ -1121,6 +1121,9 @@
       , EVENT_HANDLERS = { }
       , EVENTS = [ 'accelerated', 'paused', 'rendered', 'resumed', 'slowed' ]
     ;
+
+    // subscribe the drawMarkers function to the 'marker-data' event
+    EVENT_HANDLERS['marker-data'] = new Array(drawMarkers);
 
     // set the container element
     if (typeof ELEM === 'string') {
