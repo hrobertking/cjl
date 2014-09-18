@@ -379,7 +379,7 @@
             LAMBDA = lambda(pos[0]);
             PHI = phi(pos[1]);
             projection.rotate([LAMBDA, PHI]);
-            d3.select('#' + ID).selectAll('path').attr('d', path.projection(projection));
+            d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
           }
         }
       }
@@ -396,280 +396,6 @@
           container.attr('transform', null);
         } else {
           container.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
-        }
-      }
-
-      // Draw the location markers based on the data contained in the file
-      function drawMarkers() {
-        var columns = MARKER_DESCRIPTION                                                  // a string array containing column names corresponding to property names in D3 data
-          , container = ELEM                                                              // the HTML element that will contain the table
-          , data = MARKER_DATA                                                            // using the generic 'data' to maintain consistency with scrollabletable
-          , default_sort                                                                  // column to default sort
-          , id_style = 'cjl-STable-style'                                                 // id for the style element
-          , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
-          , ndx                                                                           // loop index
-          , rules = [ ]                                                                   // stylesheet rules
-          , style = document.getElementById(id_style) || document.createElement('style')  // the style element for the table
-          , table                                                                         // the table
-          , tbody                                                                         // the body of the table
-          , tcells                                                                        // cells in the table
-          , tfoot                                                                         // the table footer
-          , thead                                                                         // the header of the table
-          , trows                                                                         // rows in the table
-          , keys = { }                                                                    // a collection of keys as they're defined in the dataset
-          , prop                                                                          // property of a specific data element
-          , row                                                                           // a specific data element
-        ;
-
-        // Make the markers 'pulse' 
-        function ping() {
-          // Larger size markers take pulse more slowly
-          var fade = d3.selectAll('path.marker')
-                .transition()
-                  .duration(function(d) { return Math.min(d.marker.size * 250, 1400); })
-                  .style('stroke-width', function(d, i) { return d.marker.size; })
-                .transition()
-                  .duration(0)
-                  .style('stroke-width', 0)
-          ;
-        }
-        // Make the markers 'pulse' 
-        function pulse() {
-          // Larger size markers take pulse more slowly
-          var fade = d3.selectAll('path.marker')
-                .transition()
-                  .duration(function(d) { return Math.min(d.marker.size * 100, 500); })
-                  .style('stroke-width', function(d, i) { return d.marker.size; })
-                .transition()
-                  .duration(function(d, i) { return Math.min(d.marker.size * 200, 1000); })
-                  .style('stroke-width', 0)
-          ;
-        }
-
-        d3.select('#' + ID + '-map').append('g').attr('id', ID + '-markers')
-           .selectAll('path').data(data).enter().append('path')
-             .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
-             .attr('data-description', function(d) { return d.description; })
-             .style('fill', function(d) { return (d.color || PALETTE.marker); })
-             .style('stroke', function(d) { return (d.color || PALETTE.marker); })
-             .style('stroke-width', 0)
-             .style('stroke-opacity', (PALETTE.markerOpacity || 1))
-             .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
-                                    , c = parseFloat(d.size || MARKER_SIZE)
-                                    , size = c * m
-                                  ;
-                                  d.size = size;
-                                  return { type:'Point', coordinates:[(d.longitude || d.lon), (d.latitude || d.lat)], marker:d }; })
-             .attr('d', path.pointRadius(2)) //radius of the circle
-          ;
-
-        // Add some visual interest to the markers via animation
-        switch (MARKER_ANIMATION) {
-          case 'ping':
-            setInterval(ping, 1500);
-            break;
-          case 'pulse':
-            setInterval(pulse, 1500);
-            break;
-          case 'none':
-            d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size; });
-            break;
-        }
-
-        // Assign the click handlers if defined
-        if (MARKER_HANDLERS && MARKER_HANDLERS.length) {
-          d3.select('#' + ID + '-markers').selectAll('path.marker')
-            .on('click', function marker_onClick(marker) {
-               var i;
-               if (!DRAGGING) {
-                 for (i = 0; i < MARKER_HANDLERS.length; i += 1) {
-                   MARKER_HANDLERS[i].call(marker);
-                 }
-               }
-             })
-          ;
-        }
-
-        // default the columns
-        if (!columns || !columns.length) {
-          columns = [ ];
-          for (row in data) {
-            for (prop in data[row]) {
-              keys[prop] = true;
-            }
-          }
-          for (prop in keys) {
-            columns.push(prop);
-          }
-        }
-
-        // Add a description table if it has been defined, using the same logic as cjl-scrollabletable
-        if (columns && columns.length) {
-          // build the stylesheet
-          if (style) {
-            style.setAttribute('id', id_style);
-            style.setAttribute('type', 'text/css');
-          }
-
-          // write the sortable styles so we get the adjusted widths when we write the scrollable styles
-          if (style) {
-            // style for a sortable table
-            rules = [];
-            rules.push('#' + id_table + ' .sortable { cursor:pointer; padding:inherit 0.1em; }');
-            rules.push('#' + id_table + ' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
-            rules.push('#' + id_table + ' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
-            rules.push('#' + id_table + ' .sortable.sorted { color:#ff0000; }');
-
-            style.innerHTML += rules.join('\n');
-
-            if (!style.parentNode) {
-              document.body.appendChild(style);
-            }
-          }
-
-          // create the table
-          table = d3.select(container).append('table')
-                      .attr('class', 'scrollable marker-description')
-                      .attr('id', id_table)
-            ;
-          thead = table.append('thead');
-          tfoot = table.append('tfoot');
-          tbody = table.append('tbody');
-
-          // append the header row
-          thead.append('tr')
-               .selectAll('th')
-               .data(columns)
-               .enter()
-               .append('th')
-                 .attr('class', function(d, i) {
-                    var issort = (d.sortable === null || d.sortable === undefined) ? true : d.sortable;
-                    return (d.name || d) + (issort ? ' sortable' : '');
-                  })
-                 .text(function(d, i) {
-                    var name = d.name || d;
-                    return name.replace(/\b\w+/g, function(s) {
-                      return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
-                    });
-                  })
-            ;
-
-          // attach the click handler
-          thead.selectAll('th.sortable')
-                 .on('click', function (d, i) {
-                    var clicked = d3.select(this)
-                      , sorted = d3.select(clicked.node().parentNode).selectAll('.sortable.sorted')
-                      , desc = clicked.classed('desc')
-                    ;
-
-                    // normalize the data
-                    d = d.name || d;
-
-                    // reset the 'sorted' class on siblings
-                    sorted.classed('sorted', false);
-
-                    if (desc) {
-                      clicked.classed({'desc': false, 'sorted': true});
-                      tbody.selectAll('tr').sort(function ascending(a, b) {
-                          var ret = 0;
-                          a = a[d];  // select the property to compare
-                          b = b[d];  // select the property to compare
-                          if (a !== null && a !== undefined) {
-                            if (a.localeCompare && (isNaN(a) || isNaN(b))) {
-                              ret = a.localeCompare(b);
-                            } else {
-                              ret = a - b;
-                            }
-                          }
-                          return ret;
-                        });
-                    } else {
-                      clicked.classed({'desc': true, 'sorted': true});
-                      tbody.selectAll('tr').sort(function descending(a, b) {
-                          var ret = 0;
-                          a = a[d];  // select the property to compare
-                          b = b[d];  // select the property to compare
-                          if (b !== null && b !== undefined) {
-                            if (b.localeCompare && (isNaN(a) || isNaN(b))) {
-                              ret = b.localeCompare(a);
-                            } else {
-                              ret = b - a;
-                            }
-                          }
-                          return ret;
-                        });
-                    }
-                  })
-            ;
-
-          // create the footer
-          tfoot.append('tr')
-               .selectAll('td')
-               .data(columns)
-               .enter()
-               .append('td')
-                 .attr('class', function(d, i) {
-                    return (d.name || d);
-                  })
-                 .html('&nbsp;')
-            ;
-
-          // create a row for each object in the markers
-          trows = tbody.selectAll('tr')
-                       .data(data)
-                       .enter()
-                       .append('tr')
-            ;
-
-          // create a cell in each row for each column
-          tcells = trows.selectAll('td')
-                        .data(function(row) {
-                           return columns.map(function(column) {
-                             return {column: (column.name || column), value: row[(column.name || column)]};
-                           });
-                         })
-                        .enter()
-                        .append('td')
-                          .attr('class', function(d) { return d.column; })
-                          .html(function(d) { return d.value; })
-            ;
-
-          // build the stylesheet
-          if (style) {
-            // style for a scrollable table
-            rules.push('#' + id_table + '.scrollable { display:block; padding:0 0 1.5em 0; }');
-            rules.push('#' + id_table + '.scrollable tbody { height:12em; overflow-y:scroll; }');
-            rules.push('#' + id_table + '.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
-            rules.push('#' + id_table + '.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
-            rules.push('#' + id_table + '.scrollable tfoot { bottom:0; position:absolute; }'); 
-            rules.push('#' + id_table + '.scrollable thead, #' + id_table + ' tfoot, #' + id_table + ' tbody { cursor:default; display:block; margin:0.5em 0; }');
-            rules.push('tbody.banded tr:nth-child(odd) { background-color:rgba(187, 187, 187, 0.8); }');
-
-            tcells = document.getElementById(id_table).getElementsByTagName('tr').item(0).childNodes;
-            for (ndx = 0; ndx < tcells.length; ndx += 1) {
-              rules.push('#' + id_table + ' th:nth-of-type(' + (ndx + 1) + '), #' + id_table + ' td:nth-of-type(' + (ndx + 1) + ') { width:' + (tcells.item(ndx).offsetWidth + 15) + 'px; }'); // add 15 pixels to accommodate sort markers
-            }
-
-            style.innerHTML = rules.join('\n');
-
-            if (style.parentNode) {
-              style.parentNode.removeChild(style);
-            }
-            document.body.appendChild(style);
-          }
-
-          // sort the table on the first sortable column by default
-          ndx = columns.length;
-          while (ndx -= 1 > -1) {
-            if (columns[ndx].sortable !== false && columns[ndx].sort) {
-              break;
-            }
-          }
-          ndx = Math.max(0, ndx);
-          default_sort = d3.select('th.sortable.' + (columns[ndx].name || columns[ndx])).node() || d3.select('th.sortable').node();
-          if (default_sort) {
-            default_sort.click();
-          }
         }
       }
 
@@ -946,7 +672,6 @@
           , projection
           , LAMBDA = 0
           , PHI = 0
-          , path
           , g
           , zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed)
         ;
@@ -985,7 +710,7 @@
               .on('mouseup', mouseup).on('touchend', mouseup)
             ;
 
-          path = d3.geo.path().projection(projection);
+          PROJECTION_PATH = d3.geo.path().projection(projection);
 
           // Load the topography and draw the detail in the callback
           d3.json(topo, function(error, world) {
@@ -1006,7 +731,7 @@
               } else {
                 d3.select('#' + ID).append('g').attr('id', ID + '-map')
                     .call(zoom)
-                    .append('path').attr('id', ID + '-oceans').datum({type: 'Sphere'}).attr('d', path)
+                    .append('path').attr('id', ID + '-oceans').datum({type: 'Sphere'}).attr('d', PROJECTION_PATH)
                       .style('fill', PALETTE.oceans)
                       .style('stroke', '#333')
                       .style('stroke-width', '1.5px')
@@ -1017,7 +742,7 @@
               d3.select('#' + ID + '-map').append('g').attr('id', ID + '-countries')
                 .selectAll('path').data(countries).enter().append('path')
                   .attr('class', function(d, i) { return 'country ' + topoMap(d.id).iso; })
-                  .attr('d', path)
+                  .attr('d', PROJECTION_PATH)
                   .style('fill', function(d, i) { d.iso = topoMap(d.id).iso; d.name = topoMap(d.id).name; return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
                   .style('stroke', PALETTE.border)
                   .style('stroke-width', '0.5px')
@@ -1080,7 +805,7 @@
 
                 LAMBDA += angle;
                 projection.rotate([LAMBDA, PHI, 0]);
-                d3.select('#' + ID).selectAll('path').attr('d', path.projection(projection));
+                d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
               }
               THEN = Date.now();
             });
@@ -1102,6 +827,283 @@
       }
     }
 
+    /**
+     * Draws the location markers based on the marker data
+     * @return   {void}
+     */
+    function drawMarkers() {
+      var columns = MARKER_DESCRIPTION                                                  // a string array containing column names corresponding to property names in D3 data
+        , container = ELEM                                                              // the HTML element that will contain the table
+        , data = MARKER_DATA                                                            // using the generic 'data' to maintain consistency with scrollabletable
+        , default_sort                                                                  // column to default sort
+        , id_style = 'cjl-STable-style'                                                 // id for the style element
+        , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
+        , ndx                                                                           // loop index
+        , rules = [ ]                                                                   // stylesheet rules
+        , style = document.getElementById(id_style) || document.createElement('style')  // the style element for the table
+        , table                                                                         // the table
+        , tbody                                                                         // the body of the table
+        , tcells                                                                        // cells in the table
+        , tfoot                                                                         // the table footer
+        , thead                                                                         // the header of the table
+        , trows                                                                         // rows in the table
+        , keys = { }                                                                    // a collection of keys as they're defined in the dataset
+        , prop                                                                          // property of a specific data element
+        , row                                                                           // a specific data element
+      ;
+
+      // Make the markers 'pulse' 
+      function ping() {
+        // Larger size markers take pulse more slowly
+        var fade = d3.selectAll('path.marker')
+              .transition()
+                .duration(function(d) { return Math.min(d.marker.size * 250, 1400); })
+                .style('stroke-width', function(d, i) { return d.marker.size; })
+              .transition()
+                .duration(0)
+                .style('stroke-width', 0)
+        ;
+      }
+      // Make the markers 'pulse' 
+      function pulse() {
+        // Larger size markers take pulse more slowly
+        var fade = d3.selectAll('path.marker')
+              .transition()
+                .duration(function(d) { return Math.min(d.marker.size * 100, 500); })
+                .style('stroke-width', function(d, i) { return d.marker.size; })
+              .transition()
+                .duration(function(d, i) { return Math.min(d.marker.size * 200, 1000); })
+                .style('stroke-width', 0)
+        ;
+      }
+
+      d3.select('#' + ID + '-map').append('g').attr('id', ID + '-markers')
+         .selectAll('path').data(data).enter().append('path')
+           .attr('class', function(d) { return 'marker' + (d.country ? ' ' + d.country : ''); })
+           .attr('data-description', function(d) { return d.description; })
+           .style('fill', function(d) { return (d.color || PALETTE.marker); })
+           .style('stroke', function(d) { return (d.color || PALETTE.marker); })
+           .style('stroke-width', 0)
+           .style('stroke-opacity', (PALETTE.markerOpacity || 1))
+           .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
+                                  , c = parseFloat(d.size || MARKER_SIZE)
+                                  , size = c * m
+                                ;
+                                d.size = size;
+                                return { type:'Point', coordinates:[(d.longitude || d.lon), (d.latitude || d.lat)], marker:d }; })
+           .attr('d', PROJECTION_PATH.pointRadius(2)) //radius of the circle
+        ;
+
+      // Add some visual interest to the markers via animation
+      switch (MARKER_ANIMATION) {
+        case 'ping':
+          setInterval(ping, 1500);
+          break;
+        case 'pulse':
+          setInterval(pulse, 1500);
+          break;
+        case 'none':
+          d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size; });
+          break;
+      }
+
+      // Assign the click handlers if defined
+      if (MARKER_HANDLERS && MARKER_HANDLERS.length) {
+        d3.select('#' + ID + '-markers').selectAll('path.marker')
+          .on('click', function marker_onClick(marker) {
+             var i;
+             if (!DRAGGING) {
+               for (i = 0; i < MARKER_HANDLERS.length; i += 1) {
+                 MARKER_HANDLERS[i].call(marker);
+               }
+             }
+           })
+        ;
+      }
+
+      // default the columns
+      if (!columns || !columns.length) {
+        columns = [ ];
+        for (row in data) {
+          for (prop in data[row]) {
+            keys[prop] = true;
+          }
+        }
+        for (prop in keys) {
+          columns.push(prop);
+        }
+      }
+
+      // Add a description table if it has been defined, using the same logic as cjl-scrollabletable
+      if (columns && columns.length) {
+        // build the stylesheet
+        if (style) {
+          style.setAttribute('id', id_style);
+          style.setAttribute('type', 'text/css');
+        }
+
+        // write the sortable styles so we get the adjusted widths when we write the scrollable styles
+        if (style) {
+          // style for a sortable table
+          rules = [];
+          rules.push('#' + id_table + ' .sortable { cursor:pointer; padding:inherit 0.1em; }');
+          rules.push('#' + id_table + ' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
+          rules.push('#' + id_table + ' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
+          rules.push('#' + id_table + ' .sortable.sorted { color:#ff0000; }');
+
+          style.innerHTML += rules.join('\n');
+
+          if (!style.parentNode) {
+            document.body.appendChild(style);
+          }
+        }
+
+        // create the table
+        table = d3.select(container).append('table')
+                    .attr('class', 'scrollable marker-description')
+                    .attr('id', id_table)
+          ;
+        thead = table.append('thead');
+        tfoot = table.append('tfoot');
+        tbody = table.append('tbody');
+
+        // append the header row
+        thead.append('tr')
+             .selectAll('th')
+             .data(columns)
+             .enter()
+             .append('th')
+               .attr('class', function(d, i) {
+                  var issort = (d.sortable === null || d.sortable === undefined) ? true : d.sortable;
+                  return (d.name || d) + (issort ? ' sortable' : '');
+                })
+               .text(function(d, i) {
+                  var name = d.name || d;
+                  return name.replace(/\b\w+/g, function(s) {
+                    return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
+                  });
+                })
+          ;
+
+        // attach the click handler
+        thead.selectAll('th.sortable')
+               .on('click', function (d, i) {
+                  var clicked = d3.select(this)
+                    , sorted = d3.select(clicked.node().parentNode).selectAll('.sortable.sorted')
+                    , desc = clicked.classed('desc')
+                  ;
+
+                  // normalize the data
+                  d = d.name || d;
+
+                  // reset the 'sorted' class on siblings
+                  sorted.classed('sorted', false);
+
+                  if (desc) {
+                    clicked.classed({'desc': false, 'sorted': true});
+                    tbody.selectAll('tr').sort(function ascending(a, b) {
+                        var ret = 0;
+                        a = a[d];  // select the property to compare
+                        b = b[d];  // select the property to compare
+                        if (a !== null && a !== undefined) {
+                          if (a.localeCompare && (isNaN(a) || isNaN(b))) {
+                            ret = a.localeCompare(b);
+                          } else {
+                            ret = a - b;
+                          }
+                        }
+                        return ret;
+                      });
+                  } else {
+                    clicked.classed({'desc': true, 'sorted': true});
+                    tbody.selectAll('tr').sort(function descending(a, b) {
+                        var ret = 0;
+                        a = a[d];  // select the property to compare
+                        b = b[d];  // select the property to compare
+                        if (b !== null && b !== undefined) {
+                          if (b.localeCompare && (isNaN(a) || isNaN(b))) {
+                            ret = b.localeCompare(a);
+                          } else {
+                            ret = b - a;
+                          }
+                        }
+                        return ret;
+                      });
+                  }
+                })
+          ;
+
+        // create the footer
+        tfoot.append('tr')
+             .selectAll('td')
+             .data(columns)
+             .enter()
+             .append('td')
+               .attr('class', function(d, i) {
+                  return (d.name || d);
+                })
+               .html('&nbsp;')
+          ;
+
+        // create a row for each object in the markers
+        trows = tbody.selectAll('tr')
+                     .data(data)
+                     .enter()
+                     .append('tr')
+          ;
+
+        // create a cell in each row for each column
+        tcells = trows.selectAll('td')
+                      .data(function(row) {
+                         return columns.map(function(column) {
+                           return {column: (column.name || column), value: row[(column.name || column)]};
+                         });
+                       })
+                      .enter()
+                      .append('td')
+                        .attr('class', function(d) { return d.column; })
+                        .html(function(d) { return d.value; })
+          ;
+
+        // build the stylesheet
+        if (style) {
+          // style for a scrollable table
+          rules.push('#' + id_table + '.scrollable { display:block; padding:0 0 1.5em 0; }');
+          rules.push('#' + id_table + '.scrollable tbody { height:12em; overflow-y:scroll; }');
+          rules.push('#' + id_table + '.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
+          rules.push('#' + id_table + '.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
+          rules.push('#' + id_table + '.scrollable tfoot { bottom:0; position:absolute; }'); 
+          rules.push('#' + id_table + '.scrollable thead, #' + id_table + ' tfoot, #' + id_table + ' tbody { cursor:default; display:block; margin:0.5em 0; }');
+          rules.push('tbody.banded tr:nth-child(odd) { background-color:rgba(187, 187, 187, 0.8); }');
+
+          tcells = document.getElementById(id_table).getElementsByTagName('tr').item(0).childNodes;
+          for (ndx = 0; ndx < tcells.length; ndx += 1) {
+            rules.push('#' + id_table + ' th:nth-of-type(' + (ndx + 1) + '), #' + id_table + ' td:nth-of-type(' + (ndx + 1) + ') { width:' + (tcells.item(ndx).offsetWidth + 15) + 'px; }'); // add 15 pixels to accommodate sort markers
+          }
+
+          style.innerHTML = rules.join('\n');
+
+          if (style.parentNode) {
+            style.parentNode.removeChild(style);
+          }
+          document.body.appendChild(style);
+        }
+
+        // sort the table on the first sortable column by default
+        ndx = columns.length;
+        while (ndx -= 1 > -1) {
+          if (columns[ndx].sortable !== false && columns[ndx].sort) {
+            break;
+          }
+        }
+        ndx = Math.max(0, ndx);
+        default_sort = d3.select('th.sortable.' + (columns[ndx].name || columns[ndx])).node() || d3.select('th.sortable').node();
+        if (default_sort) {
+          default_sort.click();
+        }
+      }
+    }
+
     var d3Colors = d3.scale.category10()
       , MARKER_ANIMATION = 'pulse', MARKER_DATA = [], MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_SIZE = 3, MARKER_RELATIVE_SIZE = false
       , PALETTE = {
@@ -1113,7 +1115,7 @@
         }
       , MAP_WIDTH, MAP_HEIGHT
       , THEN, VELOCITY = 0.05
-      , ROTATE_3D, ROTATABLE, DRAGGING, MOUSE_DOWN
+      , DRAGGING, PROJECTION_PATH, MOUSE_DOWN, ROTATE_3D, ROTATABLE
       , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
       , COUNTRY_HANDLERS = [ ], MARKER_HANDLERS = [ ]
       , EVENT_HANDLERS = { }
