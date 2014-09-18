@@ -36,29 +36,25 @@
      * @type     {string}
      * @default  "#ff0000"
      */
-    this.getBorderColor = function() {
-      return PALETTE.border;
-    };
-    this.setBorderColor = function(value) {
+    this.borderColor = function(value) {
       if ((/^\#[A-F0-9]{6}/i).test(value)) {
         PALETTE.border = value;
       }
+      return PALETTE.border;
     };
 
     /**
      * The HTML element that is the parent for the map
      * @type     {string}
      */
-    this.getElement = function() {
-      return ELEM;
-    };
-    this.setElement = function(value) {
+    this.element = function(value) {
       if (typeof value === 'string') {
         value = document.getElementById(value);
       }
       if (value && value.nodeType === 1) {
         ELEM = value;
       }
+      return ELEM;
     };
 
     /**
@@ -66,13 +62,11 @@
      * @type     {string}
      * @default  "pulse"
      */
-    this.getMarkerAnimation = function() {
-      return MARKER_ANIMATION;
-    };
-    this.setMarkerAnimation = function(value) {
+    this.markerAnimation = function(value) {
       if ((/^(pulse|ping|none)$/).test(value)) {
         MARKER_ANIMATION = value;
       }
+      return MARKER_ANIMATION;
     };
 
     /**
@@ -80,43 +74,35 @@
      * @type     {string}
      * @default  "#ff0000"
      */
-    this.getMarkerColor = function() {
-      return PALETTE.marker;
-    };
-    this.setMarkerColor = function(value) {
+    this.markerColor = function(value) {
       if ((/^\#[A-F0-9]{6}/i).test(value)) {
         PALETTE.marker = value;
       }
+      return PALETTE.marker;
     };
 
     /**
      * The column headers of the marker description table. Note: column headers must match the data returned in the marker file
      * @type     {string[]}
      */
-    this.getMarkerDescriptionData = function() {
-      return MARKER_DESCRIPTION;
-    };
-    this.setMarkerDescriptionData = function(value) {
+    this.markerDescriptionData = function(value) {
       if (value === null || value === undefined || value instanceof Array) {
         MARKER_DESCRIPTION = value;
       }
+      return MARKER_DESCRIPTION;
     };
 
     /**
      * URI of the marker file, e.g., '/popmap/cities.csv'
      * @type     {string}
      */
-    this.getMarkerFile = function() {
-      return MARKER_FILE;
-    };
-    this.setMarkerFile = function(uri, type) {
-      if (type) {
-        MARKER_FILE.name = uri;
-        MARKER_FILE.type = type;
-      } else {
-        MARKER_FILE = uri;
+    this.markerFile = function(uri, type) {
+      uri = (typeof uri === 'string') ? { name:uri, type:type } : (uri.name && uri.type) ? {name:uri.name, type:uri.type} : null;
+      if (uri && uri.name) {
+        MARKER_FILE.name = uri.name;
+        MARKER_FILE.type = (/csv|json/i).test(uri.type) ? uri.type : 'csv';
       }
-      MARKER_FILE.type = (/csv|json/i).test(MARKER_FILE.type) ? MARKER_FILE.type : 'csv';
+      return MARKER_FILE;
     };
 
     /**
@@ -124,14 +110,12 @@
      * @type     {float}
      * @default  1
      */
-    this.getMarkerOpacity = function() {
-      return PALETTE.markerOpacity;
-    };
-    this.setMarkerOpacity = function(value) {
+    this.markerOpacity = function(value) {
       // Make sure the value is between 0.0 (transparent) and 1.0 (opaque), inclusive
       if (!isNaN(value) && Math.floor(value * 10) > -1 && Math.floor(value * 10) < 11) {
         PALETTE.markerOpacity = (Math.floor(value * 10) / 10).toString();
       }
+      return PALETTE.markerOpacity;
     };
 
     /**
@@ -139,28 +123,24 @@
      * @type     {integer}
      * @default  3
      */
-    this.getMarkerSize = function() {
-      return MARKER_SIZE;
-    };
-    this.setMarkerSize = function(value) {
-      var pc = (/\%/).test(value);
+    this.markerSize = function(value) {
+      var reg = /\%/
+        , pc = reg.test(value);
       if (pc) {
-        value = value.replace(/\%/, '');
+        value = value.replace(reg, '');
       }
       if (!isNaN(value) && value > 1) {
         MARKER_SIZE = Math.floor(value);
         MARKER_RELATIVE_SIZE = pc;
       }
+      return MARKER_SIZE;
     };
 
     /**
      * Array of hexadecimal colors, e.g., 
      * @type     {string[]}
      */
-    this.getPalette = function() {
-      return PALETTE.colors;
-    };
-    this.setPalette = function(value) {
+    this.palette = function(value) {
       function validate(value) {
         var i
           , reg = /(\#[A-Z0-9]{6})[^A-Z0-9]?/i
@@ -186,22 +166,21 @@
         PALETTE.colors = validate(value.colors) || PALETTE.colors;
         PALETTE.marker = validate(value.marker).shift() || PALETTE.marker;
         PALETTE.oceans = validate(value.oceans).shift() || PALETTE.oceans;
-      } else {
+      } else if (value instanceof Array) {
         PALETTE.colors = validate(value) || PALETTE.colors;
       }
+      return PALETTE;
     };
 
     /**
      * URI of the topojson file, e.g., '/world-110m.json'
      * @type     {string}
      */
-    this.getTopoFile = function() {
-      return topo;
-    };
-    this.setTopoFile = function(value) {
+    this.topoFile = function(value) {
       if (typeof value === 'string' && value !== '') {
         topo = value;
       }
+      return topo;
     };
 
     /**
