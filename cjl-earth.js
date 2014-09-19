@@ -325,7 +325,7 @@
      * @type     {boolean}
      */
     this.rotating = function() {
-      return (ROTATABLE && ROTATE_3D);
+      return (ROTATABLE && ROTATE_3D && !ROTATE_STOPPED);
     };
 
     /**
