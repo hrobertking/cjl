@@ -94,23 +94,23 @@ clicked, and will hae the following properties:
 
 *HTML Table*
 
-    &lt;table&gt;  
-    &nbsp;&nbsp;&lt;thead&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;th&gt;Country&lt;/th&gt;&lt;th&gt;City&lt;/th&gt;&lt;th&gt;Activity&lt;/th&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Latitude&lt;/th&gt;&lt;th&gt;Longitude&lt;/th&gt;&lt;th&gt;Size&lt;/th&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&lt;/thead&gt;  
-    &nbsp;&nbsp;&lt;tbody&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;ATL&lt;/td&gt;&lt;td&gt;68343&lt;/td&gt;&lt;td&gt;Hartsfield Jackson Atlanta International&lt;/td&gt;&lt;td&gt;33.636719&lt;/td&gt;&lt;td&gt;-84.428067&lt;/td&gt;&lt;td&gt;16&lt;/td&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;ORD&lt;/td&gt;&lt;td&gt;59692&lt;/td&gt;&lt;td&gt;Chicago O'Hare International&lt;/td&gt;&lt;td&gt;41.978603&lt;/td&gt;&lt;td&gt;-87.904842&lt;/td&gt;&lt;td&gt;14&lt;/td&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;DFW&lt;/td&gt;&lt;td&gt;56496&lt;/td&gt;&lt;td&gt;Dallas Fort Worth International&lt;/td&gt;&lt;td&gt;32.896828&lt;/td&gt;&lt;td&gt;-97.037997&lt;/td&gt;&lt;td&gt;12&lt;/td&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;LAX&lt;/td&gt;&lt;td&gt;51396&lt;/td&gt;&lt;td&gt;Los Angeles International&lt;/td&gt;&lt;td&gt;33.942536&lt;/td&gt;&lt;td&gt;-118.408075&lt;/td&gt;&lt;td&gt;10&lt;/td&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;CN&lt;/td&gt;&lt;td&gt;PEK&lt;/td&gt;&lt;td&gt;48226&lt;/td&gt;&lt;td&gt;Capital International&lt;/td&gt;&lt;td&gt;40.080111&lt;/td&gt;&lt;td&gt;116.584556&lt;/td&gt;&lt;td&gt;10&lt;/td&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;CLT&lt;/td&gt;&lt;td&gt;44583&lt;/td&gt;&lt;td&gt;Charlotte Douglas International&lt;/td&gt;&lt;td&gt;35.214&lt;/td&gt;&lt;td&gt;-80.943139&lt;/td&gt;&lt;td&gt;8&lt;/td&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;DEN&lt;/td&gt;&lt;td&gt;44438&lt;/td&gt;&lt;td&gt;Denver International&lt;/td&gt;&lt;td&gt;39.861656&lt;/td&gt;&lt;td&gt;-104.673178&lt;/td&gt;&lt;td&gt;8&lt;/td&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;LAS&lt;/td&gt;&lt;td&gt;41164&lt;/td&gt;&lt;td&gt;McCarran International&lt;/td&gt;&lt;td&gt;36.080056&lt;/td&gt;&lt;td&gt;-115.15225&lt;/td&gt;&lt;td&gt;6&lt;/td&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;IAH&lt;/td&gt;&lt;td&gt;39808&lt;/td&gt;&lt;td&gt;George Bush Intercontinental&lt;/td&gt;&lt;td&gt;29.984433&lt;/td&gt;&lt;td&gt;-95.341442&lt;/td&gt;&lt;td&gt;6&lt;/td&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;GB&lt;/td&gt;&lt;td&gt;LHR&lt;/td&gt;&lt;td&gt;37680&lt;/td&gt;&lt;td&gt;London Heathrow&lt;/td&gt;&lt;td&gt;51.4775&lt;/td&gt;&lt;td&gt;-0.461389&lt;/td&gt;&lt;td&gt;4&lt;/td&gt;&lt;/tr&gt;  
-    &nbsp;&nbsp;&lt;/tbody&gt;  
-    &lt;/table&gt;  
+    <table>  
+      <thead>  
+        <tr><th>Country</th><th>City</th><th>Activity</th><th>Name</th><th>Latitude</th><th>Longitude</th><th>Size</th></tr>  
+      </thead>  
+      <tbody>  
+        <tr><td>US</td><td>ATL</td><td>68343</td><td>Hartsfield Jackson Atlanta International</td><td>33.636719</td><td>-84.428067</td><td>16</td></tr>  
+        <tr><td>US</td><td>ORD</td><td>59692</td><td>Chicago O'Hare International</td><td>41.978603</td><td>-87.904842</td><td>14</td></tr>  
+        <tr><td>US</td><td>DFW</td><td>56496</td><td>Dallas Fort Worth International</td><td>32.896828</td><td>-97.037997</td><td>12</td></tr>  
+        <tr><td>US</td><td>LAX</td><td>51396</td><td>Los Angeles International</td><td>33.942536</td><td>-118.408075</td><td>10</td></tr>  
+        <tr><td>CN</td><td>PEK</td><td>48226</td><td>Capital International</td><td>40.080111</td><td>116.584556</td><td>10</td></tr>  
+        <tr><td>US</td><td>CLT</td><td>44583</td><td>Charlotte Douglas International</td><td>35.214</td><td>-80.943139</td><td>8</td></tr>  
+        <tr><td>US</td><td>DEN</td><td>44438</td><td>Denver International</td><td>39.861656</td><td>-104.673178</td><td>8</td></tr>  
+        <tr><td>US</td><td>LAS</td><td>41164</td><td>McCarran International</td><td>36.080056</td><td>-115.15225</td><td>6</td></tr>  
+        <tr><td>US</td><td>IAH</td><td>39808</td><td>George Bush Intercontinental</td><td>29.984433</td><td>-95.341442</td><td>6</td></tr>  
+        <tr><td>GB</td><td>LHR</td><td>37680</td><td>London Heathrow</td><td>51.4775</td><td>-0.461389</td><td>4</td></tr>  
+      </tbody>  
+    </table>  
 
 ### ScrollableTable
 A handy little library for quickly developing a scrollable, sortable table. The constructor can accept columns specified as strings, e.g.,
