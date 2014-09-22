@@ -122,7 +122,8 @@ property equal to false, are treated as sortable. The last column containing the
 column is specified as the default sort, the first sortable column is used.
 
 If the *element* parameter is a table node, the table is not appended to the element, but is instead transformed into a scrollable, sortable
-table. Columns are considered to be 'sortable' unless they are specifically identified as not sortable.
+table. Columns are considered to be 'sortable' unless they are specifically identified as not sortable. You can see a working prototype over at 
+http://products.cathmhaol.com/prototypes/scrollabletable/
 
 
 *object* Cathmhaol.ScrollableTable(*HTMLElement|string* element, *string[]|object[]* columns, *object[]* data);  
