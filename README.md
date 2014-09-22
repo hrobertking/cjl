@@ -93,7 +93,7 @@ clicked, and will hae the following properties:
     US,64.729444,-158.074167,2,#663399,9012,Nulato 
 
 *HTML Table*
-
+```html
     <table>  
       <thead>  
         <tr><th>Country</th><th>City</th><th>Activity</th><th>Name</th><th>Latitude</th><th>Longitude</th><th>Size</th></tr>  
@@ -111,6 +111,7 @@ clicked, and will hae the following properties:
         <tr><td>GB</td><td>LHR</td><td>37680</td><td>London Heathrow</td><td>51.4775</td><td>-0.461389</td><td>4</td></tr>  
       </tbody>  
     </table>  
+```
 
 ### ScrollableTable
 A handy little library for quickly developing a scrollable, sortable table. The constructor can accept columns specified as strings, e.g.,
