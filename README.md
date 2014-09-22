@@ -28,22 +28,33 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 #### Properties
 
 #### Methods
-- *void* addOnCountryClick(*function* handler): Adds an event handler for the click event for a country. Inside the handler, the 'this' keyword, refers to the country clicked, and will have the following properties:
-    * type: the string 'Feature'
-    * id: the topoJSON id
-    * properties: an empty object
+- *void* addOnCountryClick(*function* handler): Adds an event handler for the click event for a country. Inside the handler, the 'this' keyword refers to the country clicked, and will have the following properties:
+    * color: the index of the palette color used
     * geometry: object containing the type of shape, e.g., Polygon or MultiPolygon, called 'type' and a floating point array called 'coordinates'
+    * id: the topoJSON id
     * iso: the ISO 3166 Alpha-2 code
     * name: the country name (in English)
-    * color: the index of the palette color used
+    * properties: an empty object
+    * type: the string 'Feature'
+- *void* addOnMarkerClick(*function* handler): Adds an event handler for the click event for a marker. Inside the handler, the 'this' keyword refers to the marker
+clicked, and will hae the following properties:
+    * coordinates: a two-element array containing the longitude (element 0) and latitude (element 1) of the marker
+    * marker: all data elements contained in the original dataset, e.g, latitude, longitude, size, and color
+    * type: the string 'Point'
 - *string* borderColor(*string* color): Sets and returns the border color to the provided hexadecimal value
 - *HTMLElement* element(*HTMLElement*|*string* element): Sets the element to attach the SVG and returns the element
+- *string[]* events(): Returns a string array listing event names for all events fired by the map
+- *string* markerAnimation(*string* type): Sets and returns the marker animation. Valid values are 'none', 'ping', or 'pulse'.
 - *string* markerColor(*string* color): Sets and returns the marker color to the provided hexadecimal value
 - *string[]* markerDescriptionData(*string[]* headers): Sets and returns the column headers for the marker description table. Note: column headers must match the data returned in the marker file. If headers are defined, a table is added to the container element (appended after the SVG) and data is pulled from the marker file. For example, using setMarkerDescriptionData(['city', 'country', 'amount']) in conjunction with the example CSV file (shown below), will render an HTML table as &lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;City&lt;/th&gt;&lt;th&gt;Country&lt;/th&gt;&lt;th&gt;Amount&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;Toronto&lt;/td&gt;&lt;td&gt;CA&lt;/td&gt;&lt;td&gt;1234&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Frakfurt&lt;/td&gt;&lt;td&gt;DE&lt;/td&gt;&lt;td&gt;5678&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Madrid&lt;/td&gt;&lt;td&gt;ES&lt;/td&gt;&lt;td&gt;9012&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Paris&lt;/td&gt;&lt;td&gt;FR&lt;/td&gt;&lt;td&gt;3456&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;London&lt;/td&gt;&lt;td&gt;GB&lt;/td&gt;&lt;td&gt;7890&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Pantelleria&lt;/td&gt;&lt;td&gt;IT&lt;/td&gt;&lt;td&gt;1234&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Milan&lt;/td&gt;&lt;td&gt;IT&lt;/td&gt;&lt;td&gt;5678&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Miami&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;9012&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Dallas&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;3456&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;San Jose&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;7890&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Washington (DC)&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;1234&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;New York&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;5678&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Nulato&lt;/td&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;9012&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;
 - *object* markerFile(*string*|*object* resource[, *string* type]): Sets the URL of the file containing marker data and the file type. The marker parameter may either be a URL string, if the type is provided, or it may be an object containing the url and type, e.g., {name:'/my-markers.csv', type:'csv'}. Returns an object containing the URL of the file containing marker data and the file type, e.g., {name:'/my-markers.csv', type:'csv'}. Each marker definition in the marker file must contain 'longitude', 'latitude', and 'size'. If the marker definition contains 'color', the specified color will be used as the marker color. If the marker definition contains 'country', the country will be added to the marker class. If the marker definition contains
 'description', the description will be used to populate the 'data-description' attribute of the marker. Marker file examples are below.
-- *float* markerSize(*number*|*string* size): Sets and returns the marker size to the size provided. Size may be specified as a number or as a percentage of overall size, e.g., "10%"
+- *float* markerOpacity(*number*|*string* opacity): Sets and returns the opacity of the marker animation. Valid values are between 0 (transparent) and 1 (opaque).
+- *float* markerSize(*number*|*string* size): Sets and returns the marker size to the size provided. Size may be specified as a number or as a percentage of overall size, e.g., '10%'
+- *void* on(*string* eventname, *function* handler): Subscribes an event handler to the specified event. Valid event names can be found in the array returned by the 'events' function, but are at this time limited to 'accelerated', 'paused', 'rendered', 'resumed', and 'slowed'.
 - *object* palette(*string[]*|*object* palette): Sets and returns the palette. The palette parameter may either be an array of hexadecimal strings representing colors or it may be an object containing an array of colors as its 'colors' property. It may optionally have the 'border', 'marker', and 'oceans' colors as properties, e.g. {border:'#333333', colors:['#ff0000', '#ff3333', '#ff6666', '#ff9999', '#ffcccc', '#ffffff'], marker:'#663399', oceans:'#99ccff'}
+- *void* parseMarkerData(*string*|*HTMLElement* table): Enables passing in marker data via an HTML table rather than as a file that is obtained via AJAX. Tables, like marker file data, must contain latitude, longitude, and size information and may optionally contain more detail. *See **markerFile** for more information.*
+- *string* style(*string* style): Sets and returns the style of map to use. Valid value is '2D' - any other value reverts to 'globe'.
 - *string* topoFile(*string* url): Sets and returns the URL of the topoJSON file
 - *void* render([*string* style]): Draws the map. The only valid option for the 'style' parameter at this time is '2D', which renders a flat (Spherical Mercator) map.
 - *boolean* rotatable: Returns true when the map can rotate.
@@ -54,7 +65,7 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 - *void* rotationResume: Restarts the rotation
 - *void* rotationStop: Stops the rotation until it is resumed
 
-#### Marker File Examples
+#### Marker Data Examples
 *JSON*
 
     [
@@ -80,6 +91,26 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
     US,38.944533,-77.455811,3,#663399,1234,Washington (DC)  
     US,40.777245,-73.872608,2,#663399,5678,New York  
     US,64.729444,-158.074167,2,#663399,9012,Nulato 
+
+*HTML Table*
+
+    &lt;table&gt;  
+    &nbsp;&nbsp;&lt;thead&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;th&gt;Country&lt;/th&gt;&lt;th&gt;City&lt;/th&gt;&lt;th&gt;Activity&lt;/th&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Latitude&lt;/th&gt;&lt;th&gt;Longitude&lt;/th&gt;&lt;th&gt;Size&lt;/th&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&lt;/thead&gt;  
+    &nbsp;&nbsp;&lt;tbody&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;ATL&lt;/td&gt;&lt;td&gt;68343&lt;/td&gt;&lt;td&gt;Hartsfield Jackson Atlanta International&lt;/td&gt;&lt;td&gt;33.636719&lt;/td&gt;&lt;td&gt;-84.428067&lt;/td&gt;&lt;td&gt;16&lt;/td&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;ORD&lt;/td&gt;&lt;td&gt;59692&lt;/td&gt;&lt;td&gt;Chicago O'Hare International&lt;/td&gt;&lt;td&gt;41.978603&lt;/td&gt;&lt;td&gt;-87.904842&lt;/td&gt;&lt;td&gt;14&lt;/td&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;DFW&lt;/td&gt;&lt;td&gt;56496&lt;/td&gt;&lt;td&gt;Dallas Fort Worth International&lt;/td&gt;&lt;td&gt;32.896828&lt;/td&gt;&lt;td&gt;-97.037997&lt;/td&gt;&lt;td&gt;12&lt;/td&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;LAX&lt;/td&gt;&lt;td&gt;51396&lt;/td&gt;&lt;td&gt;Los Angeles International&lt;/td&gt;&lt;td&gt;33.942536&lt;/td&gt;&lt;td&gt;-118.408075&lt;/td&gt;&lt;td&gt;10&lt;/td&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;CN&lt;/td&gt;&lt;td&gt;PEK&lt;/td&gt;&lt;td&gt;48226&lt;/td&gt;&lt;td&gt;Capital International&lt;/td&gt;&lt;td&gt;40.080111&lt;/td&gt;&lt;td&gt;116.584556&lt;/td&gt;&lt;td&gt;10&lt;/td&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;CLT&lt;/td&gt;&lt;td&gt;44583&lt;/td&gt;&lt;td&gt;Charlotte Douglas International&lt;/td&gt;&lt;td&gt;35.214&lt;/td&gt;&lt;td&gt;-80.943139&lt;/td&gt;&lt;td&gt;8&lt;/td&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;DEN&lt;/td&gt;&lt;td&gt;44438&lt;/td&gt;&lt;td&gt;Denver International&lt;/td&gt;&lt;td&gt;39.861656&lt;/td&gt;&lt;td&gt;-104.673178&lt;/td&gt;&lt;td&gt;8&lt;/td&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;LAS&lt;/td&gt;&lt;td&gt;41164&lt;/td&gt;&lt;td&gt;McCarran International&lt;/td&gt;&lt;td&gt;36.080056&lt;/td&gt;&lt;td&gt;-115.15225&lt;/td&gt;&lt;td&gt;6&lt;/td&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;US&lt;/td&gt;&lt;td&gt;IAH&lt;/td&gt;&lt;td&gt;39808&lt;/td&gt;&lt;td&gt;George Bush Intercontinental&lt;/td&gt;&lt;td&gt;29.984433&lt;/td&gt;&lt;td&gt;-95.341442&lt;/td&gt;&lt;td&gt;6&lt;/td&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&nbsp;&nbsp;&lt;tr&gt;&lt;td&gt;GB&lt;/td&gt;&lt;td&gt;LHR&lt;/td&gt;&lt;td&gt;37680&lt;/td&gt;&lt;td&gt;London Heathrow&lt;/td&gt;&lt;td&gt;51.4775&lt;/td&gt;&lt;td&gt;-0.461389&lt;/td&gt;&lt;td&gt;4&lt;/td&gt;&lt;/tr&gt;  
+    &nbsp;&nbsp;&lt;/tbody&gt;  
+    &lt;/table&gt;  
 
 ### ScrollableTable
 A handy little library for quickly developing a scrollable, sortable table. The constructor can accept columns specified as strings, e.g.,
