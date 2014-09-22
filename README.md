@@ -121,6 +121,9 @@ A handy little library for quickly developing a scrollable, sortable table. The 
 property equal to false, are treated as sortable. The last column containing the sort property will be used as the initial sort. If no
 column is specified as the default sort, the first sortable column is used.
 
+If the *element* parameter is a table node, the table is not appended to the element, but is instead transformed into a scrollable, sortable
+table. Columns are considered to be 'sortable' unless they are specifically identified as not sortable.
+
 
 *object* Cathmhaol.ScrollableTable(*HTMLElement|string* element, *string[]|object[]* columns, *object[]* data);  
 Example:
