@@ -905,8 +905,14 @@
         // Larger size markers take pulse more slowly
         var fade = d3.selectAll('path.marker')
               .transition()
-                .duration(function(d) { return Math.min(d.marker.size * 250, 1400); })
-                .style('stroke-width', function(d, i) { return d.marker.size; })
+                .duration(function(d) { return Math.min(d.marker.size * 250, 1500); })
+                .style('stroke-width', function(d, i) { 
+                   if (d.marker.size < 1) {
+                     return d.marker.size * MARKER_SIZE
+                   } else {
+                     return d.marker.size;
+                   }
+                 })
               .transition()
                 .duration(0)
                 .style('stroke-width', 0)
@@ -917,10 +923,20 @@
         // Larger size markers take pulse more slowly
         var fade = d3.selectAll('path.marker')
               .transition()
-                .duration(function(d) { return Math.min(d.marker.size * 100, 500); })
-                .style('stroke-width', function(d, i) { return d.marker.size; })
+                .duration(function(d) {
+                   return Math.min(d.marker.size * 100, 500);
+                 })
+                .style('stroke-width', function(d, i) { 
+                   if (d.marker.size < 1) {
+                     return d.marker.size * MARKER_SIZE
+                   } else {
+                     return d.marker.size;
+                   }
+                 })
               .transition()
-                .duration(function(d, i) { return Math.min(d.marker.size * 200, 1000); })
+                .duration(function(d, i) {
+                   return Math.min(d.marker.size * 200, 1000);
+                 })
                 .style('stroke-width', 0)
         ;
       }
