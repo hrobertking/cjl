@@ -334,21 +334,35 @@
     /**
      * Reduce the rotation velocity
      * @return   {void}
+     * @param    {number} rate
      */
-    this.rotationDecrease = function() {
-      if (VELOCITY > 0.01) {   // if the velocity is not visually stopped
-        VELOCITY -= 0.005;     // decrease the velocity
-        fire('slowed');        // fire the event
+    this.rotationDecrease = function(rate) {
+      if (VELOCITY > 0.01) {                             // if the velocity is not visually stopped
+        rate = rate || '';                               // default the rate to an empty string
+        if (rate.indexOf('%') > -1) {                    // adjust if we're using a percentage
+          rate = rate.replace(/\%/g, '') / 100;          // translate the string into a floating-point value
+          rate = (( rate || 0 ) * VELOCITY);             // do the calculation since it's a percentage of velocity
+        }
+        rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);  // make sure we're adjusting it by a rate
+        VELOCITY -= rate;                                // decrease the velocity
+        fire('slowed');                                  // fire the event
       }
     };
 
     /**
      * Reduce the rotation velocity
      * @return   {void}
+     * @param    {number} rate
      */
-    this.rotationIncrease = function() {
-      VELOCITY += 0.005;       // increase the velocity
-      fire('accelerated');     // fire the event
+    this.rotationIncrease = function(rate) {
+      rate = rate || '';                               // default the rate to an empty string
+      if (rate.indexOf('%') > -1) {                    // adjust if we're using a percentage
+        rate = rate.replace(/\%/g, '') / 100;          // translate the string into a floating-point value
+        rate = (( rate || 0 ) * VELOCITY);             // do the calculation since it's a percentage of velocity
+      }
+      rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);  // make sure we're adjusting it by a rate
+      VELOCITY += rate;                                // decrease the velocity
+      fire('accelerated');                             // fire the event
     };
 
     /**
@@ -1186,6 +1200,7 @@
     if (typeof ELEM === 'string') {
       ELEM = document.getElementById(ELEM);
     }
+
     if (!ELEM || ELEM.nodeType !== 1) {
       ELEM = document.body;
     }
