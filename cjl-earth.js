@@ -894,7 +894,7 @@
      */
     function drawMarkers() {
       var columns = MARKER_DESCRIPTION                                                  // a string array containing column names corresponding to property names in D3 data
-        , container = ELEM                                                              // the HTML element that will contain the table
+        , container = DESCRIPTOR || ELEM                                                // the HTML element that will contain the table
         , data = MARKER_DATA                                                            // using the generic 'data' to maintain consistency with scrollabletable
         , default_sort                                                                  // column to default sort
         , id_style = 'cjl-STable-style'                                                 // id for the style element
@@ -1245,6 +1245,15 @@
     if (!ELEM || ELEM.nodeType !== 1) {
       ELEM = document.body;
     }
+
+    // set the table descriptor element
+    if (typeof DESCRIPTOR === 'string') {
+      DESCRIPTOR = document.getElementById(DESCRIPTOR);
+    }
+    if (DESCRIPTOR.nodeType !== 1) {
+      DESCRIPTOR = null;
+    }
+
     return this;
   };
 
