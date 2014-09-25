@@ -417,7 +417,8 @@
     this.render = function(style) {
       // Drag handler for dragable regions
       function mousedown(evt) {
-        MOUSE_DOWN = new Date();
+        ROTATE_3D = false;        // pause the rotation
+        MOUSE_DOWN = new Date();  // set a starting point
       }
       function mousemove(evt) {
         if (MOUSE_DOWN && ROTATABLE) {
@@ -1158,7 +1159,7 @@
           // build the stylesheet
           if (style) {
             // style for a scrollable table
-            rules.push('#' + id_table + '.scrollable { display:block; padding:0 0 1.5em 0; }');
+            rules.push('#' + id_table + '.scrollable { display:inline-block; padding:0 0.5em 1.5em 0; }');
             rules.push('#' + id_table + '.scrollable tbody { height:12em; overflow-y:scroll; }');
             rules.push('#' + id_table + '.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
             rules.push('#' + id_table + '.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
@@ -1250,7 +1251,7 @@
     if (typeof DESCRIPTOR === 'string') {
       DESCRIPTOR = document.getElementById(DESCRIPTOR);
     }
-    if (DESCRIPTOR.nodeType !== 1) {
+    if (DESCRIPTOR && DESCRIPTOR.nodeType !== 1) {
       DESCRIPTOR = null;
     }
 
