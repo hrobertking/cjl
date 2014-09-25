@@ -18,10 +18,11 @@
   /**
    * Creates a world map. Map can be rendered as 2D (Mercator) or as a globe (default)
    *
-   * @param {string|HTMLElement} elem  The unique ID of the HTML element to contain the object
-   * @param {string} topo              The URI of a topo file
-   * @param {number} size              The diameter of the globe or the height of the map in pixels
-   * @param {string} style             The style to use - '2D' renders a Mercator projection everything else is a globe
+   * @param {string|HTMLElement} ELEM        The unique ID of the HTML element to contain the object
+   * @param {string} TOPO                    The URI of a topo file
+   * @param {number} HEIGHT                  The diameter of the globe or the height of the map in pixels
+   * @param {string} MAP_STYLE               The style to use - '2D' renders a Mercator projection everything else is a globe
+   * @param {string|HTMLElement} DESCRIPTOR  The element (or unique id identifying it) to contain the descriptor table
    *
    * @requires d3            http://d3js.org/d3.v3.min.js
    * @requires d3.geo        http://d3js.org/d3.geo.projection.v0.min.js
@@ -31,7 +32,7 @@
    * @author Robert King (hrobertking@cathmhaol.com)
    *
    */
-  Cathmhaol.Earth = function(ELEM, topo, height) {
+  Cathmhaol.Earth = function(ELEM, TOPO, HEIGHT, MAP_STYLE, DESCRIPTOR) {
     /**
      * Border color in hexadecimal format, e.g. #ff0000
      * @type     {string}
@@ -210,9 +211,9 @@
      */
     this.topoFile = function(value) {
       if (typeof value === 'string' && value !== '') {
-        topo = value;
+        TOPO = value;
       }
-      return topo;
+      return TOPO;
     };
 
     /**
@@ -295,6 +296,7 @@
         table = (table.nodeType === 1) ? table : null;
 
         if (table && table.nodeName.toLowerCase() === 'table') {
+          DESCRIPTOR = table.parentNode;
           MARKER_DATA = [ ];
 
           // parse the table
@@ -738,7 +740,7 @@
 
       // we only start rendering if we have a containing element
       if (ELEM) {
-        var diameter = height || ELEM ? ELEM.clientWidth : 160
+        var diameter = HEIGHT || ELEM ? ELEM.clientWidth : 160
           , radius = diameter / 2
           , projection
           , LAMBDA = 0
@@ -747,7 +749,7 @@
           , zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed)
         ;
 
-        if (topo !== '') {
+        if (TOPO !== '') {
           // Set global variables
           MAP_WIDTH = diameter;
           MAP_HEIGHT = diameter;
@@ -784,7 +786,7 @@
           PROJECTION_PATH = d3.geo.path().projection(projection);
 
           // Load the topography and draw the detail in the callback
-          d3.json(topo, function(error, world) {
+          d3.json(TOPO, function(error, world) {
                var countries = topojson.feature(world, world.objects.countries).features
                  , color = d3.scale.ordinal().range(PALETTE.colors)
                  , neighbors = topojson.neighbors(world.objects.countries.geometries)
@@ -1216,7 +1218,7 @@
           markerOpacity: '1.0',
           oceans: '#d8ffff'
         }
-      , MAP_WIDTH, MAP_HEIGHT, MAP_STYLE
+      , MAP_WIDTH, MAP_HEIGHT
       , THEN, VELOCITY = 0.05
       , DRAGGING = false, PROJECTION_PATH, MOUSE_DOWN = false, ROTATE_3D = false, ROTATE_STOPPED = false, ROTATABLE = false
       , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
@@ -1240,7 +1242,6 @@
     if (typeof ELEM === 'string') {
       ELEM = document.getElementById(ELEM);
     }
-
     if (!ELEM || ELEM.nodeType !== 1) {
       ELEM = document.body;
     }
