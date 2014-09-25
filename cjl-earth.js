@@ -317,7 +317,7 @@
      * @type     {boolean}
      */
     this.rotatable = function() {
-      return ROTATABLE;
+      return ROTATABLE;        // the map can rotate - i.e. it's a globe
     };
 
     /**
@@ -325,7 +325,10 @@
      * @type     {boolean}
      */
     this.rotating = function() {
-      return (ROTATABLE && ROTATE_3D && !ROTATE_STOPPED);
+      return ( ROTATABLE &&    // the map can rotate - i.e. it's a globe
+               ROTATE_3D &&    // the rotation is not paused
+              !ROTATE_STOPPED  // the rotation is not stopped
+        );
     };
 
     /**
@@ -333,9 +336,9 @@
      * @return   {void}
      */
     this.rotationDecrease = function() {
-      if (VELOCITY > 0.01) {
-        VELOCITY -= 0.005;
-        fire('slowed');
+      if (VELOCITY > 0.01) {   // if the velocity is not visually stopped
+        VELOCITY -= 0.005;     // decrease the velocity
+        fire('slowed');        // fire the event
       }
     };
 
@@ -344,17 +347,17 @@
      * @return   {void}
      */
     this.rotationIncrease = function() {
-      VELOCITY += 0.005;
-      fire('accelerated');
+      VELOCITY += 0.005;       // increase the velocity
+      fire('accelerated');     // fire the event
     };
 
     /**
-     * Pause/stop the rotation
+     * Pause the rotation. Rotation that is 'paused' is waiting for a implicit triggering event, such as a 'mouse up' or 'drag end'.
      * @return   {void}
      */
     this.rotationPause = function() {
-      ROTATE_3D = false;
-      fire('paused');
+      ROTATE_3D = false;       // resume a 'paused' rotation
+      fire('paused');          // fire the event
     };
 
     /**
@@ -362,17 +365,18 @@
      * @return   {void}
      */
     this.rotationResume = function() {
-      ROTATE_3D = true;
-      ROTATE_STOPPED = false;
-      fire('resumed');
+      THEN = Date.now();       // update the ticker so we don't jank
+      ROTATE_3D = true;        // resume a 'paused' rotation
+      ROTATE_STOPPED = false;  // restart a 'stopped' rotation
+      fire('resumed');         // fire the event
     };
 
     /**
-     * Stops the rotation
+     * Stop the rotation. Rotation that is 'stopped' is waiting for an explicity restart.
      * @return   {void}
      */
     this.rotationStop = function() {
-      ROTATE_STOPPED = true;
+      ROTATE_STOPPED = true;   // the rotation is not 'paused'
     };
 
     /**
@@ -833,6 +837,7 @@
               }
 
               // We're done processing, so start the rotation
+              THEN = Date.now();
               ROTATE_3D = true;
               fire('rendered');
             });
@@ -1166,6 +1171,13 @@
       , EVENTS = [ 'accelerated', 'paused', 'rendered', 'resumed', 'slowed' ]
       , self = this
     ;
+
+    // make sure the polyfill for the Date.now method is present
+    if (!Date.now) {
+      Date.now = function now() {
+        return (new Date()).getTime();
+      };
+    }
 
     // subscribe the drawMarkers function to the 'marker-data' event
     EVENT_HANDLERS['marker-data'] = new Array(drawMarkers);
