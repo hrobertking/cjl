@@ -952,7 +952,7 @@
                                   ;
                                   d.size = size;
                                   return { type:'Point', coordinates:[(d.longitude || d.Longitude || d.lon || d.Lon), (d.latitude || d.Latitude || d.lat || d.Lat)], marker:d }; })
-             .attr('d', PROJECTION_PATH.pointRadius(2)) //radius of the circle
+             .attr('d', PROJECTION_PATH.pointRadius(1)) //radius of the circle
           ;
 
         // add some visual interest to the markers via animation
