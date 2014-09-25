@@ -281,7 +281,7 @@
         // build the stylesheet
         if (style) {
           // style for a scrollable table
-          rules.push('#' + id_table + '.scrollable { display:inline-block; padding:0 0 1.5em 0; }');
+          rules.push('#' + id_table + '.scrollable { display:inline-block; padding:0 0.5em 1.5em 0; }');
           rules.push('#' + id_table + '.scrollable tbody { height:12em; overflow-y:scroll; }');
           rules.push('#' + id_table + '.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
           rules.push('#' + id_table + '.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
