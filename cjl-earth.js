@@ -921,14 +921,15 @@
         var fade = d3.selectAll('path.marker')
               .transition()
                 .duration(function(d) {
-                   return Math.min(Math.floor(d.rel_size * MARKER_ANIMATION_DURATION), MARKER_ANIMATION_DURATION);
+                   var max_ms = Math.floor(MARKER_ANIMATION_DURATION * .9) // set the actual animation to 90% of the time
+                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)     // set the size-relative duration
+                     , ms = Math.min(rel_ms, max_ms)                       // set the duration to the minimum value
+                   ;
+                   return ms;
                  })
                 .style('stroke-width', function(d, i) { 
-                   if (d.marker.size < 1) {
-                     return d.marker.size * MARKER_SIZE
-                   } else {
-                     return d.marker.size;
-                   }
+                   var sz = (d.marker.size < 1) ? (d.marker.size * MARKER_SIZE) : d.marker.size;
+                   return sz;
                  })
               .transition()
                 .duration(0)
@@ -940,20 +941,23 @@
         var fade = d3.selectAll('path.marker')
               .transition()
                 .duration(function(d) {
-                   var lng = Math.floor(MARKER_ANIMATION_DURATION / 3);
-                   return Math.min(Math.floor(d.rel_size * lng), lng);
+                   var max_ms = Math.floor((MARKER_ANIMATION_DURATION*.9)/3)  // set the actual animation to 90% of the time
+                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)        // set the size-relative duration
+                     , ms = Math.min(rel_ms, max_ms)                          // set the duration to the minimum value
+                   ;
+                   return ms;
                  })
                 .style('stroke-width', function(d, i) { 
-                   if (d.marker.size < 1) {
-                     return d.marker.size * MARKER_SIZE
-                   } else {
-                     return d.marker.size;
-                   }
+                   var sz = (d.marker.size < 1) ? (d.marker.size * MARKER_SIZE) : d.marker.size;
+                   return sz;
                  })
               .transition()
                 .duration(function(d, i) {
-                   var lng = Math.floor(MARKER_ANIMATION_DURATION / 3) * 2;
-                   return Math.min(Math.floor(d.rel_size * lng), lng);
+                   var max_ms = Math.floor((MARKER_ANIMATION_DURATION*.9)/3)*2  // set the actual animation to 90% of the time
+                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)          // set the size-relative duration
+                     , ms = Math.min(rel_ms, max_ms)                            // set the duration to the minimum value
+                   ;
+                   return ms;
                  })
                 .style('stroke-width', 0)
         ;
