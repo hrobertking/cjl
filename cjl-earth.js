@@ -79,6 +79,18 @@
     };
 
     /**
+     * Marker animation duration, in milliseconds. The value must be greater than 100ms.
+     * @type     {number}
+     * @default  1500
+     */
+    this.markerAnimationDuration = function(value) {
+      if (!isNaN(value) && value > 100) {
+        MARKER_ANIMATION_DURATION = Math.floor(value);
+      }
+      return MARKER_ANIMATION_DURATION;
+    };
+
+    /**
      * Marker color in hexadecimal format, e.g. #ff0000
      * @type     {string}
      * @default  "#ff0000"
@@ -898,14 +910,19 @@
         , keys = { }                                                                    // a collection of keys as they're defined in the dataset
         , prop                                                                          // property of a specific data element
         , row                                                                           // a specific data element
+        , marker_lg = d3.max(data, function(d) { return d.size || d.Size; })            // the largest marker size
       ;
 
-      // Make the markers 'pulse' 
+      // If the largest size isn't set, set it to the marker size
+      marker_lg = marker_lg || MARKER_SIZE;
+
+      // Make the markers 'ping' - larger sizes have a longer duration (are slower)
       function ping() {
-        // Larger size markers take pulse more slowly
         var fade = d3.selectAll('path.marker')
               .transition()
-                .duration(function(d) { return Math.min(d.marker.size * 250, 1500); })
+                .duration(function(d) {
+                   return Math.min(Math.floor(d.rel_size * MARKER_ANIMATION_DURATION), MARKER_ANIMATION_DURATION);
+                 })
                 .style('stroke-width', function(d, i) { 
                    if (d.marker.size < 1) {
                      return d.marker.size * MARKER_SIZE
@@ -918,13 +935,13 @@
                 .style('stroke-width', 0)
         ;
       }
-      // Make the markers 'pulse' 
+      // Make the markers 'pulse' - larger sizes have a longer duration (are slower)
       function pulse() {
-        // Larger size markers take pulse more slowly
         var fade = d3.selectAll('path.marker')
               .transition()
                 .duration(function(d) {
-                   return Math.min(d.marker.size * 100, 500);
+                   var lng = Math.floor(MARKER_ANIMATION_DURATION / 3);
+                   return Math.min(Math.floor(d.rel_size * lng), lng);
                  })
                 .style('stroke-width', function(d, i) { 
                    if (d.marker.size < 1) {
@@ -935,7 +952,8 @@
                  })
               .transition()
                 .duration(function(d, i) {
-                   return Math.min(d.marker.size * 200, 1000);
+                   var lng = Math.floor(MARKER_ANIMATION_DURATION / 3) * 2;
+                   return Math.min(Math.floor(d.rel_size * lng), lng);
                  })
                 .style('stroke-width', 0)
         ;
@@ -965,8 +983,10 @@
              .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
                                     , c = parseFloat(d.size || d.Size || MARKER_SIZE)
                                     , size = c * m
+                                    , lg = marker_lg * m
                                   ;
                                   d.size = size;
+                                  d.rel_size = size / (lg || 1);
                                   return { type:'Point', coordinates:[(d.longitude || d.Longitude || d.lon || d.Lon), (d.latitude || d.Latitude || d.lat || d.Lat)], marker:d }; })
              .attr('d', PROJECTION_PATH.pointRadius(1)) //radius of the circle
           ;
@@ -974,13 +994,13 @@
         // add some visual interest to the markers via animation
         switch (MARKER_ANIMATION) {
           case 'ping':
-            setInterval(ping, 1500);
+            setInterval(ping, MARKER_ANIMATION_DURATION);
             break;
           case 'pulse':
-            setInterval(pulse, 1500);
+            setInterval(pulse, MARKER_ANIMATION_DURATION);
             break;
           case 'none':
-            d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size; });
+            d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size || d.Size || MARKER_SIZE; });
             break;
         }
 
@@ -1184,7 +1204,7 @@
     }
 
     var D3COLORS = d3.scale.category10()
-      , MARKER_ANIMATION = 'pulse', MARKER_DATA = [], MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_RELATIVE_SIZE = false, MARKER_SIZE = 3, MARKER_TABLE = false
+      , MARKER_ANIMATION = 'pulse', MARKER_ANIMATION_DURATION = 1500, MARKER_DATA = [], MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_RELATIVE_SIZE = false, MARKER_SIZE = 3, MARKER_TABLE = false
       , PALETTE = {
           border: '#766951',
           colors: [D3COLORS(1), D3COLORS(2), D3COLORS(3), D3COLORS(4), D3COLORS(5), D3COLORS(6), D3COLORS(7), D3COLORS(8), D3COLORS(9), D3COLORS(10)],
