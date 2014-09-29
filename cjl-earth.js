@@ -417,45 +417,52 @@
     this.render = function(style) {
       // Drag handler for dragable regions
       function mousedown(evt) {
-        ROTATE_3D = false;        // pause the rotation
-        MOUSE_DOWN = new Date();  // set a starting point
+        var o = projection.invert(d3.mouse(this))                                                   // longitude & latitude at the clicked pixel
+          , dpp = [180/MAP_HEIGHT, 180/MAP_WIDTH]                                                   // degrees per pixel - only 180° can be shown at once
+          , xycenter = [MAP_HEIGHT/2, MAP_WIDTH/2]                                                  // the x-coordinate and y-coordinate of the center of the map
+          , offset                                                                                  // the offset of the center from the click
+        ;
+
+        xy_down = d3.mouse(this);                                                                   // set the x,y of the mouse down
+        offset = [ (xycenter[0] - xy_down[0]) * dpp[0],                                             // the offset in degrees 
+                   (xycenter[1] - xy_down[1]) * dpp[1] ];
+
+        offset = [ o[0] + offset[0], o[1] - offset[1] ];                                            // the longitude, latitude of the displayed map center
+                              
+
+        offset[0] = (Math.abs(offset[0]) > 180 ? -1 : 1) * (offset[0] % 180);                       // normalize the longitude
+        offset[1] = (Math.abs(offset[1]) > 90 ? -1 : 1) * (offset[1] % 90);                         // normalize the latitude
+
+        if (!isNaN(offset[0]) && !isNaN(offset[1])) {                                               // if longitude and latitude are numbers
+          rotational_center = offset;                                                               // set the rotational center
+          ROTATE_3D = false;                                                                        // pause the rotation
+          d3.event.preventDefault();                                                                // prevent the default behavior
+        }
       }
       function mousemove(evt) {
-        if (MOUSE_DOWN && ROTATABLE) {
-          // Ordinarily we would be able to just check to see if the mouse button
-          // is down; however, we can't rely on that entirely because there
-          // are browsers that trigger the mousemove event immediately after
-          // the click event. Since it's nearly impossible for a user to
-          // act in such tiny time increments, we're going to check for a 100ms 
-          // difference between when the mousemove event fires. If the difference
-          // between when the mousedown event fires and the mousemove event fires
-          // is greater than 100ms, we assume the user is dragging. This will
-          // also address accessibility issues that might come from motor
-          // issues, e.g. tremors from Parkinson's Disease, that cause incidental
-          // and unintended movement
+        var dpp = [180/MAP_HEIGHT, 180/MAP_WIDTH]                                                   // degrees per pixel - only 180° can be shown at once
+          , pos = d3.mouse(this)                                                                    // the x/y coordinate of the event
+          , have_data = rotational_center && rotational_center.length &&                            // make sure we have all the data we need
+                        xy_down && xy_down.length && 
+                        pos && pos.length && 
+                        dpp && dpp.length
+          , x                                                                                       // the amount moved on the x-axis
+          , y                                                                                       // the amount moved on the y-axis
+        ;
 
-          var d = new Date();
-          DRAGGING = (d.getTime() - MOUSE_DOWN.getTime()) > 100;
-          if (DRAGGING) {
-            ROTATE_3D = false;
-
-            //force rotate the globe
-            var pos = d3.mouse(this)
-              , lambda = d3.scale.linear().domain([0, MAP_WIDTH]).range([-180, 180])
-              , phi = d3.scale.linear().domain([0, MAP_HEIGHT]).range([90, -90])
-            ;
-
-            LAMBDA = lambda(pos[0]);
-            PHI = phi(pos[1]);
-            projection.rotate([LAMBDA, PHI]);
-            d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
-          }
+        if (have_data) {
+          x = pos[0] - xy_down[0];                                                                  // calculate the amount moved on x-axis
+          y = pos[1] - xy_down[1];                                                                  // calculate the amount moved on y-axis
+          location = [x * dpp[0], y * dpp[1]];                                                      // calculate the offset
+          location = [rotational_center[0] + location[0], rotational_center[1] - location[1]];      // calculate the displayed center
+          projection.rotate(location);                                                              // rotate the projection
+          d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));  // display the projection
+          d3.event.preventDefault();                                                                // prevent the default behavior
         }
       }
       function mouseup(evt) {
-        DRAGGING = false;
-        MOUSE_DOWN = null;
-        ROTATE_3D = ROTATABLE && !MOUSE_DOWN;
+        rotational_center = null;                                                                   // discard the rotational center
+        ROTATE_3D = ROTATABLE && !rotational_center;                                                // restart the rotation
       }
 
       // Zoom hanlder for zoomable regions
@@ -744,8 +751,10 @@
         var diameter = HEIGHT || ELEM ? ELEM.clientWidth : 160
           , radius = diameter / 2
           , projection
-          , LAMBDA = 0
-          , PHI = 0
+          , location = [0, 0, 0]
+          , xy_down
+          , last_pos
+          , rotational_center
           , g
           , zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed)
         ;
@@ -783,6 +792,7 @@
               .on('mousemove', mousemove).on('touchmove', mousemove)
               .on('mouseup', mouseup).on('touchend', mouseup)
             ;
+          d3.select(ELEM).on('mouseout', mouseup);
 
           PROJECTION_PATH = d3.geo.path().projection(projection);
 
@@ -879,8 +889,8 @@
                   , angle = VELOCITY * tick
                 ;
 
-                LAMBDA += angle;
-                projection.rotate([LAMBDA, PHI, 0]);
+                location[0] += angle;
+                projection.rotate(location);
                 d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
               }
               THEN = Date.now();
