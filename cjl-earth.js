@@ -415,19 +415,10 @@
      * @example  var earth = new Cathmhaol.Earth('flatmap', '/js/world-110m.json'); earth.render();
      */
     this.render = function(style) {
-      // Normalize a location between +/-180 longitude and +/-90 latitude
-      function normalize(location) {
-         location[0] = (Math.abs(location[0]) > 180 ? -1 : 1) * (location[0] % 180);
-         location[1] = (Math.abs(location[1]) >  90 ? -1 : 1) * (location[1] % 90);
-         return location;
-      }
-
       // Drag handler for dragable regions
       function mousedown(evt) {
-        ROTATE_3D = false;                                                     // pause the rotation
-        MOUSE_DOWN = new Date();                                               // set a mouse event timestamp
-        XY = d3.mouse(this);                                                   // sets a starting xy point
-        LOCATION_ORIGIN = projection.invert([(MAP_HEIGHT/2), (MAP_WIDTH/2)]);  // get the longitude and latitude at the center of the map
+        ROTATE_3D = false;        // pause the rotation
+        MOUSE_DOWN = new Date();  // set a starting point
       }
       function mousemove(evt) {
         if (MOUSE_DOWN && ROTATABLE) {
@@ -443,18 +434,20 @@
           // issues, e.g. tremors from Parkinson's Disease, that cause incidental
           // and unintended movement
 
-          DRAGGING = ((new Date()).getTime() - MOUSE_DOWN.getTime()) > 100;
+          var d = new Date();
+          DRAGGING = (d.getTime() - MOUSE_DOWN.getTime()) > 100;
           if (DRAGGING) {
-            var lambda = d3.scale.linear().domain([0, MAP_WIDTH]).range([0, 180])  // the map can only display 180 longitude degrees at once
-              , phi = d3.scale.linear().domain([0, MAP_HEIGHT]).range([0, -90])    // the map can only display 90 latitude at once
-              , pos = d3.mouse(this)                                               // get the xy position
-              , offset = [ lambda(pos[0] - XY[0]), phi(pos[1] - XY[1]) ]           // compute the xy movement in degrees
+            ROTATE_3D = false;
+
+            //force rotate the globe
+            var pos = d3.mouse(this)
+              , lambda = d3.scale.linear().domain([0, MAP_WIDTH]).range([-180, 180])
+              , phi = d3.scale.linear().domain([0, MAP_HEIGHT]).range([90, -90])
             ;
 
-            LOCATION = normalize([ LOCATION_ORIGIN[0] + offset[0]                  // set the location to the map center when the mousedown fired
-                                 , LOCATION_ORIGIN[1] + offset[1] ]);              //   plus the offset in degrees
-
-            projection.rotate(LOCATION);
+            LAMBDA = lambda(pos[0]);
+            PHI = phi(pos[1]);
+            projection.rotate([LAMBDA, PHI]);
             d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
           }
         }
@@ -751,6 +744,9 @@
         var diameter = HEIGHT || ELEM ? ELEM.clientWidth : 160
           , radius = diameter / 2
           , projection
+          , LAMBDA = 0
+          , PHI = 0
+          , g
           , zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed)
         ;
 
@@ -767,7 +763,7 @@
                   .translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
                   .scale((diameter + 1) / 2 / Math.PI)                                        // 'Zoom'
                   .precision(.1)
-                  .rotate([-10, 0])                                                           // Rotate the map -10° longitude, 0° latitude. 
+                  .rotate([-10, 0])                                                           // Rotate the map -10° longitude, 0° latitude, and roll 0°. 
               ;
           } else {
             projection = d3.geo.orthographic()
@@ -883,8 +879,8 @@
                   , angle = VELOCITY * tick
                 ;
 
-                LOCATION[0] += angle;
-                projection.rotate(LOCATION);
+                LAMBDA += angle;
+                projection.rotate([LAMBDA, PHI, 0]);
                 d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
               }
               THEN = Date.now();
@@ -1225,7 +1221,7 @@
         }
       , MAP_WIDTH, MAP_HEIGHT
       , THEN, VELOCITY = 0.05
-      , DRAGGING = false, LOCATION = [0, 0], LOCATION_ORIGIN = [0, 0], XY = [0, 0], MOUSE_DOWN = false, PROJECTION_PATH, ROTATE_3D = false, ROTATE_STOPPED = false, ROTATABLE = false
+      , DRAGGING = false, PROJECTION_PATH, MOUSE_DOWN = false, ROTATE_3D = false, ROTATE_STOPPED = false, ROTATABLE = false
       , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
       , COUNTRY_HANDLERS = [ ], MARKER_HANDLERS = [ ]
       , EVENT_HANDLERS = { }
