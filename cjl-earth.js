@@ -415,47 +415,38 @@
      * @example  var earth = new Cathmhaol.Earth('flatmap', '/js/world-110m.json'); earth.render();
      */
     this.render = function(style) {
+      // Normalize a location between +/-180 longitude and +/-90 latitude
+      function normalize(location) {
+         location[0] = (Math.abs(location[0]) > 180 ? -1 : 1) * (location[0] % 180);  // longitude; range is ±180°
+         location[1] = (Math.abs(location[1]) >  90 ? -1 : 1) * (location[1] % 90);   // latitude; range is ±90°
+         location[2] = (location[2] || 0);                                            // axial tilt
+         location[2] = (location[2] > 270) ? location[2] - 360 : location[2];         // range is upper bounded at 270
+         location[2] = (location[2] < -90) ? location[2] + 360 : location[2];         // range is lower bounded at -90
+         return location;
+      }
+
       // Drag handler for dragable regions
-      function mousedown(evt) {
-        ROTATE_3D = false;        // pause the rotation
-        MOUSE_DOWN = new Date();  // set a starting point
+      function dragended() {
+        DRAGGING = false;       // reset the dragging flag
+        THEN = Date.now();      // set the ticker for the rotation
+        ROTATE_3D = ROTATABLE;  // restart the rotation
       }
-      function mousemove(evt) {
-        if (MOUSE_DOWN && ROTATABLE) {
-          // Ordinarily we would be able to just check to see if the mouse button
-          // is down; however, we can't rely on that entirely because there
-          // are browsers that trigger the mousemove event immediately after
-          // the click event. Since it's nearly impossible for a user to
-          // act in such tiny time increments, we're going to check for a 100ms 
-          // difference between when the mousemove event fires. If the difference
-          // between when the mousedown event fires and the mousemove event fires
-          // is greater than 100ms, we assume the user is dragging. This will
-          // also address accessibility issues that might come from motor
-          // issues, e.g. tremors from Parkinson's Disease, that cause incidental
-          // and unintended movement
+      function dragged(d, i) {
+        var lambda = d3.scale.linear().domain([0, MAP_WIDTH]).range([0, 180])     // the map can only display 180 longitude degrees at once
+          , phi = d3.scale.linear().domain([0, MAP_HEIGHT]).range([0, -90])       // the map can only display 90 latitude at once
+        ;
 
-          var d = new Date();
-          DRAGGING = (d.getTime() - MOUSE_DOWN.getTime()) > 100;
-          if (DRAGGING) {
-            ROTATE_3D = false;
+        LOCATION = normalize([ LOCATION[0] + lambda(d3.event.dx)                  // set the location to the previous location plus the delta
+                             , LOCATION[1] + phi(d3.event.dy)                     // in degrees
+                             , LOCATION[2] || 0 ]);
 
-            //force rotate the globe
-            var pos = d3.mouse(this)
-              , lambda = d3.scale.linear().domain([0, MAP_WIDTH]).range([-180, 180])
-              , phi = d3.scale.linear().domain([0, MAP_HEIGHT]).range([90, -90])
-            ;
-
-            LAMBDA = lambda(pos[0]);
-            PHI = phi(pos[1]);
-            projection.rotate([LAMBDA, PHI]);
-            d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
-          }
-        }
+        projection.rotate(LOCATION);                                              // rotate the project to the location
+        d3.select('#' + ID).selectAll('path')                                     // set the projection
+                             .attr('d', PROJECTION_PATH.projection(projection));
       }
-      function mouseup(evt) {
-        DRAGGING = false;
-        MOUSE_DOWN = null;
-        ROTATE_3D = ROTATABLE && !MOUSE_DOWN;
+      function dragstarted() {
+        DRAGGING = true;    // set the dragging flag
+        ROTATE_3D = false;  // pause the rotation
       }
 
       // Zoom hanlder for zoomable regions
@@ -744,9 +735,6 @@
         var diameter = HEIGHT || ELEM ? ELEM.clientWidth : 160
           , radius = diameter / 2
           , projection
-          , LAMBDA = 0
-          , PHI = 0
-          , g
           , zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed)
         ;
 
@@ -763,7 +751,7 @@
                   .translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
                   .scale((diameter + 1) / 2 / Math.PI)                                        // 'Zoom'
                   .precision(.1)
-                  .rotate([-10, 0])                                                           // Rotate the map -10° longitude, 0° latitude, and roll 0°. 
+                  .rotate([-10, 0])                                                           // Rotate the map -10° longitude, 0° latitude. 
               ;
           } else {
             projection = d3.geo.orthographic()
@@ -779,9 +767,6 @@
               .attr('id', ID)
               .attr('width', (MAP_STYLE === '2D' ? (diameter * 2) : diameter))
               .attr('height', diameter)
-              .on('mousedown', mousedown).on('touchstart', mousedown)
-              .on('mousemove', mousemove).on('touchmove', mousemove)
-              .on('mouseup', mouseup).on('touchend', mouseup)
             ;
 
           PROJECTION_PATH = d3.geo.path().projection(projection);
@@ -811,6 +796,14 @@
                       .style('stroke-width', '1.5px')
                   ;
               }
+
+              // Add the drag handlers
+              d3.select('#' + ID + '-map')
+                  .call( d3.behavior.drag()
+                           .on('drag', dragged)
+                           .on('dragend', dragended)
+                           .on('dragstart', dragstarted)
+                   );
 
               // Draw the countries
               d3.select('#' + ID + '-map').append('g').attr('id', ID + '-countries')
@@ -879,8 +872,8 @@
                   , angle = VELOCITY * tick
                 ;
 
-                LAMBDA += angle;
-                projection.rotate([LAMBDA, PHI, 0]);
+                LOCATION[0] += angle;
+                projection.rotate(LOCATION);
                 d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
               }
               THEN = Date.now();
@@ -1221,7 +1214,7 @@
         }
       , MAP_WIDTH, MAP_HEIGHT
       , THEN, VELOCITY = 0.05
-      , DRAGGING = false, PROJECTION_PATH, MOUSE_DOWN = false, ROTATE_3D = false, ROTATE_STOPPED = false, ROTATABLE = false
+      , DRAGGING = false, LOCATION = [0, 0, 0], PROJECTION_PATH, ROTATE_3D = false, ROTATE_STOPPED = false, ROTATABLE = false
       , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
       , COUNTRY_HANDLERS = [ ], MARKER_HANDLERS = [ ]
       , EVENT_HANDLERS = { }
