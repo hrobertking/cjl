@@ -34,6 +34,30 @@
    */
   Cathmhaol.Earth = function(ELEM, TOPO, HEIGHT, MAP_STYLE, DESCRIPTOR) {
     /**
+     * Adds click event listener for a country
+     * @type     {string}
+     * @return   {void}
+     * @param    {function} handler
+     */
+    this.addOnCountryClick = function(handler) {
+      if (typeof handler === 'function') {
+        COUNTRY_HANDLERS.push(handler);
+      }
+    };
+
+    /**
+     * Adds click event listener for a country
+     * @type     {string}
+     * @return   {void}
+     * @param    {function} handler
+     */
+    this.addOnMarkerClick = function(handler) {
+      if (typeof handler === 'function') {
+        MARKER_HANDLERS.push(handler);
+      }
+    };
+
+    /**
      * Border color in hexadecimal format, e.g. #ff0000
      * @type     {string}
      * @default  "#ff0000"
@@ -159,6 +183,32 @@
     };
 
     /**
+     * Adds an event handler
+     * @return   {void}
+     * @param    {string} eventname
+     * @param    {string} handler
+     */
+    this.on = function(eventname, handler) {
+      var evt
+        , i
+        , handlers
+      ;
+
+      eventname = (eventname || '').toLowerCase();
+
+      for (i = 0; i < EVENTS.length; i += 1) {
+        evt = (EVENTS[i] || '').toLowerCase();
+        // Check to make sure it's an event that is published
+        if (eventname === evt) {
+          handlers = EVENT_HANDLERS[eventname] || [ ];
+          handlers.push(handler);
+          EVENT_HANDLERS[eventname] = handlers;
+          break;
+        }
+      }
+    };
+
+    /**
      * Array of hexadecimal colors, e.g., 
      * @type     {string[]}
      */
@@ -192,78 +242,6 @@
         PALETTE.colors = validate(value) || PALETTE.colors;
       }
       return PALETTE;
-    };
-
-    /**
-     * The style of the map to generate
-     * @type     {string}
-     */
-    this.style = function(value) {
-      if (value === '2D') {
-        MAP_STYLE = value;
-      }
-      return MAP_STYLE;
-    };
-
-    /**
-     * URI of the topojson file, e.g., '/world-110m.json'
-     * @type     {string}
-     */
-    this.topoFile = function(value) {
-      if (typeof value === 'string' && value !== '') {
-        TOPO = value;
-      }
-      return TOPO;
-    };
-
-    /**
-     * Adds click event listener for a country
-     * @type     {string}
-     * @return   {void}
-     * @param    {function} handler
-     */
-    this.addOnCountryClick = function(handler) {
-      if (typeof handler === 'function') {
-        COUNTRY_HANDLERS.push(handler);
-      }
-    };
-
-    /**
-     * Adds click event listener for a country
-     * @type     {string}
-     * @return   {void}
-     * @param    {function} handler
-     */
-    this.addOnMarkerClick = function(handler) {
-      if (typeof handler === 'function') {
-        MARKER_HANDLERS.push(handler);
-      }
-    };
-
-    /**
-     * Adds an event handler
-     * @return   {void}
-     * @param    {string} eventname
-     * @param    {string} handler
-     */
-    this.on = function(eventname, handler) {
-      var evt
-        , i
-        , handlers
-      ;
-
-      eventname = (eventname || '').toLowerCase();
-
-      for (i = 0; i < EVENTS.length; i += 1) {
-        evt = (EVENTS[i] || '').toLowerCase();
-        // Check to make sure it's an event that is published
-        if (eventname === evt) {
-          handlers = EVENT_HANDLERS[eventname] || [ ];
-          handlers.push(handler);
-          EVENT_HANDLERS[eventname] = handlers;
-          break;
-        }
-      }
     };
 
     /**
@@ -324,87 +302,6 @@
         }
       } catch (err) {
       }
-    };
-
-    /**
-     * Map is rotatable, i.e., a globe
-     * @type     {boolean}
-     */
-    this.rotatable = function() {
-      return ROTATABLE;        // the map can rotate - i.e. it's a globe
-    };
-
-    /**
-     * Map is rotating, i.e., rotable and the animation is set to run
-     * @type     {boolean}
-     */
-    this.rotating = function() {
-      return ( ROTATABLE &&    // the map can rotate - i.e. it's a globe
-               ROTATE_3D &&    // the rotation is not paused
-              !ROTATE_STOPPED  // the rotation is not stopped
-        );
-    };
-
-    /**
-     * Reduce the rotation velocity
-     * @return   {void}
-     * @param    {number} rate
-     */
-    this.rotationDecrease = function(rate) {
-      if (VELOCITY > 0.01) {                             // if the velocity is not visually stopped
-        rate = rate || '';                               // default the rate to an empty string
-        if (rate.indexOf('%') > -1) {                    // adjust if we're using a percentage
-          rate = rate.replace(/\%/g, '') / 100;          // translate the string into a floating-point value
-          rate = (( rate || 0 ) * VELOCITY);             // do the calculation since it's a percentage of velocity
-        }
-        rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);  // make sure we're adjusting it by a rate
-        VELOCITY -= rate;                                // decrease the velocity
-        fire('slowed');                                  // fire the event
-      }
-    };
-
-    /**
-     * Reduce the rotation velocity
-     * @return   {void}
-     * @param    {number} rate
-     */
-    this.rotationIncrease = function(rate) {
-      rate = rate || '';                               // default the rate to an empty string
-      if (rate.indexOf('%') > -1) {                    // adjust if we're using a percentage
-        rate = rate.replace(/\%/g, '') / 100;          // translate the string into a floating-point value
-        rate = (( rate || 0 ) * VELOCITY);             // do the calculation since it's a percentage of velocity
-      }
-      rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);  // make sure we're adjusting it by a rate
-      VELOCITY += rate;                                // decrease the velocity
-      fire('accelerated');                             // fire the event
-    };
-
-    /**
-     * Pause the rotation. Rotation that is 'paused' is waiting for a implicit triggering event, such as a 'mouse up' or 'drag end'.
-     * @return   {void}
-     */
-    this.rotationPause = function() {
-      ROTATE_3D = false;       // resume a 'paused' rotation
-      fire('paused');          // fire the event
-    };
-
-    /**
-     * Restart the rotation
-     * @return   {void}
-     */
-    this.rotationResume = function() {
-      THEN = Date.now();       // update the ticker so we don't jank
-      ROTATE_3D = true;        // resume a 'paused' rotation
-      ROTATE_STOPPED = false;  // restart a 'stopped' rotation
-      fire('resumed');         // fire the event
-    };
-
-    /**
-     * Stop the rotation. Rotation that is 'stopped' is waiting for an explicity restart.
-     * @return   {void}
-     */
-    this.rotationStop = function() {
-      ROTATE_STOPPED = true;   // the rotation is not 'paused'
     };
 
     /**
@@ -880,6 +777,109 @@
             });
         }
       }
+    };
+
+    /**
+     * Map is rotatable, i.e., a globe
+     * @type     {boolean}
+     */
+    this.rotatable = function() {
+      return ROTATABLE;        // the map can rotate - i.e. it's a globe
+    };
+
+    /**
+     * Map is rotating, i.e., rotable and the animation is set to run
+     * @type     {boolean}
+     */
+    this.rotating = function() {
+      return ( ROTATABLE &&    // the map can rotate - i.e. it's a globe
+               ROTATE_3D &&    // the rotation is not paused
+              !ROTATE_STOPPED  // the rotation is not stopped
+        );
+    };
+
+    /**
+     * Reduce the rotation velocity
+     * @return   {void}
+     * @param    {number} rate
+     */
+    this.rotationDecrease = function(rate) {
+      if (VELOCITY > 0.01) {                             // if the velocity is not visually stopped
+        rate = rate || '';                               // default the rate to an empty string
+        if (rate.indexOf('%') > -1) {                    // adjust if we're using a percentage
+          rate = rate.replace(/\%/g, '') / 100;          // translate the string into a floating-point value
+          rate = (( rate || 0 ) * VELOCITY);             // do the calculation since it's a percentage of velocity
+        }
+        rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);  // make sure we're adjusting it by a rate
+        VELOCITY -= rate;                                // decrease the velocity
+        fire('slowed');                                  // fire the event
+      }
+    };
+
+    /**
+     * Reduce the rotation velocity
+     * @return   {void}
+     * @param    {number} rate
+     */
+    this.rotationIncrease = function(rate) {
+      rate = rate || '';                               // default the rate to an empty string
+      if (rate.indexOf('%') > -1) {                    // adjust if we're using a percentage
+        rate = rate.replace(/\%/g, '') / 100;          // translate the string into a floating-point value
+        rate = (( rate || 0 ) * VELOCITY);             // do the calculation since it's a percentage of velocity
+      }
+      rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);  // make sure we're adjusting it by a rate
+      VELOCITY += rate;                                // decrease the velocity
+      fire('accelerated');                             // fire the event
+    };
+
+    /**
+     * Pause the rotation. Rotation that is 'paused' is waiting for a implicit triggering event, such as a 'mouse up' or 'drag end'.
+     * @return   {void}
+     */
+    this.rotationPause = function() {
+      ROTATE_3D = false;       // resume a 'paused' rotation
+      fire('paused');          // fire the event
+    };
+
+    /**
+     * Restart the rotation
+     * @return   {void}
+     */
+    this.rotationResume = function() {
+      THEN = Date.now();       // update the ticker so we don't jank
+      ROTATE_3D = true;        // resume a 'paused' rotation
+      ROTATE_STOPPED = false;  // restart a 'stopped' rotation
+      fire('resumed');         // fire the event
+    };
+
+    /**
+     * Stop the rotation. Rotation that is 'stopped' is waiting for an explicity restart.
+     * @return   {void}
+     */
+    this.rotationStop = function() {
+      ROTATE_STOPPED = true;   // the rotation is not 'paused'
+    };
+
+    /**
+     * The style of the map to generate
+     * @type     {string}
+     */
+    this.style = function(value) {
+      if (value === '2D') {
+        MAP_STYLE = value;
+      }
+      return MAP_STYLE;
+    };
+
+    /**
+     * URI of the topojson file, e.g., '/world-110m.json'
+     * @type     {string}
+     */
+    this.topoFile = function(value) {
+      if (typeof value === 'string' && value !== '') {
+        TOPO = value;
+      }
+      return TOPO;
     };
 
     /**
