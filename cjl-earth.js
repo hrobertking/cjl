@@ -760,22 +760,7 @@
               // We're done processing, so start the rotation
               THEN = Date.now();
               ROTATE_3D = true;
-              fire('rendered');
-            });
-
-          // Start the rotation timer
-          d3.timer(function spin() {
-              // if the map can rotate - i.e., is a sphere - and has not been stopped and is not paused
-              if (ROTATABLE && !ROTATE_STOPPED && ROTATE_3D) {
-                var tick = (Date.now() - THEN)
-                  , angle = VELOCITY * tick
-                ;
-
-                LOCATION[0] += angle;
-                projection.rotate(LOCATION);
-                d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
-              }
-              THEN = Date.now();
+              fire('rendered', [projection]);
             });
         }
       }
@@ -1195,13 +1180,49 @@
      * Fires an event
      * @return   {void}
      * @param    {string} eventname
+     * @param    {array} params
      */
-    function fire(eventname) {
+    function fire(eventname, params) {
       var i
         , handlers = EVENT_HANDLERS[eventname] || [];
       ;
       for (i = 0; i < handlers.length; i += 1) {
-        handlers[i].call();
+        handlers[i].apply(this, params);
+      }
+    }
+
+    /**
+     * Ends the rotation
+     * @return   {void}
+     */
+    function rotationTimerEnd() {
+      // A D3 timer cannot be cleared once started
+      ROTATABLE = false;
+      ROTATE_STOPPED = true;
+      ROTATE_3D = false;
+    }
+
+    /**
+     * Starts the rotation
+     * @return   {void}
+     * @param    {projection} projection
+     */
+    function rotationTimerStart(projection) {
+      if (projection) {
+        // Start the rotation timer
+        d3.timer(function spin() {
+            // if the map can rotate - i.e., is a sphere - and has not been stopped and is not paused
+            if (ROTATABLE && !ROTATE_STOPPED && ROTATE_3D) {
+              var tick = (Date.now() - THEN)
+                , angle = VELOCITY * tick
+              ;
+
+              LOCATION[0] += angle;
+              projection.rotate(LOCATION);
+              d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
+            }
+            THEN = Date.now();
+          });
       }
     }
 
@@ -1249,6 +1270,8 @@
     if (DESCRIPTOR && DESCRIPTOR.nodeType !== 1) {
       DESCRIPTOR = null;
     }
+
+    this.on('rendered', rotationTimerStart);
 
     return this;
   };
