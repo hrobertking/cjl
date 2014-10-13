@@ -679,18 +679,20 @@
               if (MAP_STYLE === '2D') {
                 d3.select('#' + ID).append('g').attr('id', ID + '-map')
                     .call(zoom)
-                    .append('rect').attr('id', ID + '-oceans').attr('width', (diameter * 2)).attr('height', diameter)
-                      .style('fill', PALETTE.oceans)
-                      .style('stroke', '#333')
-                      .style('stroke-width', '1.5px')
+                    .append('g').attr('id', ID + '-oceans')
+                      .append('rect').attr('width', (diameter * 2)).attr('height', diameter)
+                        .style('fill', PALETTE.oceans)
+                        .style('stroke', '#333')
+                        .style('stroke-width', '1.5px')
                   ;
               } else {
                 d3.select('#' + ID).append('g').attr('id', ID + '-map')
                     .call(zoom)
-                    .append('path').attr('id', ID + '-oceans').datum({type: 'Sphere'}).attr('d', PROJECTION_PATH)
-                      .style('fill', PALETTE.oceans)
-                      .style('stroke', '#333')
-                      .style('stroke-width', '1.5px')
+                    .append('g').attr('id', ID + '-oceans')
+                      .append('circle').attr('cx', radius).attr('cy', radius).attr('r', radius)
+                        .style('fill', PALETTE.oceans)
+                        .style('stroke', '#333')
+                        .style('stroke-width', '1.5px')
                   ;
               }
 
