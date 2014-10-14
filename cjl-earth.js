@@ -624,7 +624,7 @@
 
       // set the style if it's passed in
       if (style) {
-        MAP_STYLE = style;
+        MAP_STYLE = PROJECTIONS.map(style);
       }
 
       // we only start rendering if we have a containing element
@@ -635,34 +635,57 @@
           , zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed)
         ;
 
-        if (TOPO !== '') {
-          // Set global variables
-          MAP_WIDTH = diameter;
-          MAP_HEIGHT = diameter;
-          THEN = Date.now()
-          ROTATE_3D = false;
+        // Set global variables
+        MAP_WIDTH = diameter;
+        MAP_HEIGHT = diameter;
+        THEN = Date.now()
+        ROTATE_3D = false;
+        projection = (MAP_STYLE || { }).projection;
 
-          if (MAP_STYLE === '2D') {
-            projection = d3.geo.mercator()                                                    // Use a Mercator format
-                  .center([0, 5])                                                             // Make the center 0° W longitude and 5° N latitude
-                  .translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
-                  .scale((diameter + 1) / 2 / Math.PI)                                        // 'Zoom'
-                  .precision(.1)
-                  .rotate([-10, 0])                                                           // Rotate the map -10° longitude, 0° latitude. 
-              ;
-          } else {
-            projection = d3.geo.orthographic()
-                  .scale(radius - 2)
-                  .translate([radius, radius])
-                  .clipAngle(90)
-              ;
-            ROTATABLE = true;
+        if (TOPO !== '' && projection) {
+          switch (MAP_STYLE.shape) {
+            case 'rectangle':
+              if (MAP_STYLE.name === 'Mercator') {
+                projection.center([0, 5])                                                             // Make the center 0° W longitude and 5° N latitude
+                          .precision(.1)
+                          .rotate([-10, 0])                                                           // Rotate the map -10° longitude, 0° latitude. 
+                          .scale((diameter + 1) / 2 / Math.PI)                                        // 'Zoom'
+                          .translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
+                  ;
+              } else if (MAP_STYLE.scale) {
+                projection.scale(MAP_STYLE.scale)
+                          .translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
+                  ;
+              } else {
+                projection.translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
+                  ;
+              }
+              break;
+            case 'sphere':
+              projection.scale(radius - 2)
+                        .translate([radius, radius])
+                ;
+              ROTATABLE = true;
+              break;
+            default:
+              if (MAP_STYLE.scale) {
+                projection.scale(MAP_STYLE.scale)
+                          .translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
+                  ;
+              } else {
+                projection.translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
+                  ;
+              }
+              break;
+          }
+          if (MAP_STYLE.parallels) {
+            projection.parallels(MAP_STYLE.parallels);
           }
 
           // Create the SVG and initialize the mouse/touch handlers
           d3.select(ELEM).append('svg')
               .attr('id', ID)
-              .attr('width', (MAP_STYLE === '2D' ? (diameter * 2) : diameter))
+              .attr('width', (MAP_STYLE.shape !== 'sphere' ? (diameter * 2) : diameter))
               .attr('height', diameter)
             ;
 
@@ -670,97 +693,102 @@
 
           // Load the topography and draw the detail in the callback
           d3.json(TOPO, function(error, world) {
-               var countries = topojson.feature(world, world.objects.countries).features
-                 , color = d3.scale.ordinal().range(PALETTE.colors)
-                 , neighbors = topojson.neighbors(world.objects.countries.geometries)
-              ;
-
-              // Draw the globe
-              if (MAP_STYLE === '2D') {
-                d3.select('#' + ID).append('g').attr('id', ID + '-map')
-                    .call(zoom)
-                    .append('g').attr('id', ID + '-oceans')
-                      .append('rect').attr('width', (diameter * 2)).attr('height', diameter)
-                        .style('fill', PALETTE.oceans)
-                        .style('stroke', '#333')
-                        .style('stroke-width', '1.5px')
-                  ;
-              } else {
-                d3.select('#' + ID).append('g').attr('id', ID + '-map')
-                    .call(zoom)
-                    .append('g').attr('id', ID + '-oceans')
-                      .append('circle').attr('cx', radius).attr('cy', radius).attr('r', radius)
-                        .style('fill', PALETTE.oceans)
-                        .style('stroke', '#333')
-                        .style('stroke-width', '1.5px')
-                  ;
-              }
-
-              // Add the drag handlers
-              d3.select('#' + ID + '-map')
-                  .call( d3.behavior.drag()
-                           .on('drag', dragged)
-                           .on('dragend', dragended)
-                           .on('dragstart', dragstarted)
-                   );
-
-              // Draw the countries
-              d3.select('#' + ID + '-map').append('g').attr('id', ID + '-countries')
-                .selectAll('path').data(countries).enter().append('path')
-                  .attr('class', function(d, i) { return 'country ' + topoMap(d.id).iso; })
-                  .attr('d', PROJECTION_PATH)
-                  .style('fill', function(d, i) { d.iso = topoMap(d.id).iso; d.name = topoMap(d.id).name; return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
-                  .style('stroke', PALETTE.border)
-                  .style('stroke-width', '0.5px')
+              if (world) {
+                var countries = topojson.feature(world, world.objects.countries).features
+                   , color = d3.scale.ordinal().range(PALETTE.colors)
+                   , neighbors = topojson.neighbors(world.objects.countries.geometries)
                 ;
 
-              // Assign the click handlers if defined
-              if (COUNTRY_HANDLERS && COUNTRY_HANDLERS.length) {
-                d3.select('#' + ID + '-countries').selectAll('path.country')
-                  .on('click', function country_onClick(country) {
-                     var i;
-                     if (!DRAGGING) {
-                       for (i = 0; i < COUNTRY_HANDLERS.length; i += 1) {
-                         COUNTRY_HANDLERS[i].call(country);
-                       }
-                     }
-                   })
-                ;
-              }
-
-              if (MARKER_FILE.name && MARKER_FILE.type) {
-                if ((/csv/i).test(MARKER_FILE.type)) {
-                  // Draw the markers
-                  d3.csv(MARKER_FILE.name, function(error, markers) {
-                    if (error) {
-                      if (console.log) {
-                        console.log('Error retrieving marker file');
-                      }
-                    } else if (markers) {
-                      MARKER_DATA = markers;
-                      fire('marker-data');
-                    }
-                  });
+                // Draw the globe
+/*
+                if (MAP_STYLE === '2D') {
+                  d3.select('#' + ID).append('g').attr('id', ID + '-map')
+                      .call(zoom)
+                      .append('g').attr('id', ID + '-oceans')
+                        .append('rect').attr('width', (diameter * 2)).attr('height', diameter)
+                          .style('fill', PALETTE.oceans)
+                          .style('stroke', '#333')
+                          .style('stroke-width', '1.5px')
+                    ;
                 } else {
-                  d3.json(MARKER_FILE.name, function(error, markers) {
-                    if (error) {
-                      if (console.log) {
-                        console.log('Error retrieving marker file');
-                      }
-                    } else if (markers) {
-                      MARKER_DATA = markers
-                      fire('marker-data');
-                    }
-                  });
+*/
+                if (MAP_STYLE.shape === 'sphere') {
+                  d3.select('#' + ID).append('g').attr('id', ID + '-map')
+                      .call(zoom)
+                      .append('g').attr('id', ID + '-oceans')
+                        .append('circle').attr('cx', radius).attr('cy', radius).attr('r', radius)
+                          .style('fill', PALETTE.oceans)
+                          .style('stroke', '#333')
+                          .style('stroke-width', '1.5px')
+                    ;
                 }
-              } else if (MARKER_DATA.length) {
-                fire('marker-data');
-              }
 
-              // We're done processing, so start the rotation
-              THEN = Date.now();
-              ROTATE_3D = true;
-              fire('rendered', [projection]);
+                // Add the drag handlers
+                d3.select('#' + ID + '-map')
+                    .call( d3.behavior.drag()
+                             .on('drag', dragged)
+                             .on('dragend', dragended)
+                             .on('dragstart', dragstarted)
+                     );
+
+                // Draw the countries
+                d3.select('#' + ID + '-map').append('g').attr('id', ID + '-countries')
+                  .selectAll('path').data(countries).enter().append('path')
+                    .attr('class', function(d, i) { return 'country ' + topoMap(d.id).iso; })
+                    .attr('d', PROJECTION_PATH)
+                    .style('fill', function(d, i) { d.iso = topoMap(d.id).iso; d.name = topoMap(d.id).name; return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
+                    .style('stroke', PALETTE.border)
+                    .style('stroke-width', '0.5px')
+                  ;
+
+                // Assign the click handlers if defined
+                if (COUNTRY_HANDLERS && COUNTRY_HANDLERS.length) {
+                  d3.select('#' + ID + '-countries').selectAll('path.country')
+                    .on('click', function country_onClick(country) {
+                       var i;
+                       if (!DRAGGING) {
+                         for (i = 0; i < COUNTRY_HANDLERS.length; i += 1) {
+                           COUNTRY_HANDLERS[i].call(country);
+                         }
+                       }
+                     })
+                  ;
+                }
+
+                if (MARKER_FILE.name && MARKER_FILE.type) {
+                  if ((/csv/i).test(MARKER_FILE.type)) {
+                    // Draw the markers
+                    d3.csv(MARKER_FILE.name, function(error, markers) {
+                      if (error) {
+                        if (console.log) {
+                          console.log('Error retrieving marker file');
+                        }
+                      } else if (markers) {
+                        MARKER_DATA = markers;
+                        fire('marker-data');
+                      }
+                    });
+                  } else {
+                    d3.json(MARKER_FILE.name, function(error, markers) {
+                      if (error) {
+                        if (console.log) {
+                          console.log('Error retrieving marker file');
+                        }
+                      } else if (markers) {
+                        MARKER_DATA = markers
+                        fire('marker-data');
+                      }
+                    });
+                  }
+                } else if (MARKER_DATA.length) {
+                  fire('marker-data');
+                }
+
+                // We're done processing, so start the rotation
+                THEN = Date.now();
+                ROTATE_3D = true;
+                fire('rendered', [projection]);
+              }
             });
         }
       }
@@ -852,10 +880,29 @@
      * @type     {string}
      */
     this.style = function(value) {
-      if (value === '2D') {
+      value = PROJECTIONS.map(value);
+      if (value) {
         MAP_STYLE = value;
       }
-      return MAP_STYLE;
+      return MAP_STYLE.name;
+    };
+
+    /**
+     * An array of supported map styles
+     * @type     {string[]}
+     */
+    this.supportedTypes = function() {
+      var supported = [ ]
+        , prop
+      ;
+      for (prop in PROJECTIONS) {
+        if (PROJECTIONS.hasOwnProperty(prop)) {
+          if (typeof PROJECTIONS[prop] !== 'function' && PROJECTIONS[prop].name) {
+            supported.push(PROJECTIONS[prop].name);
+          }
+        }
+      }
+      return supported;
     };
 
     /**
@@ -1235,6 +1282,72 @@
           markerOpacity: '1.0',
           oceans: '#d8ffff'
         }
+      , PROJECTIONS = {
+          aitoff: { name:'Aitoff', projection:d3.geo.aitoff() },
+          albers: { name:'Albers', projection:d3.geo.albers(), scale:145, parallels:[20, 50] },
+          august: { name:'August', projection:d3.geo.august(), scale:60 },
+          baker: { name:'Baker', projection:d3.geo.baker(), scale:100 },
+          boggs: { name:'Boggs', projection:d3.geo.boggs() },
+          bonne: { name:'Bonne', projection:d3.geo.bonne(), scale:120 },
+          bromley: { name:'Bromley', projection:d3.geo.bromley() },
+          collignon: { name:'Collignon', projection:d3.geo.collignon(), scale:93 },
+          crasterparabolic: { name:'Craster Parabolic', projection:d3.geo.craster() },
+          eckerti: { name:'Eckert I', projection:d3.geo.eckert1(), scale:165 },
+          eckertii: { name:'Eckert II', projection:d3.geo.eckert2(), scale:165 },
+          eckertiii: { name:'Eckert III', projection:d3.geo.eckert3(), scale:180 },
+          eckertiv: { name:'Eckert IV', projection:d3.geo.eckert4(), scale:180 },
+          eckertv: { name:'Eckert V', projection:d3.geo.eckert5(), scale:170 },
+          eckertvi: { name:'Eckert VI', projection:d3.geo.eckert6(), scale:170 },
+          eisenlohr: { name:'Eisenlohr', projection:d3.geo.eisenlohr(), scale:60 },
+          equirectangular: { name:'Equirectangular (Plate Carrée)', projection:d3.geo.equirectangular() },
+          hammer: { name:'Hammer', projection:d3.geo.hammer(), scale:165 },
+          hill: { name:'Hill', projection:d3.geo.hill() },
+          globe: { name:'Globe', projection:d3.geo.orthographic().clipAngle(90), shape:'sphere' },
+          goodehomolosine: { name:'Goode Homolosine', projection:d3.geo.homolosine() },
+          kavrayskiyvii: { name:'Kavrayskiy VII', projection:d3.geo.kavrayskiy7() },
+          lambertcylindricalequalarea: { name:'Lambert cylindrical equal-area', projection:d3.geo.cylindricalEqualArea() },
+          lagrange: { name:'Lagrange', projection:d3.geo.lagrange(), scale:120 },
+          larrivee: { name:'Larrivee', projection:d3.geo.larrivee(), scale:95 },
+          laskowski: { name:'Laskowski', projection:d3.geo.laskowski(), scale:120 },
+          loximuthal: { name:'Loximuthal', projection:d3.geo.loximuthal() },
+          mercator: { name:'Mercator', projection:d3.geo.mercator(), shape:'rectangle' },
+          miller: { name:'Miller', projection:d3.geo.miller(), scale:100 },
+          mcbrydethomasflatpolarparabolic: { name:'McBryde-Thomas Flat-Polar Parabolic', projection:d3.geo.mtFlatPolarParabolic() },
+          mcbrydethomasflatpolarquartic: { name:'McBryde-Thomas Flat-Polar Quartic', projection:d3.geo.mtFlatPolarQuartic() },
+          mcbrydethomasflatpolarsinusoidal: { name:'McBryde-Thomas Flat-Polar Sinusoidal', projection:d3.geo.mtFlatPolarSinusoidal() },
+          mollweide: { name:'Mollweide', projection:d3.geo.mollweide(), scale:165 },
+          naturalearth: { name:'Natural Earth', projection:d3.geo.naturalEarth() },
+          nellhammer: { name:'Nell-Hammer', projection:d3.geo.nellHammer() },
+          orthographic: { name:'Orthographic (globe)', projection:d3.geo.orthographic().clipAngle(90), shape:'sphere' },
+          polyconic: { name:'Polyconic', projection:d3.geo.polyconic(), scale:100 },
+          robinson: { name:'Robinson', projection:d3.geo.robinson() },
+          sinusoidal: { name:'Sinusoidal', projection:d3.geo.sinusoidal() },
+          sinumollweide: { name:'Sinu-Mollweide', projection:d3.geo.sinuMollweide() },
+          vandergrinten: { name:'van der Grinten', projection:d3.geo.vanDerGrinten(), scale:75 },
+          vandergrinteniv: { name:'van der Grinten IV', projection:d3.geo.vanDerGrinten4(), scale:120 },
+          wagneriv: { name:'Wagner IV', projection:d3.geo.wagner4() },
+          wagnervi: { name:'Wagner VI', projection:d3.geo.wagner6() },
+          wagnervii: { name:'Wagner VII', projection:d3.geo.wagner7() },
+          winkeltripel: { name:'Winkel Tripel', projection:d3.geo.winkel3() },
+
+          // map to property
+          map: function(name) {
+            var prop;
+            // added '2D' handling for backward compatibility
+            name = (name === '2D') ? 'mercator' : (name || '');
+            // normalize the name
+            name = name.replace(/\([^\)]+\)/g, '').replace(/[^\w]/g, '').toLowerCase();
+            // search for the requested projection
+            for (prop in this) {
+              if (this.hasOwnProperty(prop)) {
+                if (prop === name) {
+                  return this[prop];
+                }
+              }
+            }
+          }
+        }
+
       , MAP_WIDTH, MAP_HEIGHT
       , THEN, VELOCITY = 0.05
       , DRAGGING = false, LOCATION = [0, 0, 0], PROJECTION_PATH, ROTATE_3D = false, ROTATE_STOPPED = false, ROTATABLE = false
@@ -1262,6 +1375,9 @@
     if (!ELEM || ELEM.nodeType !== 1) {
       ELEM = document.body;
     }
+
+    // set the map style
+    MAP_STYLE = PROJECTIONS.map(MAP_STYLE || 'globe');
 
     // set the table descriptor element
     if (typeof DESCRIPTOR === 'string') {
