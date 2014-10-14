@@ -643,6 +643,18 @@
         projection = (MAP_STYLE || { }).projection;
 
         if (TOPO !== '' && projection) {
+          // Create the SVG and initialize the mouse/touch handlers
+          if (!document.getElementById(ID)) {
+            d3.select(ELEM).append('svg')
+                .attr('id', ID)
+                .attr('width', diameter)
+                .attr('height', (MAP_STYLE.shape === 'sphere' ? diameter : diameter / 2))
+              ;
+
+            // Add the map container
+            d3.select('#' + ID).append('g').attr('id', ID + '-map');
+          }
+
           switch (MAP_STYLE.shape) {
             case 'rectangle':
               if (MAP_STYLE.name === 'Mercator') {
@@ -650,29 +662,29 @@
                           .precision(.1)
                           .rotate([-10, 0])                                                           // Rotate the map -10° longitude, 0° latitude. 
                           .scale((diameter + 1) / 2 / Math.PI)                                        // 'Zoom'
-                          .translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
+                          .translate(center())                                                        // Move the projection to the center
                   ;
               } else if (MAP_STYLE.scale) {
                 projection.scale(MAP_STYLE.scale)
-                          .translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
+                          .translate(center())                                                        // Move the projection to the center
                   ;
               } else {
-                projection.translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
+                projection.translate(center())                                                        // Move the projection to the center
                   ;
               }
               break;
             case 'sphere':
               projection.scale(radius - 2)
-                        .translate([radius, radius])
+                        .translate(center())                                                          // Move the projection to the center
                 ;
               break;
             default:
               if (MAP_STYLE.scale) {
                 projection.scale(MAP_STYLE.scale)
-                          .translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
+                          .translate(center())                                                        // Move the projection to the center
                   ;
               } else {
-                projection.translate([Math.floor((diameter * 2) * 0.5), Math.floor(diameter * 0.5)])  // Move the projection to the center
+                projection.translate(center())                                                        // Move the projection to the center
                   ;
               }
               break;
@@ -681,18 +693,6 @@
             projection.parallels(MAP_STYLE.parallels);
           }
           PROJECTION_PATH = d3.geo.path().projection(projection);
-
-          // Create the SVG and initialize the mouse/touch handlers
-          if (!document.getElementById(ID)) {
-            d3.select(ELEM).append('svg')
-                .attr('id', ID)
-                .attr('width', (MAP_STYLE.shape !== 'sphere' ? (diameter * 2) : diameter))
-                .attr('height', diameter)
-              ;
-
-            // Add the map container
-            d3.select('#' + ID).append('g').attr('id', ID + '-map');
-          }
 
           // Load the topography and draw the detail in the callback
           d3.json(TOPO, function(error, world) {
@@ -907,6 +907,21 @@
       }
       return TOPO;
     };
+
+    /**
+     * Returns the x and y coordinates of the center of the svg
+     * @return   {object}
+     */
+    function center() {
+      var svg = document.getElementById(ID)
+        , pos = [0, 0]
+      ;
+      if (svg) {
+        pos[0] = Math.floor(svg.clientWidth/2);
+        pos[1] = Math.floor(svg.clientHeight/2);
+      }
+      return pos;
+    }
 
     /**
      * Draws the location markers based on the marker data
