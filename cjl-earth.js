@@ -680,15 +680,16 @@
           if (MAP_STYLE.parallels) {
             projection.parallels(MAP_STYLE.parallels);
           }
+          PROJECTION_PATH = d3.geo.path().projection(projection);
 
           // Create the SVG and initialize the mouse/touch handlers
-          d3.select(ELEM).append('svg')
-              .attr('id', ID)
-              .attr('width', (MAP_STYLE.shape !== 'sphere' ? (diameter * 2) : diameter))
-              .attr('height', diameter)
-            ;
-
-          PROJECTION_PATH = d3.geo.path().projection(projection);
+          if (!document.getElementById(ID)) {
+            d3.select(ELEM).append('svg')
+                .attr('id', ID)
+                .attr('width', (MAP_STYLE.shape !== 'sphere' ? (diameter * 2) : diameter))
+                .attr('height', diameter)
+              ;
+          }
 
           // Load the topography and draw the detail in the callback
           d3.json(TOPO, function(error, world) {
