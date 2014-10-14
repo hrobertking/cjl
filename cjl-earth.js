@@ -326,7 +326,7 @@
       function dragended() {
         DRAGGING = false;       // reset the dragging flag
         THEN = Date.now();      // set the ticker for the rotation
-        ROTATE_3D = ROTATABLE;  // restart the rotation
+        ROTATE_3D = rotates();  // restart the rotation
       }
       function dragged(d, i) {
         var lambda = d3.scale.linear().domain([0, MAP_WIDTH]).range([0, 180])     // the map can only display 180 longitude degrees at once
@@ -665,7 +665,6 @@
               projection.scale(radius - 2)
                         .translate([radius, radius])
                 ;
-              ROTATABLE = true;
               break;
             default:
               if (MAP_STYLE.scale) {
@@ -799,7 +798,7 @@
      * @type     {boolean}
      */
     this.rotatable = function() {
-      return ROTATABLE;        // the map can rotate - i.e. it's a globe
+      return rotates();
     };
 
     /**
@@ -807,7 +806,7 @@
      * @type     {boolean}
      */
     this.rotating = function() {
-      return ( ROTATABLE &&    // the map can rotate - i.e. it's a globe
+      return ( rotates() &&    // the map can rotate - i.e. it's a globe
                ROTATE_3D &&    // the rotation is not paused
               !ROTATE_STOPPED  // the rotation is not stopped
         );
@@ -1239,12 +1238,19 @@
     }
 
     /**
+     * Returns true if the map style selected can rotate (i.e. globe or orthographic)
+     * @return   {boolean}
+     */
+    function rotates() {
+      return MAP_STYLE.rotates === true;        // the map can rotate - i.e. it's a globe
+    }
+
+    /**
      * Ends the rotation
      * @return   {void}
      */
     function rotationTimerEnd() {
       // A D3 timer cannot be cleared once started
-      ROTATABLE = false;
       ROTATE_STOPPED = true;
       ROTATE_3D = false;
     }
@@ -1259,7 +1265,7 @@
         // Start the rotation timer
         d3.timer(function spin() {
             // if the map can rotate - i.e., is a sphere - and has not been stopped and is not paused
-            if (ROTATABLE && !ROTATE_STOPPED && ROTATE_3D) {
+            if (rotates() && !ROTATE_STOPPED && ROTATE_3D) {
               var tick = (Date.now() - THEN)
                 , angle = VELOCITY * tick
               ;
@@ -1302,7 +1308,7 @@
           equirectangular: { name:'Equirectangular (Plate Carrée)', projection:d3.geo.equirectangular() },
           hammer: { name:'Hammer', projection:d3.geo.hammer(), scale:165 },
           hill: { name:'Hill', projection:d3.geo.hill() },
-          globe: { name:'Globe', projection:d3.geo.orthographic().clipAngle(90), shape:'sphere' },
+          globe: { name:'Globe', projection:d3.geo.orthographic().clipAngle(90), rotates:true, shape:'sphere' },
           goodehomolosine: { name:'Goode Homolosine', projection:d3.geo.homolosine() },
           kavrayskiyvii: { name:'Kavrayskiy VII', projection:d3.geo.kavrayskiy7() },
           lambertcylindricalequalarea: { name:'Lambert cylindrical equal-area', projection:d3.geo.cylindricalEqualArea() },
@@ -1318,7 +1324,7 @@
           mollweide: { name:'Mollweide', projection:d3.geo.mollweide(), scale:165 },
           naturalearth: { name:'Natural Earth', projection:d3.geo.naturalEarth() },
           nellhammer: { name:'Nell-Hammer', projection:d3.geo.nellHammer() },
-          orthographic: { name:'Orthographic (globe)', projection:d3.geo.orthographic().clipAngle(90), shape:'sphere' },
+          orthographic: { name:'Orthographic (globe)', projection:d3.geo.orthographic().clipAngle(90), rotates:true, shape:'sphere' },
           polyconic: { name:'Polyconic', projection:d3.geo.polyconic(), scale:100 },
           robinson: { name:'Robinson', projection:d3.geo.robinson() },
           sinusoidal: { name:'Sinusoidal', projection:d3.geo.sinusoidal() },
@@ -1350,7 +1356,7 @@
 
       , MAP_WIDTH, MAP_HEIGHT
       , THEN, VELOCITY = 0.05
-      , DRAGGING = false, LOCATION = [0, 0, 0], PROJECTION_PATH, ROTATE_3D = false, ROTATE_STOPPED = false, ROTATABLE = false
+      , DRAGGING = false, LOCATION = [0, 0, 0], PROJECTION_PATH, ROTATE_3D = false, ROTATE_STOPPED = false
       , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
       , COUNTRY_HANDLERS = [ ], MARKER_HANDLERS = [ ]
       , EVENT_HANDLERS = { }
