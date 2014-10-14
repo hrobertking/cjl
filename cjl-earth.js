@@ -689,6 +689,9 @@
                 .attr('width', (MAP_STYLE.shape !== 'sphere' ? (diameter * 2) : diameter))
                 .attr('height', diameter)
               ;
+
+            // Add the map container
+            d3.select('#' + ID).append('g').attr('id', ID + '-map');
           }
 
           // Load the topography and draw the detail in the callback
@@ -699,37 +702,16 @@
                    , neighbors = topojson.neighbors(world.objects.countries.geometries)
                 ;
 
-                // Draw the globe
-/*
-                if (MAP_STYLE === '2D') {
-                  d3.select('#' + ID).append('g').attr('id', ID + '-map')
-                      .call(zoom)
-                      .append('g').attr('id', ID + '-oceans')
-                        .append('rect').attr('width', (diameter * 2)).attr('height', diameter)
-                          .style('fill', PALETTE.oceans)
-                          .style('stroke', '#333')
-                          .style('stroke-width', '1.5px')
-                    ;
-                } else {
-*/
-                if (MAP_STYLE.shape === 'sphere') {
-                  d3.select('#' + ID).append('g').attr('id', ID + '-map')
-                      .call(zoom)
-                      .append('g').attr('id', ID + '-oceans')
-                        .append('circle').attr('cx', radius).attr('cy', radius).attr('r', radius)
-                          .style('fill', PALETTE.oceans)
-                          .style('stroke', '#333')
-                          .style('stroke-width', '1.5px')
-                    ;
-                }
-
-                // Add the drag handlers
-                d3.select('#' + ID + '-map')
-                    .call( d3.behavior.drag()
-                             .on('drag', dragged)
-                             .on('dragend', dragended)
-                             .on('dragstart', dragstarted)
-                     );
+                // Draw the oceans
+                d3.select('#' + ID + '-map').append('g').attr('id', ID + '-oceans')
+                    .append('path')
+                      .datum({type:'Sphere'})
+                      .attr('id', ID + '-oceans')
+                      .attr('d', PROJECTION_PATH)
+                      .style('fill', PALETTE.oceans)
+                      .style('stroke', '#333')
+                      .style('stroke-width', '1.5px')
+                  ;
 
                 // Draw the countries
                 d3.select('#' + ID + '-map').append('g').attr('id', ID + '-countries')
@@ -783,6 +765,16 @@
                 } else if (MARKER_DATA.length) {
                   fire('marker-data');
                 }
+
+                // Add the map interaction handlers
+                d3.select('#' + ID + '-map')
+                    .call(zoom)
+                    .call( d3.behavior.drag()
+                             .on('drag', dragged)
+                             .on('dragend', dragended)
+                             .on('dragstart', dragstarted)
+                     )
+                  ;
 
                 // We're done processing, so start the rotation
                 THEN = Date.now();
