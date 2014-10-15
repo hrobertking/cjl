@@ -755,7 +755,7 @@
               d3.select('#'+ID+'-map').append('g').attr('id', ID+'-oceans')
                   .append('path')
                     .datum({type:'Sphere'})
-                    .attr('id', ID+'-oceans')
+                    .attr('id', ID+'-oceans-path')
                     .attr('d', PROJECTION_PATH)
                     .style('fill', PALETTE.ocean)
                     .style('stroke', '#333')
@@ -1604,7 +1604,7 @@
             projection:d3.geo.nellHammer()
           },
           orthographic: {
-            name:'Orthographic (globe)',
+            name:'Orthographic',
             projection:d3.geo.orthographic().clipAngle(90),
             rotates:true,
             shape:'sphere'
@@ -1697,6 +1697,13 @@
         return (new Date()).getTime();
       };
     }
+
+    // add a 'size' method for d3 selections
+    d3.selection.prototype.size = function() {
+        var n = 0;
+        this.each(function() { ++n; });
+        return n;
+      };
 
     // subscribe the drawMarkers function to the 'marker-data' event
     EVENT_HANDLERS['marker-data'] = new Array(drawMarkers);
