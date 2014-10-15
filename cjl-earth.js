@@ -18,10 +18,10 @@
   /**
    * Creates a world map. Map can be rendered as 2D (Mercator) or as a globe (default)
    *
-   * @param {string|HTMLElement} ELEM        The unique ID of the HTML element to contain the object
+   * @param {string|HTMLElement} CONTAINER   The unique ID of the HTML element to contain the object
    * @param {string} TOPO                    The URI of a topo file
-   * @param {number} HEIGHT                  The diameter of the globe or the height of the map in pixels
-   * @param {string} MAP_STYLE               The style to use - '2D' renders a Mercator projection everything else is a globe
+   * @param {number} WIDTH                   The diameter of the globe or the width of the map in pixels
+   * @param {string} STYLE                   The style to use
    * @param {string|HTMLElement} DESCRIPTOR  The element (or unique id identifying it) to contain the descriptor table
    *
    * @requires d3            http://d3js.org/d3.v3.min.js
@@ -32,7 +32,7 @@
    * @author Robert King (hrobertking@cathmhaol.com)
    *
    */
-  Cathmhaol.Earth = function(ELEM, TOPO, HEIGHT, MAP_STYLE, DESCRIPTOR) {
+  Cathmhaol.Earth = function(CONTAINER, TOPO, WIDTH, STYLE, DESCRIPTOR) {
     /**
      * Adds click event listener for a country
      * @type     {string}
@@ -63,6 +63,7 @@
      * @default  "#ff0000"
      */
     this.borderColor = function(value) {
+      // validate that we have a hexadecimal color that is exactly 6 bytes
       if ((/^\#[A-F0-9]{6}/i).test(value)) {
         PALETTE.border = value;
       }
@@ -71,16 +72,15 @@
 
     /**
      * The HTML element that is the parent for the map
-     * @type     {string}
+     * @type     {HTMLElement}
      */
     this.element = function(value) {
-      if (typeof value === 'string') {
-        value = document.getElementById(value);
+      // if a string is passed, try to get an element with that id
+      value = getElement(value);
+      if (value) {
+        CONTAINER = value;
       }
-      if (value && value.nodeType === 1) {
-        ELEM = value;
-      }
-      return ELEM;
+      return CONTAINER;
     };
 
     /**
@@ -92,7 +92,7 @@
     };
 
     /**
-     * Marker animation, i.e., 'pulse' or 'ping'
+     * Marker animation, e.g., 'pulse' or 'ping'. An enum of pulse, ping, and none
      * @type     {string}
      * @default  "pulse"
      */
@@ -121,6 +121,7 @@
      * @default  "#ff0000"
      */
     this.markerColor = function(value) {
+      // validate that we have a hexadecimal color that is exactly 6 bytes
       if ((/^\#[A-F0-9]{6}/i).test(value)) {
         PALETTE.marker = value;
       }
@@ -139,11 +140,12 @@
     };
 
     /**
-     * URI of the marker file, e.g., '/popmap/cities.csv'
-     * @type     {string}
+     * URI of the marker file, e.g., '/popmap/cities.csv', and the type, e.g. csv or json
+     * @type     {object}
      */
     this.markerFile = function(uri, type) {
-      uri = (typeof uri === 'string') ? { name:uri, type:type } : (uri.name && uri.type) ? {name:uri.name, type:uri.type} : null;
+      uri = (typeof uri === 'string') ? { name:uri, type:type } : uri;
+      uri = (uri.name && uri.type) ? {name:uri.name, type:uri.type} : null;
       if (uri && uri.name) {
         MARKER_FILE.name = uri.name;
         MARKER_FILE.type = (/csv|json/i).test(uri.type) ? uri.type : 'csv';
@@ -157,9 +159,12 @@
      * @default  1
      */
     this.markerOpacity = function(value) {
-      // Make sure the value is between 0.0 (transparent) and 1.0 (opaque), inclusive
-      if (!isNaN(value) && Math.floor(value * 10) > -1 && Math.floor(value * 10) < 11) {
-        PALETTE.markerOpacity = (Math.floor(value * 10) / 10).toString();
+      // make sure the value is between 0.0 (transparent) and 1.0 (opaque)
+      if (!isNaN(value)) {
+        value = Math.floor(value * 10);
+        if (value > -1 && value < 11) {
+          PALETTE.markerOpacity = (value / 10).toString();
+        }
       }
       return PALETTE.markerOpacity;
     };
@@ -171,7 +176,9 @@
      */
     this.markerSize = function(value) {
       var reg = /\%/
-        , pc = reg.test(value);
+        , pc = reg.test(value)
+      ;
+
       if (pc) {
         value = value.replace(reg, '');
       }
@@ -186,7 +193,7 @@
      * Adds an event handler
      * @return   {void}
      * @param    {string} eventname
-     * @param    {string} handler
+     * @param    {function} handler
      */
     this.on = function(eventname, handler) {
       var evt
@@ -194,52 +201,67 @@
         , handlers
       ;
 
-      eventname = (eventname || '').toLowerCase();
-
-      for (i = 0; i < EVENTS.length; i += 1) {
-        evt = (EVENTS[i] || '').toLowerCase();
-        // Check to make sure it's an event that is published
-        if (eventname === evt) {
-          handlers = EVENT_HANDLERS[eventname] || [ ];
-          handlers.push(handler);
-          EVENT_HANDLERS[eventname] = handlers;
-          break;
+      if (typeof eventname === 'string' && typeof handler === 'function') {
+        eventname = (eventname || '').toLowerCase();
+        for (i = 0; i < EVENTS.length; i += 1) {
+          evt = (EVENTS[i] || '').toLowerCase();
+          // check to make sure it's an event that is published
+          if (eventname === evt) {
+            handlers = EVENT_HANDLERS[eventname] || [ ];
+            handlers.push(handler);
+            EVENT_HANDLERS[eventname] = handlers;
+            break;
+          }
         }
       }
     };
 
     /**
-     * Array of hexadecimal colors, e.g., 
-     * @type     {string[]}
+     * Object specifying color palette, containing 'border', 'countries', 'marker', 'ocean'
+     * @type     {object}
      */
     this.palette = function(value) {
-      function validate(value) {
+      /**
+       * Convert a specification to an array and validate the elements
+       * @return   {string[]}
+       * @param    {string[]|string} colors
+       */
+      function validate(colors) {
         var i
           , reg = /(\#[A-Z0-9]{6})[^A-Z0-9]?/i
         ;
-        if (typeof value === 'string') {
-          value = value.split(reg);
+
+        // if we get a string, convert it to an array
+        if (typeof colors === 'string') {
+          colors = colors.split(reg);
         }
-        if (value instanceof Array) {
-          for (i = 0; i < value.length; i += 1) {
-            if (!reg.test(value[i])) {
-              value.splice(i, 1);
+
+        if (colors instanceof Array) {
+          // loop through the colors and if they're not valid, remove them
+          for (i = 0; i < colors.length; i += 1) {
+            if (!reg.test(colors[i])) {
+              colors.splice(i, 1);
             }
           }
-          if (value.length) {
-             return value;
-          }
+        } else {
+          colors = [ ];
         }
-        return [ ];
+        return colors;
       }
 
-      if (value.colors || value.marker || value.border || value.oceans) {
-        PALETTE.border = validate(value.border).shift() || PALETTE.border;
-        PALETTE.colors = validate(value.colors) || PALETTE.colors;
-        PALETTE.marker = validate(value.marker).shift() || PALETTE.marker;
-        PALETTE.oceans = validate(value.oceans).shift() || PALETTE.oceans;
+      var border = value.border
+        , countries = value.colors || value.countries
+        , marker = value.marker
+        , ocean = value.ocean || value.oceans
+      ;
+
+      if (border || countries || marker || ocean) {
+        PALETTE.border = validate(border).shift() || PALETTE.border;
+        PALETTE.countries = validate(countries) || PALETTE.countries;
+        PALETTE.marker = validate(marker).shift() || PALETTE.marker;
+        PALETTE.ocean = validate(ocean).shift() || PALETTE.ocean;
       } else if (value instanceof Array) {
-        PALETTE.colors = validate(value) || PALETTE.colors;
+        PALETTE.countries = validate(value) || PALETTE.countries;
       }
       return PALETTE;
     };
@@ -257,22 +279,28 @@
         , thead
       ;
 
+      /**
+       * Convert a table row to an object given a specified order of properties
+       * @return   {object}
+       * @param    {string[]} spec
+       * @param    {HTMLElement} trow
+       */
       function data_element(spec, trow) {
         var ndx, obj = { };
-        for (ndx = 0; ndx < spec.length; ndx += 1) {
-          obj[spec[ndx]] = trow.cells[ndx].innerHTML;
+        if (spec && trow) {
+          for (ndx = 0; ndx < spec.length; ndx += 1) {
+            obj[spec[ndx]] = trow.cells[ndx].innerHTML;
+          }
         }
         return obj;
       }
 
       try {
-        // make sure the marker table flag is reset, in case the table parameter is null
+        // make sure the marker table flag is reset, in case the table is null
         MARKER_TABLE = false;
 
         // normalize the parameter to an HTMLElement
-        table = (typeof table === 'string') ? document.getElementById(table) : table;
-        table = (table.nodeType === 1) ? table : null;
-
+        table = getElement(table);
         if (table && table.nodeName.toLowerCase() === 'table') {
           DESCRIPTOR = table.parentNode;
           MARKER_DATA = [ ];
@@ -305,58 +333,81 @@
     };
 
     /**
-     * Renders the map. If the style presented is '2D', the map is rendered as a flat (Spherical Mercator) map, otherwise, it's rendered as a globe.
+     * Renders the map.
      * @return   {void}
      * @param    {string} style
      * @example  var earth = new Cathmhaol.Earth('flatmap', '/js/world-110m.json'); earth.render('2D');
      * @example  var earth = new Cathmhaol.Earth('flatmap', '/js/world-110m.json'); earth.render();
      */
     this.render = function(style) {
-      // Normalize a location between +/-180 longitude and +/-90 latitude
-      function normalize(location) {
-         location[0] = (Math.abs(location[0]) > 180 ? -1 : 1) * (location[0] % 180);  // longitude; range is ±180°
-         location[1] = (Math.abs(location[1]) >  90 ? -1 : 1) * (location[1] % 90);   // latitude; range is ±90°
-         location[2] = (location[2] || 0);                                            // axial tilt
-         location[2] = (location[2] > 270) ? location[2] - 360 : location[2];         // range is upper bounded at 270
-         location[2] = (location[2] < -90) ? location[2] + 360 : location[2];         // range is lower bounded at -90
-         return location;
+      /**
+       * Normalize a location (longitude, latitude, and roll) between +/-180 longitude and +/-90 latitude
+       * @return   {number[]}
+       * @param    {number[]} coord
+       */
+      function normalize(coord) {
+         // longitude; range is ±180°
+         coord[0] = (Math.abs(coord[0]) > 180 ? -1 : 1) * (coord[0] % 180);
+         // latitude; range is ±90°
+         coord[1] = (Math.abs(coord[1]) >  90 ? -1 : 1) * (coord[1] % 90);
+         // axial tilt is between -90° and 270° so we handle it in steps
+         coord[2] = (coord[2] || 0);
+         coord[2] = (coord[2] > 270) ? coord[2]-360 : coord[2];
+         coord[2] = (coord[2] < -90) ? coord[2]+360 : coord[2];
+         return coord;
       }
 
-      // Drag handler for dragable regions
+      /**
+       * Handlers for drag events listening to dragable regions
+       * @return   {void}
+       */
       function dragended() {
-        DRAGGING = false;       // reset the dragging flag
-        THEN = Date.now();      // set the ticker for the rotation
-        ROTATE_3D = rotates();  // restart the rotation
+        DRAGGING = false;
+        THEN = Date.now();
+        ROTATE_3D = rotates();
       }
       function dragged(d, i) {
-        var lambda = d3.scale.linear().domain([0, MAP_WIDTH]).range([0, 180])     // the map can only display 180 longitude degrees at once
-          , phi = d3.scale.linear().domain([0, MAP_HEIGHT]).range([0, -90])       // the map can only display 90 latitude at once
+        // the map can only display 180 degrees of longitude and 90 degrees 
+        // of latitude at one time, so we convert the delta in position to 
+        // those ranges before we rotate the projection and update the path 
+        // elements
+
+        var lambda = d3.scale.linear().domain([0, WIDTH]).range([0, 180])
+          , phi = d3.scale.linear().domain([0, WIDTH]).range([0, -90])
         ;
 
-        LOCATION = normalize([ LOCATION[0] + lambda(d3.event.dx)                  // set the location to the previous location plus the delta
-                             , LOCATION[1] + phi(d3.event.dy)                     // in degrees
+        LOCATION = normalize([ LOCATION[0]+lambda(d3.event.dx)
+                             , LOCATION[1]+phi(d3.event.dy)
                              , LOCATION[2] || 0 ]);
 
-        projection.rotate(LOCATION);                                              // rotate the project to the location
-        d3.select('#' + ID).selectAll('path')                                     // set the projection
-                             .attr('d', PROJECTION_PATH.projection(projection));
+        projection.rotate(LOCATION);
+        d3.select('#'+ID).selectAll('path')
+                           .attr('d', PROJECTION_PATH.projection(projection));
       }
       function dragstarted() {
-        DRAGGING = true;    // set the dragging flag
-        ROTATE_3D = false;  // pause the rotation
+        DRAGGING = true;
+        rotationPause();
       }
 
-      // Zoom hanlder for zoomable regions
+      /**
+       * Handlers for zoom events listening to zoomable regions
+       * @return   {void}
+       */
       function zoomed(evt) {
         var container = d3.select(this);
         if (d3.event.scale === 1) {
           container.attr('transform', null);
         } else {
-          container.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
+          container.attr('transform', 'translate('+d3.event.translate+')' +
+                         'scale('+d3.event.scale+')');
         }
       }
 
-      // topoJSON to ISO 3166 Alpha-2 code map
+      /**
+       * Maps a topo id to the ISO 3166 Alpha-2 code and name (English)
+       * @return   {object}
+       * @param    {number} id
+       */
       function topoMap(id) {
         var data = [
             { topo:-1, iso:"CY", name:"Northern Cyprus" },
@@ -624,163 +675,162 @@
 
       // set the style if it's passed in
       if (style) {
-        MAP_STYLE = PROJECTIONS.map(style);
+        STYLE = PROJECTIONS.map(style);
       }
 
       // we only start rendering if we have a containing element
-      if (ELEM) {
-        var diameter = HEIGHT || ELEM ? ELEM.clientWidth : 160
-          , radius = diameter / 2
+      if (CONTAINER) {
+        var radius = WIDTH/2
           , projection
-          , zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed)
+          , zoom = d3.behavior.zoom().scaleExtent([1, 10]).on('zoom', zoomed)
         ;
 
-        // Set global variables
-        MAP_WIDTH = diameter;
-        MAP_HEIGHT = diameter;
-        THEN = Date.now()
-        ROTATE_3D = false;
-        projection = (MAP_STYLE || { }).projection;
+        // set global variables
+        rotationTimerEnd();
+        projection = (STYLE || { }).projection;
 
         if (TOPO !== '' && projection) {
-          // Create the SVG and initialize the mouse/touch handlers
+          // create the SVG and initialize the mouse/touch handlers
           if (!document.getElementById(ID)) {
-            d3.select(ELEM).append('svg')
+            // create an svg element that is a square - rectangular 
+            // maps will display with bottom and top margin, but globes 
+            // will take up all available real estate
+            d3.select(CONTAINER).append('svg')
                 .attr('id', ID)
-                .attr('width', diameter)
-                .attr('height', (MAP_STYLE.shape === 'sphere' ? diameter : diameter / 2))
+                .attr('width', WIDTH)
+                .attr('height', WIDTH)
               ;
 
-            // Add the map container
-            d3.select('#' + ID).append('g').attr('id', ID + '-map');
+            // add the map container
+            d3.select('#'+ID).append('g').attr('id', ID+'-map');
           }
 
-          switch (MAP_STYLE.shape) {
+          switch (STYLE.shape) {
             case 'rectangle':
-              if (MAP_STYLE.name === 'Mercator') {
-                projection.center([0, 5])                                                             // Make the center 0° W longitude and 5° N latitude
+              if (STYLE.name === 'Mercator') {
+                // make the center 0° W longitude and 5° N latitude and rotate 
+                // the map -10° longitude, 0° latitude before setting the zoom
+                // and moving the projection to the center
+                projection.center([0, 5])
                           .precision(.1)
-                          .rotate([-10, 0])                                                           // Rotate the map -10° longitude, 0° latitude. 
-                          .scale((diameter + 1) / 2 / Math.PI)                                        // 'Zoom'
-                          .translate(center())                                                        // Move the projection to the center
+                          .rotate([-10, 0])
+                          .scale((WIDTH+1)/2/Math.PI)
                   ;
-              } else if (MAP_STYLE.scale) {
-                projection.scale(MAP_STYLE.scale)
-                          .translate(center())                                                        // Move the projection to the center
-                  ;
-              } else {
-                projection.translate(center())                                                        // Move the projection to the center
-                  ;
+              } else if (STYLE.scale) {
+                // if the style is not 'mercator' but we have a scale, use it
+                projection.scale(STYLE.scale);
               }
               break;
             case 'sphere':
-              projection.scale(radius - 2)
-                        .translate(center())                                                          // Move the projection to the center
-                ;
+              projection.scale(radius-2);
               break;
             default:
-              if (MAP_STYLE.scale) {
-                projection.scale(MAP_STYLE.scale)
-                          .translate(center())                                                        // Move the projection to the center
-                  ;
-              } else {
-                projection.translate(center())                                                        // Move the projection to the center
-                  ;
+              if (STYLE.scale) {
+                projection.scale(STYLE.scale);
               }
               break;
           }
-          if (MAP_STYLE.parallels) {
-            projection.parallels(MAP_STYLE.parallels);
+          // center the projection
+          projection.translate(center());
+          if (STYLE.parallels) {
+            projection.parallels(STYLE.parallels);
           }
           PROJECTION_PATH = d3.geo.path().projection(projection);
 
-          // Load the topography and draw the detail in the callback
-          d3.json(TOPO, function(error, world) {
-              if (world) {
-                var countries = topojson.feature(world, world.objects.countries).features
-                   , color = d3.scale.ordinal().range(PALETTE.colors)
-                   , neighbors = topojson.neighbors(world.objects.countries.geometries)
+          // load the topography and draw the detail in the callback
+          d3.json(TOPO, function(error, data) {
+              if (error) { return; }
+
+              var cnt = topojson.feature(data, data.objects.countries).features
+                , color = d3.scale.ordinal().range(PALETTE.countries)
+                , nexto = topojson.neighbors(data.objects.countries.geometries)
+              ;
+
+              // draw the oceans
+              d3.select('#'+ID+'-map').append('g').attr('id', ID+'-oceans')
+                  .append('path')
+                    .datum({type:'Sphere'})
+                    .attr('id', ID+'-oceans')
+                    .attr('d', PROJECTION_PATH)
+                    .style('fill', PALETTE.ocean)
+                    .style('stroke', '#333')
+                    .style('stroke-width', '1.5px')
                 ;
 
-                // Draw the oceans
-                d3.select('#' + ID + '-map').append('g').attr('id', ID + '-oceans')
-                    .append('path')
-                      .datum({type:'Sphere'})
-                      .attr('id', ID + '-oceans')
-                      .attr('d', PROJECTION_PATH)
-                      .style('fill', PALETTE.oceans)
-                      .style('stroke', '#333')
-                      .style('stroke-width', '1.5px')
-                  ;
+              // draw the countries
+              d3.select('#'+ID+'-map').append('g').attr('id', ID+'-countries')
+                .selectAll('path').data(cnt).enter().append('path')
+                  .attr('class', function(d, i) { 
+                     return 'country '+topoMap(d.id).iso; 
+                   })
+                  .attr('d', PROJECTION_PATH)
+                  .style('fill', function(d, i) { 
+                     d.iso = topoMap(d.id).iso; 
+                     d.name = topoMap(d.id).name; 
+                     return color(d.color = d3.max(nexto[i], function(n) { 
+                       return cnt[n].color;
+                     }) + 1 | 0); 
+                   })
+                  .style('stroke', PALETTE.border)
+                  .style('stroke-width', '0.5px')
+                ;
 
-                // Draw the countries
-                d3.select('#' + ID + '-map').append('g').attr('id', ID + '-countries')
-                  .selectAll('path').data(countries).enter().append('path')
-                    .attr('class', function(d, i) { return 'country ' + topoMap(d.id).iso; })
-                    .attr('d', PROJECTION_PATH)
-                    .style('fill', function(d, i) { d.iso = topoMap(d.id).iso; d.name = topoMap(d.id).name; return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
-                    .style('stroke', PALETTE.border)
-                    .style('stroke-width', '0.5px')
-                  ;
-
-                // Assign the click handlers if defined
-                if (COUNTRY_HANDLERS && COUNTRY_HANDLERS.length) {
-                  d3.select('#' + ID + '-countries').selectAll('path.country')
-                    .on('click', function country_onClick(country) {
-                       var i;
-                       if (!DRAGGING) {
-                         for (i = 0; i < COUNTRY_HANDLERS.length; i += 1) {
-                           COUNTRY_HANDLERS[i].call(country);
-                         }
+              // assign the click handlers if defined
+              if (COUNTRY_HANDLERS && COUNTRY_HANDLERS.length) {
+                d3.select('#'+ID+'-countries').selectAll('path.country')
+                  .on('click', function country_onClick(country) {
+                     var i;
+                     if (!DRAGGING) {
+                       for (i = 0; i < COUNTRY_HANDLERS.length; i += 1) {
+                         COUNTRY_HANDLERS[i].call(country);
                        }
-                     })
-                  ;
-                }
-
-                if (MARKER_FILE.name && MARKER_FILE.type) {
-                  if ((/csv/i).test(MARKER_FILE.type)) {
-                    // Draw the markers
-                    d3.csv(MARKER_FILE.name, function(error, markers) {
-                      if (error) {
-                        if (console.log) {
-                          console.log('Error retrieving marker file');
-                        }
-                      } else if (markers) {
-                        MARKER_DATA = markers;
-                        fire('marker-data');
-                      }
-                    });
-                  } else {
-                    d3.json(MARKER_FILE.name, function(error, markers) {
-                      if (error) {
-                        if (console.log) {
-                          console.log('Error retrieving marker file');
-                        }
-                      } else if (markers) {
-                        MARKER_DATA = markers
-                        fire('marker-data');
-                      }
-                    });
-                  }
-                } else if (MARKER_DATA.length) {
-                  fire('marker-data');
-                }
-
-                // Add the map interaction handlers
-                d3.select('#' + ID + '-map')
-                    .call(zoom)
-                    .call( d3.behavior.drag()
-                             .on('drag', dragged)
-                             .on('dragend', dragended)
-                             .on('dragstart', dragstarted)
-                     )
-                  ;
-
-                // We're done processing, so start the rotation
-                THEN = Date.now();
-                ROTATE_3D = true;
-                fire('rendered', [projection]);
+                     }
+                   })
+                ;
               }
+
+              if (MARKER_FILE.name && MARKER_FILE.type) {
+                if ((/csv/i).test(MARKER_FILE.type)) {
+                  // draw the markers
+                  d3.csv(MARKER_FILE.name, function(error, markers) {
+                    if (error) {
+                      if (console.log) {
+                        console.log('Error retrieving marker file');
+                      }
+                    } else if (markers) {
+                      MARKER_DATA = markers;
+                      fire('marker-data');
+                    }
+                  });
+                } else {
+                  d3.json(MARKER_FILE.name, function(error, markers) {
+                    if (error) {
+                      if (console.log) {
+                        console.log('Error retrieving marker file');
+                      }
+                    } else if (markers) {
+                      MARKER_DATA = markers
+                      fire('marker-data');
+                    }
+                  });
+                }
+              } else if (MARKER_DATA.length) {
+                fire('marker-data');
+              }
+
+              // add the map interaction handlers
+              d3.select('#'+ID+'-map')
+                  .call(zoom)
+                  .call( d3.behavior.drag()
+                           .on('drag', dragged)
+                           .on('dragend', dragended)
+                           .on('dragstart', dragstarted)
+                   )
+                ;
+
+              // we're done processing, so start the rotation
+              rotationStart();
+              fire('rendered', [projection]);
             });
         }
       }
@@ -799,10 +849,7 @@
      * @type     {boolean}
      */
     this.rotating = function() {
-      return ( rotates() &&    // the map can rotate - i.e. it's a globe
-               ROTATE_3D &&    // the rotation is not paused
-              !ROTATE_STOPPED  // the rotation is not stopped
-        );
+      return ( rotates() && ROTATE_3D && !ROTATE_STOPPED );
     };
 
     /**
@@ -811,15 +858,15 @@
      * @param    {number} rate
      */
     this.rotationDecrease = function(rate) {
-      if (VELOCITY > 0.01) {                             // if the velocity is not visually stopped
-        rate = rate || '';                               // default the rate to an empty string
-        if (rate.indexOf('%') > -1) {                    // adjust if we're using a percentage
-          rate = rate.replace(/\%/g, '') / 100;          // translate the string into a floating-point value
-          rate = (( rate || 0 ) * VELOCITY);             // do the calculation since it's a percentage of velocity
+      if (VELOCITY > 0.01) {
+        rate = rate || '';
+        if (rate.indexOf('%') > -1) { 
+          rate = rate.replace(/\%/g, '') / 100; 
+          rate = (( rate || 0 ) * VELOCITY);
         }
-        rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);  // make sure we're adjusting it by a rate
-        VELOCITY -= rate;                                // decrease the velocity
-        fire('slowed');                                  // fire the event
+        rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);
+        VELOCITY -= rate;
+        fire('slowed');
       }
     };
 
@@ -829,14 +876,16 @@
      * @param    {number} rate
      */
     this.rotationIncrease = function(rate) {
-      rate = rate || '';                               // default the rate to an empty string
-      if (rate.indexOf('%') > -1) {                    // adjust if we're using a percentage
-        rate = rate.replace(/\%/g, '') / 100;          // translate the string into a floating-point value
-        rate = (( rate || 0 ) * VELOCITY);             // do the calculation since it's a percentage of velocity
+      if (VELOCITY > 0.01) {
+        rate = rate || '';  
+        if (rate.indexOf('%') > -1) {   
+          rate = rate.replace(/\%/g, '') / 100;   
+          rate = (( rate || 0 ) * VELOCITY);  
+        }
+        rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);  
+        VELOCITY += rate;  
+        fire('accelerated');
       }
-      rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);  // make sure we're adjusting it by a rate
-      VELOCITY += rate;                                // decrease the velocity
-      fire('accelerated');                             // fire the event
     };
 
     /**
@@ -844,8 +893,7 @@
      * @return   {void}
      */
     this.rotationPause = function() {
-      ROTATE_3D = false;       // resume a 'paused' rotation
-      fire('paused');          // fire the event
+      rotationPause();
     };
 
     /**
@@ -853,10 +901,8 @@
      * @return   {void}
      */
     this.rotationResume = function() {
-      THEN = Date.now();       // update the ticker so we don't jank
-      ROTATE_3D = true;        // resume a 'paused' rotation
-      ROTATE_STOPPED = false;  // restart a 'stopped' rotation
-      fire('resumed');         // fire the event
+      rotationStart();
+      fire('resumed'); 
     };
 
     /**
@@ -864,7 +910,7 @@
      * @return   {void}
      */
     this.rotationStop = function() {
-      ROTATE_STOPPED = true;   // the rotation is not 'paused'
+      ROTATE_STOPPED = true;
     };
 
     /**
@@ -874,9 +920,9 @@
     this.style = function(value) {
       value = PROJECTIONS.map(value);
       if (value) {
-        MAP_STYLE = value;
+        STYLE = value;
       }
-      return MAP_STYLE.name;
+      return STYLE.name;
     };
 
     /**
@@ -886,11 +932,12 @@
     this.supportedTypes = function() {
       var supported = [ ]
         , prop
+        , proj = PROJECTIONS
       ;
-      for (prop in PROJECTIONS) {
-        if (PROJECTIONS.hasOwnProperty(prop)) {
-          if (typeof PROJECTIONS[prop] !== 'function' && PROJECTIONS[prop].name) {
-            supported.push(PROJECTIONS[prop].name);
+      for (prop in proj) {
+        if (proj.hasOwnProperty(prop)) {
+          if (typeof proj[prop] !== 'function' && proj[prop].name) {
+            supported.push(proj[prop].name);
           }
         }
       }
@@ -928,44 +975,48 @@
      * @return   {void}
      */
     function drawMarkers() {
-      var columns = MARKER_DESCRIPTION                                                  // a string array containing column names corresponding to property names in D3 data
-        , container = DESCRIPTOR || ELEM                                                // the HTML element that will contain the table
-        , data = MARKER_DATA                                                            // using the generic 'data' to maintain consistency with scrollabletable
-        , default_sort                                                                  // column to default sort
-        , id_style = 'cjl-STable-style'                                                 // id for the style element
-        , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
-        , markers                                                                       // the markers HTMLElement collection
-        , ndx                                                                           // loop index
-        , rules = [ ]                                                                   // stylesheet rules
-        , style = document.getElementById(id_style) || document.createElement('style')  // the style element for the table
-        , table                                                                         // the table
-        , tbody                                                                         // the body of the table
-        , tcells                                                                        // cells in the table
-        , tfoot                                                                         // the table footer
-        , thead                                                                         // the header of the table
-        , trows                                                                         // rows in the table
-        , keys = { }                                                                    // a collection of keys as they're defined in the dataset
-        , prop                                                                          // property of a specific data element
-        , row                                                                           // a specific data element
-        , marker_lg = d3.max(data, function(d) { return d.size || d.Size; })            // the largest marker size
+      var columns = MARKER_DESCRIPTION              // column/object property
+        , container = DESCRIPTOR || CONTAINER       // contains the table
+        , data = MARKER_DATA                        // array containing data
+        , default_sort                              // column to default sort
+        , id_style = 'cjl-STable-style'             // id for the style element
+        , id_table = 'cjl-STable-'+Date.now()       // unique table id
+        , markers                                   // markers collection
+        , ndx                                       // loop index
+        , rules = [ ]                               // stylesheet rules
+        , style = document.getElementById(id_style) // style element
+        , table                                     // the table
+        , tbody                                     // the body of the table
+        , tcells                                    // cells in the table
+        , tfoot                                     // the table footer
+        , thead                                     // the header of the table
+        , trows                                     // rows in the table
+        , keys = { }                                // dataset properties
+        , prop                                      // property of an element
+        , row                                       // a specific data element
+        , marker_lg                                 // the largest marker size
       ;
 
-      // If the largest size isn't set, set it to the marker size
-      marker_lg = marker_lg || MARKER_SIZE;
-
-      // Make the markers 'ping' - larger sizes have a longer duration (are slower)
+      /**
+       * Animation transitions. Larger size markers have a longer duration (i.e., they're slower)
+       * @return   {void}
+       */
       function ping() {
         var fade = d3.selectAll('path.marker')
               .transition()
                 .duration(function(d) {
-                   var max_ms = Math.floor(MARKER_ANIMATION_DURATION * .9) // set the actual animation to 90% of the time
-                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)     // set the size-relative duration
-                     , ms = Math.min(rel_ms, max_ms)                       // set the duration to the minimum value
+                   // set the actual animation to 90% of the time
+                   // before setting the size-relative duration
+                   // and setting the duration to the minimum value
+                   var max_ms = Math.floor(MARKER_ANIMATION_DURATION * .9)
+                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)
+                     , ms = Math.min(rel_ms, max_ms)
                    ;
                    return ms;
                  })
                 .style('stroke-width', function(d, i) { 
-                   var sz = (d.marker.size < 1) ? (d.marker.size * MARKER_SIZE) : d.marker.size;
+                   var sz = d.marker.size;
+                   sz *= (sz < 1) ? MARKER_SIZE : 1;
                    return sz;
                  })
               .transition()
@@ -973,26 +1024,32 @@
                 .style('stroke-width', 0)
         ;
       }
-      // Make the markers 'pulse' - larger sizes have a longer duration (are slower)
       function pulse() {
         var fade = d3.selectAll('path.marker')
               .transition()
                 .duration(function(d) {
-                   var max_ms = Math.floor((MARKER_ANIMATION_DURATION*.9)/3)  // set the actual animation to 90% of the time
-                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)        // set the size-relative duration
-                     , ms = Math.min(rel_ms, max_ms)                          // set the duration to the minimum value
+                   // set the actual animation to .3 of 90% of the time
+                   // before setting the size-relative duration
+                   // and setting the duration to the minimum value
+                   var max_ms = Math.floor((MARKER_ANIMATION_DURATION*.9)/3)
+                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)
+                     , ms = Math.min(rel_ms, max_ms)
                    ;
                    return ms;
                  })
                 .style('stroke-width', function(d, i) { 
-                   var sz = (d.marker.size < 1) ? (d.marker.size * MARKER_SIZE) : d.marker.size;
+                   var sz = d.marker.size;
+                   sz *= (sz < 1) ? MARKER_SIZE : 1;
                    return sz;
                  })
               .transition()
                 .duration(function(d, i) {
-                   var max_ms = Math.floor((MARKER_ANIMATION_DURATION*.9)/3)*2  // set the actual animation to 90% of the time
-                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)          // set the size-relative duration
-                     , ms = Math.min(rel_ms, max_ms)                            // set the duration to the minimum value
+                   // set the actual animation to .6 of 90% of the time
+                   // before setting the size-relative duration
+                   // and setting the duration to the minimum value
+                   var max_ms = Math.floor((MARKER_ANIMATION_DURATION*.9)/3)*2
+                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)
+                     , ms = Math.min(rel_ms, max_ms)
                    ;
                    return ms;
                  })
@@ -1000,12 +1057,19 @@
         ;
       }
 
-      // if the map has not been rendered yet then call the render method, otherwise, go ahead and draw the markers
-      if (!document.getElementById(ID + '-map')) {
+      style = style || document.createElement('style');
+      marker_lg = d3.max(data, function(d) { return d.size || d.Size; });
+
+      // if the largest size isn't set, set it to the marker size
+      marker_lg = marker_lg || MARKER_SIZE;
+
+      // if the map has not been rendered yet then call the render method, 
+      // otherwise, go ahead and draw the markers
+      if (!document.getElementById(ID+'-map')) {
         self.render();
       } else {
         // delete all the existing markers
-        markers = document.getElementById(ID + '-markers');
+        markers = document.getElementById(ID+'-markers');
         if (markers) {
           while (markers.firstChild) {
             markers.removeChild(markers.firstChild);
@@ -1013,23 +1077,38 @@
         }
 
         // add the markers using the data provided
-        d3.select('#' + ID + '-map').append('g').attr('id', ID + '-markers')
+        d3.select('#'+ID+'-map').append('g').attr('id', ID+'-markers')
            .selectAll('path').data(data).enter().append('path')
-             .attr('class', function(d) { return 'marker' + ((d.country || d.Country || '') ? ' ' + (d.country || d.Country || '') : ''); })
-             .attr('data-description', function(d) { return (d.description || d.Description); })
-             .style('fill', function(d) { return (d.color || d.Color || PALETTE.marker); })
-             .style('stroke', function(d) { return (d.color || d.Color || PALETTE.marker); })
+             .datum(function(d) {
+                var m = (MARKER_RELATIVE_SIZE ? (1/WIDTH) : 1)
+                  , c = parseFloat(d.size || d.Size || MARKER_SIZE)
+                  , size = c * m
+                  , lg = marker_lg * m
+                  , lat = (d.latitude || d.Latitude || d.lat || d.Lat)
+                  , lon = (d.longitude || d.Longitude || d.lon || d.Lon)
+                ;
+                d.size = size;
+                d.rel_size = size / (lg || 1);
+                return { type:'Point', 
+                         coordinates:[ lon, lat ], 
+                         marker:d };
+              })
+             .attr('class', function(d) {
+                var country = (d.country || d.Country || '');
+                return (new Array('marker', country)).join(' ');
+              })
+             .attr('d', PROJECTION_PATH.pointRadius(1))
+             .attr('data-description', function(d) {
+                return (d.description || d.Description);
+              })
+             .style('fill', function(d) {
+                return (d.color || d.Color || PALETTE.marker);
+              })
+             .style('stroke', function(d) {
+                return (d.color || d.Color || PALETTE.marker);
+              })
              .style('stroke-width', 0)
              .style('stroke-opacity', (PALETTE.markerOpacity || 1))
-             .datum(function(d) { var m = (MARKER_RELATIVE_SIZE ? (1/MAP_HEIGHT) : 1)
-                                    , c = parseFloat(d.size || d.Size || MARKER_SIZE)
-                                    , size = c * m
-                                    , lg = marker_lg * m
-                                  ;
-                                  d.size = size;
-                                  d.rel_size = size / (lg || 1);
-                                  return { type:'Point', coordinates:[(d.longitude || d.Longitude || d.lon || d.Lon), (d.latitude || d.Latitude || d.lat || d.Lat)], marker:d }; })
-             .attr('d', PROJECTION_PATH.pointRadius(1)) //radius of the circle
           ;
 
         // add some visual interest to the markers via animation
@@ -1041,13 +1120,17 @@
             setInterval(pulse, MARKER_ANIMATION_DURATION);
             break;
           case 'none':
-            d3.selectAll('path.marker').style('stroke-width', function(d, i) { return d.size || d.Size || MARKER_SIZE; });
+            // markers are set at 1px when created, this sets them to the
+            // maximum radius because they never grow using animation
+            d3.selectAll('path.marker').style('stroke-width', function(d, i) {
+                return d.size || d.Size || MARKER_SIZE;
+              });
             break;
         }
 
         // assign the click handlers if defined
         if (MARKER_HANDLERS && MARKER_HANDLERS.length) {
-          d3.select('#' + ID + '-markers').selectAll('path.marker')
+          d3.select('#'+ID+'-markers').selectAll('path.marker')
             .on('click', function marker_onClick(marker) {
                var i;
                if (!DRAGGING) {
@@ -1059,7 +1142,8 @@
           ;
         }
 
-        // add a data table if one does not exist and columns have been specified, using the same logic as cjl-scrollabletable
+        // add a data table if one does not exist and columns have been 
+        // specified, using the same logic as cjl-scrollabletable
         if (!MARKER_TABLE && columns && columns.length) {
           // build the stylesheet
           if (style) {
@@ -1067,14 +1151,15 @@
             style.setAttribute('type', 'text/css');
           }
 
-          // write the sortable styles so we get the adjusted widths when we write the scrollable styles
+          // write the sortable styles so we get the adjusted widths when we 
+          // write the scrollable styles
           if (style) {
             // style for a sortable table
             rules = [];
-            rules.push('#' + id_table + ' .sortable { cursor:pointer; padding:inherit 0.1em; }');
-            rules.push('#' + id_table + ' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
-            rules.push('#' + id_table + ' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
-            rules.push('#' + id_table + ' .sortable.sorted { color:#ff0000; }');
+            rules.push('#'+id_table+' .sortable { cursor:pointer; padding:inherit 0.1em; }');
+            rules.push('#'+id_table+' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
+            rules.push('#'+id_table+' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
+            rules.push('#'+id_table+' .sortable.sorted { color:#ff0000; }');
 
             style.innerHTML += rules.join('\n');
 
@@ -1099,13 +1184,14 @@
                .enter()
                .append('th')
                  .attr('class', function(d, i) {
-                    var issort = (d.sortable === null || d.sortable === undefined) ? true : d.sortable;
-                    return (d.name || d) + (issort ? ' sortable' : '');
+                    var issort = (d.sortable === false) ? false : true;
+                    return (d.name || d)+(issort ? ' sortable' : '');
                   })
                  .text(function(d, i) {
                     var name = d.name || d;
                     return name.replace(/\b\w+/g, function(s) {
-                      return s.charAt(0).toUpperCase() + s.substr(1).toLowerCase();
+                      return s.charAt(0).toUpperCase() + 
+                             s.substr(1).toLowerCase();
                     });
                   })
             ;
@@ -1114,7 +1200,8 @@
           thead.selectAll('th.sortable')
                  .on('click', function (d, i) {
                     var clicked = d3.select(this)
-                      , sorted = d3.select(clicked.node().parentNode).selectAll('.sortable.sorted')
+                      , sorted = d3.select(clicked.node().parentNode)
+                                   .selectAll('.sortable.sorted')
                       , desc = clicked.classed('desc')
                     ;
 
@@ -1134,7 +1221,7 @@
                             if (a.localeCompare && (isNaN(a) || isNaN(b))) {
                               ret = a.localeCompare(b);
                             } else {
-                              ret = a - b;
+                              ret = a-b;
                             }
                           }
                           return ret;
@@ -1149,7 +1236,7 @@
                             if (b.localeCompare && (isNaN(a) || isNaN(b))) {
                               ret = b.localeCompare(a);
                             } else {
-                              ret = b - a;
+                              ret = b-a;
                             }
                           }
                           return ret;
@@ -1181,7 +1268,8 @@
           tcells = trows.selectAll('td')
                         .data(function(row) {
                            return columns.map(function(column) {
-                             return {column: (column.name || column), value: row[(column.name || column)]};
+                             var col = (column.name || column);
+                             return {column:col, value:row[col]};
                            });
                          })
                         .enter()
@@ -1193,17 +1281,17 @@
           // build the stylesheet
           if (style) {
             // style for a scrollable table
-            rules.push('#' + id_table + '.scrollable { display:inline-block; padding:0 0.5em 1.5em 0; }');
-            rules.push('#' + id_table + '.scrollable tbody { height:12em; overflow-y:scroll; }');
-            rules.push('#' + id_table + '.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
-            rules.push('#' + id_table + '.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
-            rules.push('#' + id_table + '.scrollable tfoot { bottom:0; position:absolute; }'); 
-            rules.push('#' + id_table + '.scrollable thead, #' + id_table + ' tfoot, #' + id_table + ' tbody { cursor:default; display:block; margin:0.5em 0; }');
+            rules.push('#'+id_table+'.scrollable { display:inline-block; padding:0 0.5em 1.5em 0; }');
+            rules.push('#'+id_table+'.scrollable tbody { height:12em; overflow-y:scroll; }');
+            rules.push('#'+id_table+'.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
+            rules.push('#'+id_table+'.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
+            rules.push('#'+id_table+'.scrollable tfoot { bottom:0; position:absolute; }'); 
+            rules.push('#'+id_table+'.scrollable thead, #'+id_table+' tfoot, #'+id_table+' tbody { cursor:default; display:block; margin:0.5em 0; }');
             rules.push('tbody.banded tr:nth-child(odd) { background-color:rgba(187, 187, 187, 0.8); }');
 
             tcells = document.getElementById(id_table).getElementsByTagName('tr').item(0).childNodes;
             for (ndx = 0; ndx < tcells.length; ndx += 1) {
-              rules.push('#' + id_table + ' th:nth-of-type(' + (ndx + 1) + '), #' + id_table + ' td:nth-of-type(' + (ndx + 1) + ') { width:' + (tcells.item(ndx).offsetWidth + 15) + 'px; }'); // add 15 pixels to accommodate sort markers
+              rules.push('#'+id_table+' th:nth-of-type('+(ndx+1)+'), #'+id_table+' td:nth-of-type('+(ndx+1)+') { width:'+(tcells.item(ndx).offsetWidth+15)+'px; }'); // add 15 pixels to accommodate sort markers
             }
 
             style.innerHTML = rules.join('\n');
@@ -1222,7 +1310,7 @@
             }
           }
           ndx = Math.max(0, ndx);
-          default_sort = d3.select('th.sortable.' + (columns[ndx].name || columns[ndx])).node() || d3.select('th.sortable').node();
+          default_sort = d3.select('th.sortable.'+(columns[ndx].name || columns[ndx])).node() || d3.select('th.sortable').node();
           if (default_sort) {
             default_sort.click();
           }
@@ -1246,11 +1334,48 @@
     }
 
     /**
+     * Returns an HTMLElement
+     * @return   {HTMLElement}
+     * @param    {string|HTMLElement} value
+     */
+    function getElement(value) {
+      if (typeof value === 'string') {
+        value = document.getElementById(value);
+      }
+      if (!value || value.nodeType !== 1) {
+        value = null;
+      }
+      return value;
+    }
+
+    /**
      * Returns true if the map style selected can rotate (i.e. globe or orthographic)
      * @return   {boolean}
      */
     function rotates() {
-      return MAP_STYLE.rotates === true;        // the map can rotate - i.e. it's a globe
+      // the map can rotate - i.e. it's a globe
+      return STYLE.rotates === true;                                                     
+    }
+
+    /**
+     * Pauses the rotation
+     * @return   {void}
+     */
+    function rotationPause() {
+      ROTATE_3D = false;
+      fire('paused');  
+    }
+
+    /**
+     * Starts the rotation
+     * @return   {void}
+     */
+    function rotationStart() {
+      // update the ticker to reduce janky-ness and 
+      // reset the stopped and paused flags
+      THEN = Date.now();
+      ROTATE_3D = true;
+      ROTATE_STOPPED = false;
     }
 
     /**
@@ -1258,7 +1383,7 @@
      * @return   {void}
      */
     function rotationTimerEnd() {
-      // A D3 timer cannot be cleared once started
+      // a D3 timer cannot be cleared once started
       ROTATE_STOPPED = true;
       ROTATE_3D = false;
     }
@@ -1270,17 +1395,19 @@
      */
     function rotationTimerStart(projection) {
       if (projection) {
-        // Start the rotation timer
+        // start the rotation timer
         d3.timer(function spin() {
-            // if the map can rotate - i.e., is a sphere - and has not been stopped and is not paused
+            // if the map can rotate and has not been stopped and is not paused
             if (rotates() && !ROTATE_STOPPED && ROTATE_3D) {
-              var tick = (Date.now() - THEN)
+              var tick = (Date.now()-THEN)
                 , angle = VELOCITY * tick
               ;
 
               LOCATION[0] += angle;
               projection.rotate(LOCATION);
-              d3.select('#' + ID).selectAll('path').attr('d', PROJECTION_PATH.projection(projection));
+              d3.select('#'+ID)
+                .selectAll('path')
+                .attr('d', PROJECTION_PATH.projection(projection));
             }
             THEN = Date.now();
           });
@@ -1288,61 +1415,243 @@
     }
 
     var D3COLORS = d3.scale.category10()
-      , MARKER_ANIMATION = 'pulse', MARKER_ANIMATION_DURATION = 1500, MARKER_DATA = [], MARKER_DESCRIPTION, MARKER_FILE = {}, MARKER_RELATIVE_SIZE = false, MARKER_SIZE = 3, MARKER_TABLE = false
+      , MARKER_ANIMATION = 'pulse'
+      , MARKER_ANIMATION_DURATION = 1500
+      , MARKER_DATA = []
+      , MARKER_DESCRIPTION
+      , MARKER_FILE = {}
+      , MARKER_RELATIVE_SIZE = false
+      , MARKER_SIZE = 3
+      , MARKER_TABLE = false
       , PALETTE = {
           border: '#766951',
-          colors: [D3COLORS(1), D3COLORS(2), D3COLORS(3), D3COLORS(4), D3COLORS(5), D3COLORS(6), D3COLORS(7), D3COLORS(8), D3COLORS(9), D3COLORS(10)],
+          countries: [ D3COLORS(1)
+                     , D3COLORS(2)
+                     , D3COLORS(3)
+                     , D3COLORS(4)
+                     , D3COLORS(5)
+                     , D3COLORS(6)
+                     , D3COLORS(7)
+                     , D3COLORS(8)
+                     , D3COLORS(9)
+                     , D3COLORS(10)
+          ],
           marker: '#ff0000',
           markerOpacity: '1.0',
-          oceans: '#d8ffff'
+          ocean: '#d8ffff'
         }
       , PROJECTIONS = {
-          aitoff: { name:'Aitoff', projection:d3.geo.aitoff() },
-          albers: { name:'Albers', projection:d3.geo.albers(), scale:145, parallels:[20, 50] },
-          august: { name:'August', projection:d3.geo.august(), scale:60 },
-          baker: { name:'Baker', projection:d3.geo.baker(), scale:100 },
-          boggs: { name:'Boggs', projection:d3.geo.boggs() },
-          bonne: { name:'Bonne', projection:d3.geo.bonne(), scale:120 },
-          bromley: { name:'Bromley', projection:d3.geo.bromley() },
-          collignon: { name:'Collignon', projection:d3.geo.collignon(), scale:93 },
-          crasterparabolic: { name:'Craster Parabolic', projection:d3.geo.craster() },
-          eckerti: { name:'Eckert I', projection:d3.geo.eckert1(), scale:165 },
-          eckertii: { name:'Eckert II', projection:d3.geo.eckert2(), scale:165 },
-          eckertiii: { name:'Eckert III', projection:d3.geo.eckert3(), scale:180 },
-          eckertiv: { name:'Eckert IV', projection:d3.geo.eckert4(), scale:180 },
-          eckertv: { name:'Eckert V', projection:d3.geo.eckert5(), scale:170 },
-          eckertvi: { name:'Eckert VI', projection:d3.geo.eckert6(), scale:170 },
-          eisenlohr: { name:'Eisenlohr', projection:d3.geo.eisenlohr(), scale:60 },
-          equirectangular: { name:'Equirectangular (Plate Carrée)', projection:d3.geo.equirectangular() },
-          hammer: { name:'Hammer', projection:d3.geo.hammer(), scale:165 },
-          hill: { name:'Hill', projection:d3.geo.hill() },
-          globe: { name:'Globe', projection:d3.geo.orthographic().clipAngle(90), rotates:true, shape:'sphere' },
-          goodehomolosine: { name:'Goode Homolosine', projection:d3.geo.homolosine() },
-          kavrayskiyvii: { name:'Kavrayskiy VII', projection:d3.geo.kavrayskiy7() },
-          lambertcylindricalequalarea: { name:'Lambert cylindrical equal-area', projection:d3.geo.cylindricalEqualArea() },
-          lagrange: { name:'Lagrange', projection:d3.geo.lagrange(), scale:120 },
-          larrivee: { name:'Larrivee', projection:d3.geo.larrivee(), scale:95 },
-          laskowski: { name:'Laskowski', projection:d3.geo.laskowski(), scale:120 },
-          loximuthal: { name:'Loximuthal', projection:d3.geo.loximuthal() },
-          mercator: { name:'Mercator', projection:d3.geo.mercator(), shape:'rectangle' },
-          miller: { name:'Miller', projection:d3.geo.miller(), scale:100 },
-          mcbrydethomasflatpolarparabolic: { name:'McBryde-Thomas Flat-Polar Parabolic', projection:d3.geo.mtFlatPolarParabolic() },
-          mcbrydethomasflatpolarquartic: { name:'McBryde-Thomas Flat-Polar Quartic', projection:d3.geo.mtFlatPolarQuartic() },
-          mcbrydethomasflatpolarsinusoidal: { name:'McBryde-Thomas Flat-Polar Sinusoidal', projection:d3.geo.mtFlatPolarSinusoidal() },
-          mollweide: { name:'Mollweide', projection:d3.geo.mollweide(), scale:165 },
-          naturalearth: { name:'Natural Earth', projection:d3.geo.naturalEarth() },
-          nellhammer: { name:'Nell-Hammer', projection:d3.geo.nellHammer() },
-          orthographic: { name:'Orthographic (globe)', projection:d3.geo.orthographic().clipAngle(90), rotates:true, shape:'sphere' },
-          polyconic: { name:'Polyconic', projection:d3.geo.polyconic(), scale:100 },
-          robinson: { name:'Robinson', projection:d3.geo.robinson() },
-          sinusoidal: { name:'Sinusoidal', projection:d3.geo.sinusoidal() },
-          sinumollweide: { name:'Sinu-Mollweide', projection:d3.geo.sinuMollweide() },
-          vandergrinten: { name:'van der Grinten', projection:d3.geo.vanDerGrinten(), scale:75 },
-          vandergrinteniv: { name:'van der Grinten IV', projection:d3.geo.vanDerGrinten4(), scale:120 },
-          wagneriv: { name:'Wagner IV', projection:d3.geo.wagner4() },
-          wagnervi: { name:'Wagner VI', projection:d3.geo.wagner6() },
-          wagnervii: { name:'Wagner VII', projection:d3.geo.wagner7() },
-          winkeltripel: { name:'Winkel Tripel', projection:d3.geo.winkel3() },
+          aitoff: {
+            name:'Aitoff',
+            projection:d3.geo.aitoff()
+          },
+          albers: {
+            name:'Albers',
+            projection:d3.geo.albers(),
+            scale:145,
+            parallels:[20, 50]
+          },
+          august: {
+            name:'August',
+            projection:d3.geo.august(),
+            scale:60
+          },
+          baker: {
+            name:'Baker',
+            projection:d3.geo.baker(),
+            scale:100
+          },
+          boggs: {
+            name:'Boggs',
+            projection:d3.geo.boggs()
+          },
+          bonne: {
+            name:'Bonne',
+            projection:d3.geo.bonne(),
+            scale:120
+          },
+          bromley: {
+            name:'Bromley',
+            projection:d3.geo.bromley()
+          },
+          collignon: {
+            name:'Collignon',
+            projection:d3.geo.collignon(),
+            scale:93
+          },
+          crasterparabolic: {
+            name:'Craster Parabolic',
+            projection:d3.geo.craster()
+          },
+          eckerti: {
+            name:'Eckert I',
+            projection:d3.geo.eckert1(),
+            scale:165
+          },
+          eckertii: {
+            name:'Eckert II',
+            projection:d3.geo.eckert2(),
+            scale:165
+          },
+          eckertiii: {
+            name:'Eckert III',
+            projection:d3.geo.eckert3(),
+            scale:180
+          },
+          eckertiv: {
+            name:'Eckert IV',
+            projection:d3.geo.eckert4(),
+            scale:180
+          },
+          eckertv: {
+            name:'Eckert V',
+            projection:d3.geo.eckert5(),
+            scale:170
+          },
+          eckertvi: {
+            name:'Eckert VI',
+            projection:d3.geo.eckert6(),
+            scale:170
+          },
+          eisenlohr: {
+            name:'Eisenlohr',
+            projection:d3.geo.eisenlohr(),
+            scale:60
+          },
+          equirectangular: {
+            name:'Equirectangular (Plate Carrée)',
+            projection:d3.geo.equirectangular()
+          },
+          hammer: {
+            name:'Hammer',
+            projection:d3.geo.hammer(),
+            scale:165
+          },
+          hill: {
+            name:'Hill',
+            projection:d3.geo.hill()
+          },
+          globe: {
+            name:'Globe',
+            projection:d3.geo.orthographic().clipAngle(90),
+            rotates:true,
+            shape:'sphere'
+          },
+          goodehomolosine: {
+            name:'Goode Homolosine',
+            projection:d3.geo.homolosine()
+          },
+          kavrayskiyvii: {
+            name:'Kavrayskiy VII',
+            projection:d3.geo.kavrayskiy7()
+          },
+          lambertcylindricalequalarea: {
+            name:'Lambert cylindrical equal-area',
+            projection:d3.geo.cylindricalEqualArea()
+          },
+          lagrange: {
+            name:'Lagrange',
+            projection:d3.geo.lagrange(),
+            scale:120
+          },
+          larrivee: {
+            name:'Larrivee',
+            projection:d3.geo.larrivee(),
+            scale:95
+          },
+          laskowski: {
+            name:'Laskowski',
+            projection:d3.geo.laskowski(),
+            scale:120
+          },
+          loximuthal: {
+            name:'Loximuthal',
+            projection:d3.geo.loximuthal()
+          },
+          mercator: {
+            name:'Mercator',
+            projection:d3.geo.mercator(),
+            shape:'rectangle'
+          },
+          miller: {
+            name:'Miller',
+            projection:d3.geo.miller(),
+            scale:100
+          },
+          mcbrydethomasflatpolarparabolic: {
+            name:'McBryde-Thomas Flat-Polar Parabolic',
+            projection:d3.geo.mtFlatPolarParabolic()
+          },
+          mcbrydethomasflatpolarquartic: {
+            name:'McBryde-Thomas Flat-Polar Quartic',
+            projection:d3.geo.mtFlatPolarQuartic()
+          },
+          mcbrydethomasflatpolarsinusoidal: {
+            name:'McBryde-Thomas Flat-Polar Sinusoidal',
+            projection:d3.geo.mtFlatPolarSinusoidal()
+          },
+          mollweide: {
+            name:'Mollweide',
+            projection:d3.geo.mollweide(),
+            scale:165
+          },
+          naturalearth: {
+            name:'Natural Earth',
+            projection:d3.geo.naturalEarth()
+          },
+          nellhammer: {
+            name:'Nell-Hammer',
+            projection:d3.geo.nellHammer()
+          },
+          orthographic: {
+            name:'Orthographic (globe)',
+            projection:d3.geo.orthographic().clipAngle(90),
+            rotates:true,
+            shape:'sphere'
+          },
+          polyconic: {
+            name:'Polyconic',
+            projection:d3.geo.polyconic(),
+            scale:100
+          },
+          robinson: {
+            name:'Robinson',
+            projection:d3.geo.robinson()
+          },
+          sinusoidal: {
+            name:'Sinusoidal',
+            projection:d3.geo.sinusoidal()
+          },
+          sinumollweide: {
+            name:'Sinu-Mollweide',
+            projection:d3.geo.sinuMollweide()
+          },
+          vandergrinten: {
+            name:'van der Grinten',
+            projection:d3.geo.vanDerGrinten(),
+            scale:75
+          },
+          vandergrinteniv: {
+            name:'van der Grinten IV',
+            projection:d3.geo.vanDerGrinten4(),
+            scale:120
+          },
+          wagneriv: {
+            name:'Wagner IV',
+            projection:d3.geo.wagner4()
+          },
+          wagnervi: {
+            name:'Wagner VI',
+            projection:d3.geo.wagner6()
+          },
+          wagnervii: {
+            name:'Wagner VII',
+            projection:d3.geo.wagner7()
+          },
+          winkeltripel: {
+            name:'Winkel Tripel',
+            projection:d3.geo.winkel3()
+          },
 
           // map to property
           map: function(name) {
@@ -1350,7 +1659,8 @@
             // added '2D' handling for backward compatibility
             name = (name === '2D') ? 'mercator' : (name || '');
             // normalize the name
-            name = name.replace(/\([^\)]+\)/g, '').replace(/[^\w]/g, '').toLowerCase();
+            name = name.replace(/\([^\)]+\)/g, '');
+            name = name.replace(/[^\w]/g, '').toLowerCase();
             // search for the requested projection
             for (prop in this) {
               if (this.hasOwnProperty(prop)) {
@@ -1361,14 +1671,23 @@
             }
           }
         }
-
-      , MAP_WIDTH, MAP_HEIGHT
-      , THEN, VELOCITY = 0.05
-      , DRAGGING = false, LOCATION = [0, 0, 0], PROJECTION_PATH, ROTATE_3D = false, ROTATE_STOPPED = false
-      , ID = 'cjl-globe-' + Math.random().toString().replace(/\./, '')
-      , COUNTRY_HANDLERS = [ ], MARKER_HANDLERS = [ ]
-      , EVENT_HANDLERS = { }
-      , EVENTS = [ 'accelerated', 'paused', 'rendered', 'resumed', 'slowed' ]
+      , THEN
+      , VELOCITY = 0.05
+      , DRAGGING = false
+      , LOCATION = [0, 0, 0]
+      , PROJECTION_PATH
+      , ROTATE_3D = false
+      , ROTATE_STOPPED = false
+      , ID = 'cjl-globe-'+Math.random().toString().replace(/\./, '')
+      , COUNTRY_HANDLERS = [ ]
+      , MARKER_HANDLERS = [ ]
+      , EVENT_HANDLERS = { }      
+      , EVENTS = [ 'accelerated'
+                 , 'paused'
+                 , 'rendered'
+                 , 'resumed'
+                 , 'slowed'
+                 ]
       , self = this
     ;
 
@@ -1383,15 +1702,15 @@
     EVENT_HANDLERS['marker-data'] = new Array(drawMarkers);
 
     // set the container element
-    if (typeof ELEM === 'string') {
-      ELEM = document.getElementById(ELEM);
-    }
-    if (!ELEM || ELEM.nodeType !== 1) {
-      ELEM = document.body;
+    if (typeof CONTAINER === 'string') {
+      CONTAINER = document.getElementById(CONTAINER);
     }
 
+    // set the width
+    WIDTH = (WIDTH || (CONTAINER && CONTAINER.nodeType === 1) ? CONTAINER.clientWidth : 160);
+
     // set the map style
-    MAP_STYLE = PROJECTIONS.map(MAP_STYLE || 'globe');
+    STYLE = PROJECTIONS.map(STYLE || 'globe');
 
     // set the table descriptor element
     if (typeof DESCRIPTOR === 'string') {
@@ -1399,6 +1718,11 @@
     }
     if (DESCRIPTOR && DESCRIPTOR.nodeType !== 1) {
       DESCRIPTOR = null;
+    }
+
+    // default the containing element
+    if (!CONTAINER || CONTAINER.nodeType !== 1) {
+      CONTAINER = document.body;
     }
 
     this.on('rendered', rotationTimerStart);
