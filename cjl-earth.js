@@ -746,6 +746,11 @@
                 , nexto = topojson.neighbors(data.objects.countries.geometries)
               ;
 
+              // delete existing oceans, land, and markers
+              d3.select('#'+ID+'-oceans').remove();
+              d3.select('#'+ID+'-countries').remove();
+              d3.select('#'+ID+'-markers').remove();
+
               // draw the oceans
               d3.select('#'+ID+'-map').append('g').attr('id', ID+'-oceans')
                   .append('path')
@@ -1069,12 +1074,7 @@
         self.render();
       } else {
         // delete all the existing markers
-        markers = document.getElementById(ID+'-markers');
-        if (markers) {
-          while (markers.firstChild) {
-            markers.removeChild(markers.firstChild);
-          }
-        }
+        d3.select('#'+ID+'-markers').remove();
 
         // add the markers using the data provided
         d3.select('#'+ID+'-map').append('g').attr('id', ID+'-markers')
