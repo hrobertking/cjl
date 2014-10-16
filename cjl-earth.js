@@ -1442,12 +1442,24 @@
       }
     }
 
-    var D3COLORS = d3.scale.category10()
+    var COUNTRY_HANDLERS = [ ]
+      , D3COLORS = d3.scale.category10()
+      , DRAGGING = false
+      , EVENT_HANDLERS = { }
+      , EVENTS = [ 'accelerated'
+                 , 'paused'
+                 , 'rendered'
+                 , 'resumed'
+                 , 'slowed'
+                 ]
+      , ID = 'cjl-globe-'+Math.random().toString().replace(/\./, '')
+      , LOCATION = [0, 0, 0]
       , MARKER_ANIMATION = 'pulse'
       , MARKER_ANIMATION_DURATION = 1500
       , MARKER_DATA = []
       , MARKER_DESCRIPTION
       , MARKER_FILE = {}
+      , MARKER_HANDLERS = [ ]
       , MARKER_RELATIVE_SIZE = false
       , MARKER_SIZE = 3
       , MARKER_TABLE = false
@@ -1468,6 +1480,7 @@
           markerOpacity: '1.0',
           ocean: '#d8ffff'
         }
+      , PROJECTION_PATH
       , PROJECTIONS = {
           aitoff: {
             name:'Aitoff',
@@ -1678,23 +1691,10 @@
             }
           }
         }
-      , THEN
-      , VELOCITY = 0.05
-      , DRAGGING = false
-      , LOCATION = [0, 0, 0]
-      , PROJECTION_PATH
       , ROTATE_3D = false
       , ROTATE_STOPPED = false
-      , ID = 'cjl-globe-'+Math.random().toString().replace(/\./, '')
-      , COUNTRY_HANDLERS = [ ]
-      , MARKER_HANDLERS = [ ]
-      , EVENT_HANDLERS = { }      
-      , EVENTS = [ 'accelerated'
-                 , 'paused'
-                 , 'rendered'
-                 , 'resumed'
-                 , 'slowed'
-                 ]
+      , THEN
+      , VELOCITY = 0.05
       , self = this
     ;
 
