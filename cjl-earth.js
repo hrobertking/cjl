@@ -931,6 +931,102 @@
     };
 
     /**
+     * Transitions from the current map style to the map style provided. Animation runs for the specified duration (in milliseconds) or 750ms
+     * @return   {void}
+     * @param    {string} style
+     * @param    {number} duration
+     */
+    this.transition = function(style, duration) {
+      /**
+       * Clean up function to run at the end of the transition
+       * @return   {void}
+       */
+      function finalize() {
+        // set the projection
+        PROJECTION_PATH = path;
+        STYLE = style;
+        d3.select('#'+ID+'-oceans-path').attr('d', path);
+        markerDraw();
+        rotationStart();
+      }
+      /**
+       * Calculate the in-between state for two projections
+       * @return   {void}
+       * @param    {projection} beginning
+       * @param    {projection} ending
+       */
+      function projectionTween(beginning, ending) {
+        return function(d) {
+          var t = 0
+            , projection = d3.geo.projection(project).scale(1).translate(center())
+            , path = d3.geo.path().projection(projection)
+          ;
+
+          function project(lambda, phi) {
+            lambda *= 180 / Math.PI, phi *= 180 / Math.PI;
+            var p0 = beginning([lambda, phi]), p1 = ending([lambda, phi]);
+            return [(1 - t) * p0[0] + t * p1[0], (1 - t) * -p0[1] + t * -p1[1]];
+          }
+
+          return function(_) {
+            t = _;
+            return path(d);
+          };
+        };
+      }
+
+      var path
+        , paths = d3.select('#'+ID+'-map').selectAll('path')
+        , projection = STYLE.projection
+        , size = paths.size()
+      ;
+
+      style = PROJECTIONS.map(style);
+      if (style && style.projection) {
+        // make sure any duration passed is valid
+        duration = isNaN(duration) ? 0 : Math.floor(duration);
+        path = d3.geo.path().projection(style.projection.translate(center()));
+
+        // prepare the destination projection
+        switch (style.name) {
+          case 'Globe':
+          case 'Orthographic':
+            style.projection.scale(WIDTH/2);
+            break;
+          case 'Mercator':
+            style.projection.precision(.1).scale((WIDTH+1)/2/Math.PI);
+            break;
+          default:
+            style.projection.scale(getScale(style.projection));
+        }
+        if (style.parallels) {
+          style.projection.parallels(style.parallels);
+        }
+
+        // stop any rotation
+        rotationTimerEnd();
+
+        // remove any markers
+        markerRemove();
+
+        // rotate to 0, 0
+        rotateToLocation([0, 0, 0]);
+
+        // set up the tween
+        paths.transition()
+            .duration(duration || 750)
+            .attrTween('d', projectionTween(projection, projection = style.projection))
+            .each('end', function() { 
+               size -= 1;
+               if (size < 1) {
+                 finalize();
+               }
+             })
+          ;
+      }
+    };
+
+    /**
      * Returns the x and y coordinates of the center of the svg
      * @return   {object}
      */
