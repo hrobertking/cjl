@@ -689,17 +689,8 @@
           }
 
           switch (STYLE.shape) {
-            case 'rectangle':
-              if (STYLE.name === 'Mercator') {
-                // make the center 0° W longitude and 5° N latitude and rotate 
-                // the map -10° longitude, 0° latitude before setting the zoom
-                // and moving the projection to the center
-                projection.center([0, 5])
-                          .precision(.1)
-                          .rotate([-10, 0])
-                          .scale((WIDTH+1)/2/Math.PI)
-                  ;
-              }
+            case 'mercator':
+              projection.precision(.1).scale((WIDTH+1)/2/Math.PI);
               break;
             case 'sphere':
               projection.scale(radius-2);
@@ -1591,8 +1582,8 @@
           },
           mercator: {
             name:'Mercator',
-            projection:d3.geo.mercator(),
-            shape:'rectangle'
+            projection:d3.geo.mercator().center([0, 5]).rotate([-10, 0]),
+            shape:'mercator'
           },
           miller: {
             name:'Miller',
