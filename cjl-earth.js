@@ -1033,6 +1033,7 @@
         , ndx                                       // loop index
         , rules = [ ]                               // stylesheet rules
         , style = document.getElementById(id_style) // style element
+        , style_exists = false                      // flag indicating the style already existed
         , table                                     // the table
         , tbody                                     // the body of the table
         , tcells                                    // cells in the table
@@ -1105,7 +1106,6 @@
         ;
       }
 
-      style = style || document.createElement('style');
       marker_lg = d3.max(data, function(d) { return d.size || d.Size; });
 
       // if the largest size isn't set, set it to the marker size
@@ -1189,26 +1189,29 @@
         // specified, using the same logic as cjl-scrollabletable
         if (!MARKER_TABLE && columns && columns.length) {
           // build the stylesheet
-          if (style) {
+          if (!style) {
+            style = document.createElement('style');
             style.setAttribute('id', id_style);
             style.setAttribute('type', 'text/css');
-          }
 
-          // write the sortable styles so we get the adjusted widths when we 
-          // write the scrollable styles
-          if (style) {
-            // style for a sortable table
-            rules = [];
-            rules.push('#'+id_table+' .sortable { cursor:pointer; padding:inherit 0.1em; }');
-            rules.push('#'+id_table+' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
-            rules.push('#'+id_table+' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
-            rules.push('#'+id_table+' .sortable.sorted { color:#ff0000; }');
+            // write the sortable styles so we get the adjusted widths when we 
+            // write the scrollable styles
+            if (style) {
+              // style for a sortable table
+              rules = [];
+              rules.push('#'+id_table+' .sortable { cursor:pointer; padding:inherit 0.1em; }');
+              rules.push('#'+id_table+' .sortable:after { border-bottom:0.3em solid #000; border-left:0.3em solid transparent; border-right:0.3em solid transparent; bottom:0.75em; content:""; height:0; margin-left:0.1em; position:relative; width:0; }');
+              rules.push('#'+id_table+' .sortable.desc:after { border-bottom:none; border-top:0.3em solid #000; top:0.75em; }');
+              rules.push('#'+id_table+' .sortable.sorted { color:#ff0000; }');
 
-            style.innerHTML += rules.join('\n');
+              style.innerHTML += rules.join('\n');
 
-            if (!style.parentNode) {
-              document.body.appendChild(style);
+              if (!style.parentNode) {
+                document.body.appendChild(style);
+              }
             }
+          } else {
+            style_exists = true;
           }
 
           // create the table
@@ -1322,7 +1325,7 @@
             ;
 
           // build the stylesheet
-          if (style) {
+          if (!style_exists && style) {
             // style for a scrollable table
             rules.push('#'+id_table+'.scrollable { display:inline-block; padding:0 0.5em 1.5em 0; }');
             rules.push('#'+id_table+'.scrollable tbody { height:12em; overflow-y:scroll; }');
