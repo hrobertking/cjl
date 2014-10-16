@@ -971,10 +971,58 @@
     }
 
     /**
+     * Fires an event
+     * @return   {void}
+     * @param    {string} eventname
+     * @param    {array} params
+     */
+    function fire(eventname, params) {
+      var i
+        , handlers = EVENT_HANDLERS[eventname] || [];
+      ;
+      for (i = 0; i < handlers.length; i += 1) {
+        handlers[i].apply(this, params);
+      }
+    }
+
+    /**
+     * Returns an HTMLElement
+     * @return   {HTMLElement}
+     * @param    {string|HTMLElement} value
+     */
+    function getElement(value) {
+      if (typeof value === 'string') {
+        value = document.getElementById(value);
+      }
+      if (!value || value.nodeType !== 1) {
+        value = null;
+      }
+      return value;
+    }
+
+    /**
+     * Gets the scale for a projection
+     * @return   {number}
+     * @param    {projection} proj
+     */
+    function getScale(proj) {
+      var yaw
+        , coord
+      ;
+
+      proj.scale(1);
+      yaw = proj.rotate()[0];
+      coord = [ proj([-yaw-180+1e-6, 89])
+              , proj([-yaw+180-1e-6, -89]) ];
+
+      return WIDTH/(coord[1][0]-coord[0][0]);
+    }
+
+    /**
      * Draws the location markers based on the marker data
      * @return   {void}
      */
-    function drawMarkers() {
+    function markerDraw() {
       var columns = MARKER_DESCRIPTION              // column/object property
         , container = DESCRIPTOR || CONTAINER       // contains the table
         , data = MARKER_DATA                        // array containing data
@@ -1069,7 +1117,7 @@
         self.render();
       } else {
         // delete all the existing markers
-        d3.select('#'+ID+'-markers').remove();
+        markerRemove();
 
         // add the markers using the data provided
         d3.select('#'+ID+'-map').append('g').attr('id', ID+'-markers')
@@ -1314,51 +1362,11 @@
     }
 
     /**
-     * Fires an event
+     * Delete all the existing markers
      * @return   {void}
-     * @param    {string} eventname
-     * @param    {array} params
      */
-    function fire(eventname, params) {
-      var i
-        , handlers = EVENT_HANDLERS[eventname] || [];
-      ;
-      for (i = 0; i < handlers.length; i += 1) {
-        handlers[i].apply(this, params);
-      }
-    }
-
-    /**
-     * Returns an HTMLElement
-     * @return   {HTMLElement}
-     * @param    {string|HTMLElement} value
-     */
-    function getElement(value) {
-      if (typeof value === 'string') {
-        value = document.getElementById(value);
-      }
-      if (!value || value.nodeType !== 1) {
-        value = null;
-      }
-      return value;
-    }
-
-    /**
-     * Gets the scale for a projection
-     * @return   {number}
-     * @param    {projection} proj
-     */
-    function getScale(proj) {
-      var yaw
-        , coord
-      ;
-
-      proj.scale(1);
-      yaw = proj.rotate()[0];
-      coord = [ proj([-yaw-180+1e-6, 89])
-              , proj([-yaw+180-1e-6, -89]) ];
-
-      return WIDTH/(coord[1][0]-coord[0][0]);
+    function markerRemove() {
+      d3.select('#'+ID+'-markers').remove();
     }
 
     /**
@@ -1697,8 +1705,8 @@
         return n;
       };
 
-    // subscribe the drawMarkers function to the 'marker-data' event
-    EVENT_HANDLERS['marker-data'] = new Array(drawMarkers);
+    // subscribe the markerDraw function to the 'marker-data' event
+    EVENT_HANDLERS['marker-data'] = new Array(markerDraw);
 
     // set the container element
     if (typeof CONTAINER === 'string') {
