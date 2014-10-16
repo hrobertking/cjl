@@ -1383,6 +1383,19 @@
     }
 
     /**
+     * Rotates to the location
+     * @return   {void}
+     */
+    function rotateToLocation() {
+      if (STYLE && STYLE.projection) {
+        STYLE.projection.rotate(LOCATION);
+        d3.select('#'+ID)
+          .selectAll('path')
+          .attr('d', PROJECTION_PATH.projection(STYLE.projection));
+      }
+    }
+
+    /**
      * Pauses the rotation
      * @return   {void}
      */
@@ -1429,10 +1442,7 @@
               ;
 
               LOCATION[0] += angle;
-              projection.rotate(LOCATION);
-              d3.select('#'+ID)
-                .selectAll('path')
-                .attr('d', PROJECTION_PATH.projection(projection));
+              rotateToLocation();
             }
             THEN = Date.now();
           });
