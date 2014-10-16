@@ -341,23 +341,6 @@
      */
     this.render = function(style) {
       /**
-       * Normalize a location (longitude, latitude, and roll) between +/-180 longitude and +/-90 latitude
-       * @return   {number[]}
-       * @param    {number[]} coord
-       */
-      function normalize(coord) {
-         // longitude; range is ±180°
-         coord[0] = (Math.abs(coord[0]) > 180 ? -1 : 1) * (coord[0] % 180);
-         // latitude; range is ±90°
-         coord[1] = (Math.abs(coord[1]) >  90 ? -1 : 1) * (coord[1] % 90);
-         // axial tilt is between -90Â° and 270° so we handle it in steps
-         coord[2] = (coord[2] || 0);
-         coord[2] = (coord[2] > 270) ? coord[2]-360 : coord[2];
-         coord[2] = (coord[2] < -90) ? coord[2]+360 : coord[2];
-         return coord;
-      }
-
-      /**
        * Handlers for drag events listening to dragable regions
        * @return   {void}
        */
@@ -376,9 +359,9 @@
           , phi = d3.scale.linear().domain([0, WIDTH]).range([0, -90])
         ;
 
-        LOCATION = normalize([ LOCATION[0]+lambda(d3.event.dx)
-                             , LOCATION[1]+phi(d3.event.dy)
-                             , LOCATION[2] || 0 ]);
+        LOCATION = coordinateNormalize([ LOCATION[0]+lambda(d3.event.dx)
+                                       , LOCATION[1]+phi(d3.event.dy)
+                                       , LOCATION[2] || 0 ]);
 
         projection.rotate(LOCATION);
         d3.select('#'+ID).selectAll('path')
@@ -968,6 +951,23 @@
         pos[1] = Math.floor(svg.clientHeight/2);
       }
       return pos;
+    }
+
+    /**
+     * Normalize a location (longitude, latitude, and roll) between +/-180 longitude and +/-90 latitude
+     * @return   {number[]}
+     * @param    {number[]} coord
+     */
+    function coordinateNormalize(coord) {
+       // longitude; range is ±180°
+       coord[0] = (Math.abs(coord[0]) > 180 ? -1 : 1) * (coord[0] % 180);
+       // latitude; range is ±90°
+       coord[1] = (Math.abs(coord[1]) >  90 ? -1 : 1) * (coord[1] % 90);
+       // axial tilt is between -90° and 270° so we handle it in steps
+       coord[2] = (coord[2] || 0);
+       coord[2] = (coord[2] > 270) ? coord[2]-360 : coord[2];
+       coord[2] = (coord[2] < -90) ? coord[2]+360 : coord[2];
+       return coord;
     }
 
     /**
