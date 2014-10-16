@@ -350,7 +350,7 @@
          coord[0] = (Math.abs(coord[0]) > 180 ? -1 : 1) * (coord[0] % 180);
          // latitude; range is ±90°
          coord[1] = (Math.abs(coord[1]) >  90 ? -1 : 1) * (coord[1] % 90);
-         // axial tilt is between -90° and 270° so we handle it in steps
+         // axial tilt is between -90Â° and 270° so we handle it in steps
          coord[2] = (coord[2] || 0);
          coord[2] = (coord[2] > 270) ? coord[2]-360 : coord[2];
          coord[2] = (coord[2] < -90) ? coord[2]+360 : coord[2];
@@ -716,18 +716,13 @@
                           .rotate([-10, 0])
                           .scale((WIDTH+1)/2/Math.PI)
                   ;
-              } else if (STYLE.scale) {
-                // if the style is not 'mercator' but we have a scale, use it
-                projection.scale(STYLE.scale);
               }
               break;
             case 'sphere':
               projection.scale(radius-2);
               break;
             default:
-              if (STYLE.scale) {
-                projection.scale(STYLE.scale);
-              }
+              projection.scale(getScale(projection));
               break;
           }
           // center the projection
@@ -1349,6 +1344,24 @@
     }
 
     /**
+     * Gets the scale for a projection
+     * @return   {number}
+     * @param    {projection} proj
+     */
+    function getScale(proj) {
+      var yaw
+        , coord
+      ;
+
+      proj.scale(1);
+      yaw = proj.rotate()[0];
+      coord = [ proj([-yaw-180+1e-6, 89])
+              , proj([-yaw+180-1e-6, -89]) ];
+
+      return WIDTH/(coord[1][0]-coord[0][0]);
+    }
+
+    /**
      * Returns true if the map style selected can rotate (i.e. globe or orthographic)
      * @return   {boolean}
      */
@@ -1448,18 +1461,15 @@
           albers: {
             name:'Albers',
             projection:d3.geo.albers(),
-            scale:145,
             parallels:[20, 50]
           },
           august: {
             name:'August',
-            projection:d3.geo.august(),
-            scale:60
+            projection:d3.geo.august()
           },
           baker: {
             name:'Baker',
-            projection:d3.geo.baker(),
-            scale:100
+            projection:d3.geo.baker()
           },
           boggs: {
             name:'Boggs',
@@ -1467,8 +1477,7 @@
           },
           bonne: {
             name:'Bonne',
-            projection:d3.geo.bonne(),
-            scale:120
+            projection:d3.geo.bonne()
           },
           bromley: {
             name:'Bromley',
@@ -1476,8 +1485,7 @@
           },
           collignon: {
             name:'Collignon',
-            projection:d3.geo.collignon(),
-            scale:93
+            projection:d3.geo.collignon()
           },
           crasterparabolic: {
             name:'Craster Parabolic',
@@ -1485,38 +1493,31 @@
           },
           eckerti: {
             name:'Eckert I',
-            projection:d3.geo.eckert1(),
-            scale:165
+            projection:d3.geo.eckert1()
           },
           eckertii: {
             name:'Eckert II',
-            projection:d3.geo.eckert2(),
-            scale:165
+            projection:d3.geo.eckert2()
           },
           eckertiii: {
             name:'Eckert III',
-            projection:d3.geo.eckert3(),
-            scale:180
+            projection:d3.geo.eckert3()
           },
           eckertiv: {
             name:'Eckert IV',
-            projection:d3.geo.eckert4(),
-            scale:180
+            projection:d3.geo.eckert4()
           },
           eckertv: {
             name:'Eckert V',
-            projection:d3.geo.eckert5(),
-            scale:170
+            projection:d3.geo.eckert5()
           },
           eckertvi: {
             name:'Eckert VI',
-            projection:d3.geo.eckert6(),
-            scale:170
+            projection:d3.geo.eckert6()
           },
           eisenlohr: {
             name:'Eisenlohr',
-            projection:d3.geo.eisenlohr(),
-            scale:60
+            projection:d3.geo.eisenlohr()
           },
           equirectangular: {
             name:'Equirectangular (Plate Carrée)',
@@ -1524,8 +1525,7 @@
           },
           hammer: {
             name:'Hammer',
-            projection:d3.geo.hammer(),
-            scale:165
+            projection:d3.geo.hammer()
           },
           hill: {
             name:'Hill',
@@ -1551,18 +1551,15 @@
           },
           lagrange: {
             name:'Lagrange',
-            projection:d3.geo.lagrange(),
-            scale:120
+            projection:d3.geo.lagrange()
           },
           larrivee: {
             name:'Larrivee',
-            projection:d3.geo.larrivee(),
-            scale:95
+            projection:d3.geo.larrivee()
           },
           laskowski: {
             name:'Laskowski',
-            projection:d3.geo.laskowski(),
-            scale:120
+            projection:d3.geo.laskowski()
           },
           loximuthal: {
             name:'Loximuthal',
@@ -1575,8 +1572,7 @@
           },
           miller: {
             name:'Miller',
-            projection:d3.geo.miller(),
-            scale:100
+            projection:d3.geo.miller()
           },
           mcbrydethomasflatpolarparabolic: {
             name:'McBryde-Thomas Flat-Polar Parabolic',
@@ -1592,8 +1588,7 @@
           },
           mollweide: {
             name:'Mollweide',
-            projection:d3.geo.mollweide(),
-            scale:165
+            projection:d3.geo.mollweide()
           },
           naturalearth: {
             name:'Natural Earth',
@@ -1611,8 +1606,7 @@
           },
           polyconic: {
             name:'Polyconic',
-            projection:d3.geo.polyconic(),
-            scale:100
+            projection:d3.geo.polyconic()
           },
           robinson: {
             name:'Robinson',
@@ -1628,13 +1622,11 @@
           },
           vandergrinten: {
             name:'van der Grinten',
-            projection:d3.geo.vanDerGrinten(),
-            scale:75
+            projection:d3.geo.vanDerGrinten()
           },
           vandergrinteniv: {
             name:'van der Grinten IV',
-            projection:d3.geo.vanDerGrinten4(),
-            scale:120
+            projection:d3.geo.vanDerGrinten4()
           },
           wagneriv: {
             name:'Wagner IV',
@@ -1739,3 +1731,4 @@
 
   return Cathmhaol;
 }));
+
