@@ -1028,7 +1028,7 @@
         , data = MARKER_DATA                        // array containing data
         , default_sort                              // column to default sort
         , id_style = 'cjl-STable-style'             // id for the style element
-        , id_table = 'cjl-STable-'+Date.now()       // unique table id
+        , id_table = ID + '-markers-stable'         // unique table id
         , markers                                   // markers collection
         , ndx                                       // loop index
         , rules = [ ]                               // stylesheet rules
@@ -1366,6 +1366,7 @@
      * @return   {void}
      */
     function markerRemove() {
+      d3.select('#'+ID+'-markers-stable').remove();
       d3.select('#'+ID+'-markers').remove();
     }
 
