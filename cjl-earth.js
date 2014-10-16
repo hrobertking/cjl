@@ -688,24 +688,6 @@
             d3.select('#'+ID).append('g').attr('id', ID+'-map');
           }
 
-          switch (STYLE.shape) {
-            case 'mercator':
-              projection.precision(.1).scale((WIDTH+1)/2/Math.PI);
-              break;
-            case 'sphere':
-              projection.scale(radius-2);
-              break;
-            default:
-              projection.scale(getScale(projection));
-              break;
-          }
-          // center the projection
-          projection.translate(center());
-          if (STYLE.parallels) {
-            projection.parallels(STYLE.parallels);
-          }
-          PROJECTION_PATH = d3.geo.path().projection(projection);
-
           // load the topography and draw the detail in the callback
           d3.json(TOPO, function(error, data) {
               if (error) { return; }
@@ -714,6 +696,25 @@
                 , color = d3.scale.ordinal().range(PALETTE.countries)
                 , nexto = topojson.neighbors(data.objects.countries.geometries)
               ;
+
+              // we have the geo data so now we can set up everything
+              switch (STYLE.shape) {
+                case 'mercator':
+                  projection.precision(.1).scale((WIDTH+1)/2/Math.PI);
+                  break;
+                case 'sphere':
+                  projection.scale(radius-2);
+                  break;
+                default:
+                  projection.scale(getScale(projection));
+                  break;
+              }
+              // center the projection
+              projection.translate(center());
+              if (STYLE.parallels) {
+                projection.parallels(STYLE.parallels);
+              }
+              PROJECTION_PATH = d3.geo.path().projection(projection);
 
               // delete existing oceans, land, and markers
               d3.select('#'+ID+'-oceans').remove();
