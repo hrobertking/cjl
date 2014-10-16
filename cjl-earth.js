@@ -1385,10 +1385,12 @@
     /**
      * Rotates to the location
      * @return   {void}
+     * @param    {number[]} coordinates
      */
-    function rotateToLocation() {
+    function rotateToLocation(coordinates) {
+      coordinates = coordinates || LOCATION;
       if (STYLE && STYLE.projection) {
-        STYLE.projection.rotate(LOCATION);
+        STYLE.projection.rotate(coordinates);
         d3.select('#'+ID)
           .selectAll('path')
           .attr('d', PROJECTION_PATH.projection(STYLE.projection));
