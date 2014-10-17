@@ -44,6 +44,7 @@ clicked, and will hae the following properties:
 - *string* borderColor(*string* color): Sets and returns the border color to the provided hexadecimal value
 - *HTMLElement* element(*HTMLElement*|*string* element): Sets the element to attach the SVG and returns the element
 - *string[]* events(): Returns a string array listing event names for all events fired by the map
+- *string* id: Returns the id of the SVG used to display the map.
 - *string* markerAnimation(*string* type): Sets and returns the marker animation. Valid values are 'none', 'ping', or 'pulse'.
 - *number* markerAnimationDuration(*number* duration): The number of milliseconds the marker animation should run in a cycle. Default is 1500 (i.e. 1.5 seconds)
 - *string* markerColor(*string* color): Sets and returns the marker color to the provided hexadecimal value
@@ -55,8 +56,6 @@ clicked, and will hae the following properties:
 - *void* on(*string* eventname, *function* handler): Subscribes an event handler to the specified event. Valid event names can be found in the array returned by the 'events' function, but are at this time limited to 'accelerated', 'paused', 'rendered', 'resumed', and 'slowed'.
 - *object* palette(*string[]*|*object* palette): Sets and returns the palette. The palette parameter may either be an array of hexadecimal strings representing colors or it may be an object containing an array of colors as its 'colors' property. It may optionally have the 'border', 'marker', and 'oceans' colors as properties, e.g. {border:'#333333', colors:['#ff0000', '#ff3333', '#ff6666', '#ff9999', '#ffcccc', '#ffffff'], marker:'#663399', oceans:'#99ccff'}
 - *void* parseMarkerData(*string*|*HTMLElement* table): Enables passing in marker data via an HTML table rather than as a file that is obtained via AJAX. Tables, like marker file data, must contain latitude, longitude, and size information and may optionally contain more detail. *See **markerFile** for more information.*
-- *string* style(*string* style): Sets and returns the style of map to use. Valid value is '2D' - any other value reverts to 'globe'.
-- *string* topoFile(*string* url): Sets and returns the URL of the topoJSON file
 - *void* render([*string* style]): Draws the map. The only valid option for the 'style' parameter at this time is '2D', which renders a flat (Spherical Mercator) map.
 - *boolean* rotatable: Returns true when the map can rotate.
 - *boolean* rotating: Returns true when the map is actively rotating.
@@ -65,6 +64,10 @@ clicked, and will hae the following properties:
 - *void* rotationPause: Pauses the rotation until it is resumed explicitly or by the end of a drag event.
 - *void* rotationResume: Restarts the rotation
 - *void* rotationStop: Stops the rotation until it is resumed
+- *string* style(*string* style): Sets and returns the style of map to use. Valid value is '2D' - any other value reverts to 'globe'.
+- *string[]* supportedTypes: Returns an array of supported map styles, e.g., 'Albers', 'Baker', 'Craster Parabolic', 'Equirectangular (Plate Carrée)', 'Hammer', 'Goode Homolosine', 'Kavrayskiy VII', 'Lagrange', 'McBryde-Thomas Flat-Polar Parabolic', 'Natural Earth', 'Orthographic', 'Polyconic', 'Robinson', 'Sinusoidal', 'van der Grinten', 'Wagner IV'
+- *string* topoFile(*string* url): Sets and returns the URL of the topoJSON file
+- *void* transition(*string* style[, *number* duration]): Animates the transition from the current map style to the map style provided (an enum of supportedTypes). Animation runs for the specified duration (in milliseconds) or 750ms. Because of the overhead involved in transitions, it is recommended to limit the number of transitions, also, be aware that there may be some difficulties in transitioning between two different projections and it may be better to render the new style rather than animate the transition.
 
 #### Marker Data Examples
 *JSON*

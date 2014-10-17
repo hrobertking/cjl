@@ -87,8 +87,18 @@
      * Returns a string array containing event names
      * @type     {string[]}
      */
-    this.events = function() {
+    this.events = function(value) {
+      // this is read-only
       return EVENTS;
+    };
+
+    /**
+     * The ID of the SVG used to display the map
+     * @type     {string}
+     */
+    this.id = function(value) {
+      // this is read-only
+      return ID;
     };
 
     /**
@@ -813,7 +823,8 @@
      * Map is rotatable, i.e., a globe
      * @type     {boolean}
      */
-    this.rotatable = function() {
+    this.rotatable = function(value) {
+      // this is read-only
       return rotates();
     };
 
@@ -821,7 +832,8 @@
      * Map is rotating, i.e., rotable and the animation is set to run
      * @type     {boolean}
      */
-    this.rotating = function() {
+    this.rotating = function(value) {
+      // this is read-only
       return ( rotates() && ROTATE_3D && !ROTATE_STOPPED );
     };
 
@@ -865,7 +877,8 @@
      * Pause the rotation. Rotation that is 'paused' is waiting for a implicit triggering event, such as a 'mouse up' or 'drag end'.
      * @return   {void}
      */
-    this.rotationPause = function() {
+    this.rotationPause = function(value) {
+      // this is a single-purpose function
       rotationPause();
     };
 
@@ -873,7 +886,8 @@
      * Restart the rotation
      * @return   {void}
      */
-    this.rotationResume = function() {
+    this.rotationResume = function(value) {
+      // this is a single-purpose function
       rotationStart();
       fire('resumed'); 
     };
@@ -882,7 +896,8 @@
      * Stop the rotation. Rotation that is 'stopped' is waiting for an explicity restart.
      * @return   {void}
      */
-    this.rotationStop = function() {
+    this.rotationStop = function(value) {
+      // this is a single-purpose function
       ROTATE_STOPPED = true;
     };
 
@@ -902,7 +917,8 @@
      * An array of supported map styles
      * @type     {string[]}
      */
-    this.supportedTypes = function() {
+    this.supportedTypes = function(value) {
+      // this is read-only
       var supported = [ ]
         , prop
         , proj = PROJECTIONS
@@ -929,7 +945,7 @@
     };
 
     /**
-     * Transitions from the current map style to the map style provided. Animation runs for the specified duration (in milliseconds) or 750ms
+     * Animates the transition from the current map style to the map style provided. Animation runs for the specified duration (in milliseconds) or 750ms. Because of the overhead involved in transitions, it is recommended to limit the number of transitions, also, be aware that there may be some difficulties in transitioning between two different projections and it may be better to render the new style rather than animate the transition.
      * @return   {void}
      * @param    {string} style
      * @param    {number} duration
@@ -943,7 +959,6 @@
         // set the projection
         PROJECTION_PATH = path;
         STYLE = style;
-        d3.select('#'+ID+'-oceans-path').attr('d', path);
         markerDraw();
         rotationStart();
       }
