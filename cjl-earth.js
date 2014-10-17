@@ -663,8 +663,9 @@
 
       // we only start rendering if we have a containing element
       if (CONTAINER) {
-        var radius = WIDTH/2
-          , projection
+        // scaleExtent sets the amount of minimum and maximum zoom
+        // in this case, it's 1x to 10x
+         var projection
           , zoom = d3.behavior.zoom().scaleExtent([1, 10]).on('zoom', zoomed)
         ;
 
@@ -700,10 +701,10 @@
               // we have the geo data so now we can set up everything
               switch (STYLE.shape) {
                 case 'mercator':
-                  projection.precision(.1).scale((WIDTH+1)/2/Math.PI);
+                  projection.precision(.1).scale(WIDTH/2/Math.PI);
                   break;
                 case 'sphere':
-                  projection.scale(radius-2);
+                  projection.scale(WIDTH/2);
                   break;
                 default:
                   projection.scale(getScale(projection));
