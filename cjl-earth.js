@@ -704,7 +704,7 @@
                   projection.scale(WIDTH/2);
                   break;
                 default:
-                  projection.scale(getScale(projection));
+                  projection.scale(getScale());
                   break;
               }
               // center the projection
@@ -992,7 +992,7 @@
             style.projection.scale(WIDTH/2);
             break;
           default:
-            style.projection.scale(getScale(style.projection));
+            style.projection.scale(getScale());
         }
         if (style.parallels) {
           style.projection.parallels(style.parallels);
@@ -1086,19 +1086,20 @@
     /**
      * Gets the scale for a projection
      * @return   {number}
-     * @param    {projection} proj
      */
-    function getScale(proj) {
-      var yaw
-        , coord
+    function getScale() {
+      // D3 projections are based on an svg that is 960x500. Since determining 
+      // the scale is complicated and not well-documented, and it seems rather
+      // arbitrary, it's easier to just just adjust the scale based on the 
+      // width of the svg used for the map. This approach will work with nearly
+      // all of the projections available in d3.geo - but some have buggy
+      // implementations in this area, so we'll drop those.
+      var DEFAULT_WIDTH = 960
+        , DEFAULT_SCALE = 150
+        , modifier = WIDTH/DEFAULT_WIDTH
       ;
 
-      proj.scale(1);
-      yaw = proj.rotate()[0];
-      coord = [ proj([-yaw-180+1e-6, 89])
-              , proj([-yaw+180-1e-6, -89]) ];
-
-      return WIDTH/(coord[1][0]-coord[0][0]);
+      return Math.floor(DEFAULT_SCALE * modifier);
     }
 
     /**
