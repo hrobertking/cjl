@@ -16,7 +16,7 @@
   var Cathmhaol = window.Cathmhaol || {};
 
   /**
-   * Creates a world map. Map can be rendered as 2D (Mercator) or as a globe (default)
+   * Creates a world map. Map can be rendered as 2D (Equirectangular) or as a globe (Orthographic), which is the default
    *
    * @param {string|HTMLElement} CONTAINER   The unique ID of the HTML element to contain the object
    * @param {string} TOPO                    The URI of a topo file
@@ -700,9 +700,6 @@
 
               // we have the geo data so now we can set up everything
               switch (STYLE.shape) {
-                case 'mercator':
-                  projection.precision(.1).scale(WIDTH/2/Math.PI);
-                  break;
                 case 'sphere':
                   projection.scale(WIDTH/2);
                   break;
@@ -993,9 +990,6 @@
           case 'Globe':
           case 'Orthographic':
             style.projection.scale(WIDTH/2);
-            break;
-          case 'Mercator':
-            style.projection.precision(.1).scale((WIDTH+1)/2/Math.PI);
             break;
           default:
             style.projection.scale(getScale(style.projection));
@@ -1589,10 +1583,6 @@
             projection:d3.geo.albers(),
             parallels:[20, 50]
           },
-          august: {
-            name:'August',
-            projection:d3.geo.august()
-          },
           baker: {
             name:'Baker',
             projection:d3.geo.baker()
@@ -1608,10 +1598,6 @@
           bromley: {
             name:'Bromley',
             projection:d3.geo.bromley()
-          },
-          collignon: {
-            name:'Collignon',
-            projection:d3.geo.collignon()
           },
           crasterparabolic: {
             name:'Craster Parabolic',
@@ -1640,10 +1626,6 @@
           eckertvi: {
             name:'Eckert VI',
             projection:d3.geo.eckert6()
-          },
-          eisenlohr: {
-            name:'Eisenlohr',
-            projection:d3.geo.eisenlohr()
           },
           equirectangular: {
             name:'Equirectangular (Plate Carrée)',
@@ -1691,11 +1673,6 @@
             name:'Loximuthal',
             projection:d3.geo.loximuthal()
           },
-          mercator: {
-            name:'Mercator',
-            projection:d3.geo.mercator().center([0, 5]).rotate([-10, 0]),
-            shape:'mercator'
-          },
           miller: {
             name:'Miller',
             projection:d3.geo.miller()
@@ -1742,10 +1719,6 @@
             name:'Sinusoidal',
             projection:d3.geo.sinusoidal()
           },
-          sinumollweide: {
-            name:'Sinu-Mollweide',
-            projection:d3.geo.sinuMollweide()
-          },
           vandergrinten: {
             name:'van der Grinten',
             projection:d3.geo.vanDerGrinten()
@@ -1775,7 +1748,7 @@
           map: function(name) {
             var prop;
             // added '2D' handling for backward compatibility
-            name = (name === '2D') ? 'mercator' : (name || '');
+            name = (name === '2D') ? 'equirectangular' : (name || '');
             // normalize the name
             name = name.replace(/\([^\)]+\)/g, '');
             name = name.replace(/[^\w]/g, '').toLowerCase();
