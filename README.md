@@ -13,7 +13,7 @@ Each library is documented as much as possible, and none are minified. If you wa
 
 Not all libraries have been refactored, so your choice of weapons is somewhat limited. Feel free to grab stuff off http://js.cathmhaol.com, however.
 
-### Earth
+### *Earth*
 A handy little library for quickly developing a map with location markers. You can see a working prototype over at http://products.cathmhaol.com/prototypes/earth/.
 
 *object* Cathmhaol.Earth([*HTMLElement|string* element[, *string* topoJSONuri[, *number* height]]]);  
@@ -117,7 +117,7 @@ clicked, and will hae the following properties:
 </table>  
 ```
 
-### ScrollableTable
+### *ScrollableTable*
 A handy little library for quickly developing a scrollable, sortable table. The constructor can accept columns specified as strings, e.g.,
 ['city', 'country', 'latitude', 'longitude'], objects, e.g., [{name:'city', sortable:true}, {name:'country', sortable:true, sort:true}, 
 {name:'latitude', sortable:true}, {name:'longitude', sortable:false}], or a even a mixture, e.g., [{name:'city', sortable:true}, 'country', 
@@ -279,7 +279,7 @@ Example:
     US,40.777245,-73.872608,2,#663399,5678,New York  
     US,64.729444,-158.074167,2,#663399,9012,Nulato 
 
-### Shapes
+### *Shapes*
 A handy little collection of SVG shapes a method to draw them and a method to resize and center them. Shapes have the following properties:
 - ***d***: The value to use as the 'd' attribute of a path element
 - ***orient***: The 'front' of the object, e.g., an airplane, faces north and should be oriented during movement.
