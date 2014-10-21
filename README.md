@@ -279,6 +279,23 @@ Example:
     US,40.777245,-73.872608,2,#663399,5678,New York  
     US,64.729444,-158.074167,2,#663399,9012,Nulato 
 
+### Shapes
+A handy little collection of SVG shapes a method to draw them and a method to resize and center them. Shapes have the following properties:
+- ***d***: The value to use as the 'd' attribute of a path element
+- ***orient***: The 'front' of the object, e.g., an airplane, faces north and should be oriented during movement.
+- ***size***: The pixel size. Contains both height and width properties.
+
+*object* Cathmhaol.Shapes;  
+Example: Cathmhaol.Shapes.Airplane;
+
+#### Properties
+- **Airplane**: An airplane facing north
+- **MapMarker**: A circle inside a teardrop pointing south
+
+#### Methods
+- ***void* draw(*shape* shape, *string*|*HTMLElement* container[, *string*|*number* width[, *string*|*number* height]])**: Draws the specified shape, using the specified dimensions or the height and width of the container. Example: Cathmhaol.Shapes.draw(Cathmhaol.Shapes.Airplane, document.body, 100, 100);
+- ***string* matrix(*object* shape, (*string*|*HTMLElement* container | *string*|*number* width, *string*|*number* height))**: Returns the maxtrix string for transformation. Example: path.setAttribute('transform', 'matrix(''matrix(' + Cathmhaol.Shapes.matrix(Cathmhaol.Shapes.MapMarker, 50, 50) + ')'); or path.setAttribute('transform', 'matrix(''matrix(' + Cathmhaol.Shapes.matrix(Cathmhaol.Shapes.MapMarker, document.getElementById('foo')) + ')');
+
 ## Licensing
 
 Who are we kidding here? If I tried to provide a license other than *do whatever you want* what would be the point? Seriously. The only thing you *can't* do is contribute back to this repo. ***I am the Cathmhaol*. *There can be only one*.**
