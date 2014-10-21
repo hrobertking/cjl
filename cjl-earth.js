@@ -845,7 +845,7 @@
     this.rotationDecrease = function(rate) {
       if (VELOCITY > 0.01) {
         rate = rate || '';
-        if (rate.indexOf('%') > -1) {
+        if (typeof rate === 'string' && rate.indexOf('%') > -1) {
           rate = rate.replace(/\%/g, '') / 100;
           rate = (( rate || 0 ) * VELOCITY);
         }
@@ -863,7 +863,7 @@
     this.rotationIncrease = function(rate) {
       if (VELOCITY > 0.01) {
         rate = rate || '';
-        if (rate.indexOf('%') > -1) {
+        if (typeof rate === 'string' && rate.indexOf('%') > -1) {
           rate = rate.replace(/\%/g, '') / 100;
           rate = (( rate || 0 ) * VELOCITY);
         }
