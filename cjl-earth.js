@@ -1588,176 +1588,6 @@
           }
         , PROJECTION_PATH
         , PROJECTIONS = {
-            aitoff: {
-              name:'Aitoff',
-              projection:d3.geo.aitoff()
-            },
-            albers: {
-              name:'Albers',
-              projection:d3.geo.albers(),
-              parallels:[20, 50]
-            },
-            baker: {
-              name:'Baker',
-              projection:d3.geo.baker()
-            },
-            boggs: {
-              name:'Boggs',
-              projection:d3.geo.boggs()
-            },
-            bonne: {
-              name:'Bonne',
-              projection:d3.geo.bonne()
-            },
-            bromley: {
-              name:'Bromley',
-              projection:d3.geo.bromley()
-            },
-            crasterparabolic: {
-              name:'Craster Parabolic',
-              projection:d3.geo.craster()
-            },
-            eckerti: {
-              name:'Eckert I',
-              projection:d3.geo.eckert1()
-            },
-            eckertii: {
-              name:'Eckert II',
-              projection:d3.geo.eckert2()
-            },
-            eckertiii: {
-              name:'Eckert III',
-              projection:d3.geo.eckert3()
-            },
-            eckertiv: {
-              name:'Eckert IV',
-              projection:d3.geo.eckert4()
-            },
-            eckertv: {
-              name:'Eckert V',
-              projection:d3.geo.eckert5()
-            },
-            eckertvi: {
-              name:'Eckert VI',
-              projection:d3.geo.eckert6()
-            },
-            equirectangular: {
-              name:'Equirectangular (Plate Carree)',
-              projection:d3.geo.equirectangular()
-            },
-            hammer: {
-              name:'Hammer',
-              projection:d3.geo.hammer()
-            },
-            hill: {
-              name:'Hill',
-              projection:d3.geo.hill()
-            },
-            globe: {
-              name:'Globe',
-              projection:d3.geo.orthographic().clipAngle(90),
-              rotates:true,
-              shape:'sphere'
-            },
-            goodehomolosine: {
-              name:'Goode Homolosine',
-              projection:d3.geo.homolosine()
-            },
-            kavrayskiyvii: {
-              name:'Kavrayskiy VII',
-              projection:d3.geo.kavrayskiy7()
-            },
-            lambertcylindricalequalarea: {
-              name:'Lambert cylindrical equal-area',
-              projection:d3.geo.cylindricalEqualArea()
-            },
-            lagrange: {
-              name:'Lagrange',
-              projection:d3.geo.lagrange()
-            },
-            larrivee: {
-              name:'Larrivee',
-              projection:d3.geo.larrivee()
-            },
-            laskowski: {
-              name:'Laskowski',
-              projection:d3.geo.laskowski()
-            },
-            loximuthal: {
-              name:'Loximuthal',
-              projection:d3.geo.loximuthal()
-            },
-            miller: {
-              name:'Miller',
-              projection:d3.geo.miller()
-            },
-            mcbrydethomasflatpolarparabolic: {
-              name:'McBryde-Thomas Flat-Polar Parabolic',
-              projection:d3.geo.mtFlatPolarParabolic()
-            },
-            mcbrydethomasflatpolarquartic: {
-              name:'McBryde-Thomas Flat-Polar Quartic',
-              projection:d3.geo.mtFlatPolarQuartic()
-            },
-            mcbrydethomasflatpolarsinusoidal: {
-              name:'McBryde-Thomas Flat-Polar Sinusoidal',
-              projection:d3.geo.mtFlatPolarSinusoidal()
-            },
-            mollweide: {
-              name:'Mollweide',
-              projection:d3.geo.mollweide()
-            },
-            naturalearth: {
-              name:'Natural Earth',
-              projection:d3.geo.naturalEarth()
-            },
-            nellhammer: {
-              name:'Nell-Hammer',
-              projection:d3.geo.nellHammer()
-            },
-            orthographic: {
-              name:'Orthographic',
-              projection:d3.geo.orthographic().clipAngle(90),
-              rotates:true,
-              shape:'sphere'
-            },
-            polyconic: {
-              name:'Polyconic',
-              projection:d3.geo.polyconic()
-            },
-            robinson: {
-              name:'Robinson',
-              projection:d3.geo.robinson()
-            },
-            sinusoidal: {
-              name:'Sinusoidal',
-              projection:d3.geo.sinusoidal()
-            },
-            vandergrinten: {
-              name:'van der Grinten',
-              projection:d3.geo.vanDerGrinten()
-            },
-            vandergrinteniv: {
-              name:'van der Grinten IV',
-              projection:d3.geo.vanDerGrinten4()
-            },
-            wagneriv: {
-              name:'Wagner IV',
-              projection:d3.geo.wagner4()
-            },
-            wagnervi: {
-              name:'Wagner VI',
-              projection:d3.geo.wagner6()
-            },
-            wagnervii: {
-              name:'Wagner VII',
-              projection:d3.geo.wagner7()
-            },
-            winkeltripel: {
-              name:'Winkel Tripel',
-              projection:d3.geo.winkel3()
-            },
-
             // map to property
             map: function(name) {
               var prop;
@@ -1783,50 +1613,309 @@
         , self = this
       ;
 
-      // make sure the polyfill for the Date.now method is present
-      if (!Date.now) {
-        Date.now = function now() {
-          return (new Date()).getTime();
-        };
+      // add projections that are supported in d3.geo
+      if (d3.geo.aitoff) {
+        PROJECTIONS.aitoff = {
+              name:'Aitoff',
+              projection:d3.geo.aitoff()
+            };
       }
-
-      // add a 'size' method for d3 selections
-      d3.selection.prototype.size = function() {
-          var n = 0;
-          this.each(function() { n += 1; });
-          return n;
-        };
-
-      // subscribe the markerDraw function to the 'marker-data' event
-      EVENT_HANDLERS['marker-data'] = new Array(markerDraw);
-
-      // set the container element
-      if (typeof CONTAINER === 'string') {
-        CONTAINER = document.getElementById(CONTAINER);
+      if (d3.geo.albers) {
+        PROJECTIONS.albers = {
+              name:'Albers',
+              projection:d3.geo.albers(),
+              parallels:[20, 50]
+            };
       }
-
-      // set the width
-      WIDTH = (WIDTH || (CONTAINER && CONTAINER.nodeType === 1) ? CONTAINER.clientWidth : 160);
+      if (d3.geo.baker) {
+        PROJECTIONS.baker = {
+              name:'Baker',
+              projection:d3.geo.baker()
+            };
+      }
+      if (d3.geo.boggs) {
+        PROJECTIONS.boggs = {
+              name:'Boggs',
+              projection:d3.geo.boggs()
+            };
+      }
+      if (d3.geo.bonne) {
+        PROJECTIONS.bonne = {
+              name:'Bonne',
+              projection:d3.geo.bonne()
+            };
+      }
+      if (d3.geo.bromley) {
+        PROJECTIONS.bromley = {
+              name:'Bromley',
+              projection:d3.geo.bromley()
+            };
+      }
+      if (d3.geo.craster) {
+        PROJECTIONS.crasterparabolic = {
+              name:'Craster Parabolic',
+              projection:d3.geo.craster()
+            };
+      }
+      if (d3.geo.eckert1) {
+        PROJECTIONS.eckerti = {
+              name:'Eckert I',
+              projection:d3.geo.eckert1()
+            };
+      }
+      if (d3.geo.eckert2) {
+        PROJECTIONS.eckertii = {
+              name:'Eckert II',
+              projection:d3.geo.eckert2()
+            };
+      }
+      if (d3.geo.eckert3) {
+        PROJECTIONS.eckertiii = {
+              name:'Eckert III',
+              projection:d3.geo.eckert3()
+            };
+      }
+      if (d3.geo.eckert4) {
+        PROJECTIONS.eckertiv = {
+              name:'Eckert IV',
+              projection:d3.geo.eckert4()
+            };
+      }
+      if (d3.geo.eckert5) {
+        PROJECTIONS.eckertv = {
+              name:'Eckert V',
+              projection:d3.geo.eckert5()
+            };
+      }
+      if (d3.geo.eckert6) {
+        PROJECTIONS.eckertvi = {
+              name:'Eckert VI',
+              projection:d3.geo.eckert6()
+            };
+      }
+      if (d3.geo.equirectangular) {
+        PROJECTIONS.equirectangular = {
+              name:'Equirectangular (Plate Carree)',
+              projection:d3.geo.equirectangular()
+            };
+      }
+      if (d3.geo.hammer) {
+        PROJECTIONS.hammer = {
+              name:'Hammer',
+              projection:d3.geo.hammer()
+            };
+      }
+      if (d3.geo.hill) {
+        PROJECTIONS.hill = {
+              name:'Hill',
+              projection:d3.geo.hill()
+            };
+      }
+      if (d3.geo.orthographic) {
+        PROJECTIONS.globe = {
+              name:'Globe',
+              projection:d3.geo.orthographic().clipAngle(90),
+              rotates:true,
+              shape:'sphere'
+            };
+      }
+      if (d3.geo.homolosine) {
+        PROJECTIONS.goodehomolosine = {
+              name:'Goode Homolosine',
+              projection:d3.geo.homolosine()
+            };
+      }
+      if (d3.geo.kavrayskiy7) {
+        PROJECTIONS.kavrayskiyvii = {
+              name:'Kavrayskiy VII',
+              projection:d3.geo.kavrayskiy7()
+            };
+      }
+      if (d3.geo.cylindricalEqualArea) {
+        PROJECTIONS.lambertcylindricalequalarea = {
+              name:'Lambert cylindrical equal-area',
+              projection:d3.geo.cylindricalEqualArea()
+            };
+      }
+      if (d3.geo.lagrange) {
+        PROJECTIONS.lagrange = {
+              name:'Lagrange',
+              projection:d3.geo.lagrange()
+            };
+      }
+      if (d3.geo.larrivee) {
+        PROJECTIONS.larrivee = {
+              name:'Larrivee',
+              projection:d3.geo.larrivee()
+            };
+      }
+      if (d3.geo.laskowski) {
+        PROJECTIONS.laskowski = {
+              name:'Laskowski',
+              projection:d3.geo.laskowski()
+            };
+      }
+      if (d3.geo.loximuthal) {
+        PROJECTIONS.loximuthal = {
+              name:'Loximuthal',
+              projection:d3.geo.loximuthal()
+            };
+      }
+      if (d3.geo.miller) {
+        PROJECTIONS.miller = {
+              name:'Miller',
+              projection:d3.geo.miller()
+            };
+      }
+      if (d3.geo.mtFlatPolarParabolic) {
+        PROJECTIONS.mcbrydethomasflatpolarparabolic = {
+              name:'McBryde-Thomas Flat-Polar Parabolic',
+              projection:d3.geo.mtFlatPolarParabolic()
+            };
+      }
+      if (d3.geo.mtFlatPolarQuartic) {
+        PROJECTIONS.mcbrydethomasflatpolarquartic = {
+              name:'McBryde-Thomas Flat-Polar Quartic',
+              projection:d3.geo.mtFlatPolarQuartic()
+            };
+      }
+      if (d3.geo.mtFlatPolarSinusoidal) {
+        PROJECTIONS.mcbrydethomasflatpolarsinusoidal = {
+              name:'McBryde-Thomas Flat-Polar Sinusoidal',
+              projection:d3.geo.mtFlatPolarSinusoidal()
+            };
+      }
+      if (d3.geo.mollweide) {
+        PROJECTIONS.mollweide = {
+              name:'Mollweide',
+              projection:d3.geo.mollweide()
+            };
+      }
+      if (d3.geo.naturalEarth) {
+        PROJECTIONS.naturalearth = {
+              name:'Natural Earth',
+              projection:d3.geo.naturalEarth()
+            };
+      }
+      if (d3.geo.nellHammer) {
+        PROJECTIONS.nellhammer = {
+              name:'Nell-Hammer',
+              projection:d3.geo.nellHammer()
+            };
+      }
+      if (d3.geo.orthographic) {
+        PROJECTIONS.orthographic = {
+              name:'Orthographic',
+              projection:d3.geo.orthographic().clipAngle(90),
+              rotates:true,
+              shape:'sphere'
+            };
+      }
+      if (d3.geo.polyconic) {
+        PROJECTIONS.polyconic = {
+              name:'Polyconic',
+              projection:d3.geo.polyconic()
+            };
+      }
+      if (d3.geo.robinson) {
+        PROJECTIONS.robinson = {
+              name:'Robinson',
+              projection:d3.geo.robinson()
+            };
+      }
+      if (d3.geo.sinusoidal) {
+        PROJECTIONS.sinusoidal = {
+              name:'Sinusoidal',
+              projection:d3.geo.sinusoidal()
+            };
+      }
+      if (d3.geo.vanDerGrinten) {
+        PROJECTIONS.vandergrinten = {
+              name:'van der Grinten',
+              projection:d3.geo.vanDerGrinten()
+            };
+      }
+      if (d3.geo.vanDerGrinten4) {
+        PROJECTIONS.vandergrinteniv = {
+              name:'van der Grinten IV',
+              projection:d3.geo.vanDerGrinten4()
+            };
+      }
+      if (d3.geo.wagner4) {
+        PROJECTIONS.wagneriv = {
+              name:'Wagner IV',
+              projection:d3.geo.wagner4()
+            };
+      }
+      if (d3.geo.wagner6) {
+        PROJECTIONS.wagnervi = {
+              name:'Wagner VI',
+              projection:d3.geo.wagner6()
+            };
+      }
+      if (d3.geo.wagner7) {
+        PROJECTIONS.wagnervii = {
+              name:'Wagner VII',
+              projection:d3.geo.wagner7()
+            };
+      }
+      if (d3.geo.winkel3) {
+        PROJECTIONS.winkeltripel = {
+              name:'Winkel Tripel',
+              projection:d3.geo.winkel3()
+            };
+      }
 
       // set the map style
       STYLE = PROJECTIONS.map(STYLE || 'globe');
 
-      // set the table descriptor element
-      if (typeof DESCRIPTOR === 'string') {
-        DESCRIPTOR = document.getElementById(DESCRIPTOR);
-      }
-      if (DESCRIPTOR && DESCRIPTOR.nodeType !== 1) {
-        DESCRIPTOR = null;
-      }
+      // check to make sure we have at least one projection available, 
+      // otherwise we can't do anything
+      if (STYLE.projection) {
+        // make sure the polyfill for the Date.now method is present
+        if (!Date.now) {
+          Date.now = function now() {
+            return (new Date()).getTime();
+          };
+        }
 
-      // default the containing element
-      if (!CONTAINER || CONTAINER.nodeType !== 1) {
-        CONTAINER = document.body;
+        // add a 'size' method for d3 selections
+        d3.selection.prototype.size = function() {
+            var n = 0;
+            this.each(function() { n += 1; });
+            return n;
+          };
+
+        // subscribe the markerDraw function to the 'marker-data' event
+        EVENT_HANDLERS['marker-data'] = new Array(markerDraw);
+
+        // set the container element
+        if (typeof CONTAINER === 'string') {
+          CONTAINER = document.getElementById(CONTAINER);
+        }
+
+        // set the width
+        WIDTH = (WIDTH || (CONTAINER && CONTAINER.nodeType === 1) ? CONTAINER.clientWidth : 160);
+
+        // set the table descriptor element
+        if (typeof DESCRIPTOR === 'string') {
+          DESCRIPTOR = document.getElementById(DESCRIPTOR);
+        }
+        if (DESCRIPTOR && DESCRIPTOR.nodeType !== 1) {
+          DESCRIPTOR = null;
+        }
+
+        // default the containing element
+        if (!CONTAINER || CONTAINER.nodeType !== 1) {
+          CONTAINER = document.body;
+        }
+
+        this.on('rendered', rotationTimerStart);
+
+        return this;
+      } else {
+        return null;
       }
-
-      this.on('rendered', rotationTimerStart);
-
-      return this;
     } catch(error) {
       return null;
     }
