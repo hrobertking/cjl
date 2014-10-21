@@ -361,8 +361,8 @@
       }
       function dragged(d, i) {
         // the map can only display 180 degrees of longitude and 90 degrees 
-        // of latitude at one time, so we convert the delta in position to 
-        // those ranges before we rotate the projection and update the path 
+        // of latitude at one time, so we convert the delta in position to
+        // those ranges before we rotate the projection and update the path
         // elements
 
         var lambda = d3.scale.linear().domain([0, WIDTH]).range([0, 180])
@@ -686,8 +686,8 @@
         if (TOPO !== '' && projection) {
           // create the SVG and initialize the mouse/touch handlers
           if (!document.getElementById(ID)) {
-            // create an svg element that is a square - rectangular 
-            // maps will display with bottom and top margin, but globes 
+            // create an svg element that is a square - rectangular
+            // maps will display with bottom and top margin, but globes
             // will take up all available real estate
             d3.select(CONTAINER).append('svg')
                 .attr('id', ID)
@@ -743,16 +743,16 @@
               // draw the countries
               d3.select('#'+ID+'-map').append('g').attr('id', ID+'-countries')
                 .selectAll('path').data(cnt).enter().append('path')
-                  .attr('class', function(d, i) { 
-                     return 'country '+topoMap(d.id).iso; 
+                  .attr('class', function(d, i) {
+                     return 'country '+topoMap(d.id).iso;
                    })
                   .attr('d', PROJECTION_PATH)
-                  .style('fill', function(d, i) { 
-                     d.iso = topoMap(d.id).iso; 
-                     d.name = topoMap(d.id).name; 
-                     return color(d.color = d3.max(nexto[i], function(n) { 
+                  .style('fill', function(d, i) {
+                     d.iso = topoMap(d.id).iso;
+                     d.name = topoMap(d.id).name;
+                     return color(d.color = d3.max(nexto[i], function(n) {
                        return cnt[n].color;
-                     }) + 1 | 0); 
+                     }) + 1 | 0);
                    })
                   .style('stroke', PALETTE.border)
                   .style('stroke-width', '0.5px')
@@ -845,8 +845,8 @@
     this.rotationDecrease = function(rate) {
       if (VELOCITY > 0.01) {
         rate = rate || '';
-        if (rate.indexOf('%') > -1) { 
-          rate = rate.replace(/\%/g, '') / 100; 
+        if (rate.indexOf('%') > -1) {
+          rate = rate.replace(/\%/g, '') / 100;
           rate = (( rate || 0 ) * VELOCITY);
         }
         rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);
@@ -862,13 +862,13 @@
      */
     this.rotationIncrease = function(rate) {
       if (VELOCITY > 0.01) {
-        rate = rate || '';  
-        if (rate.indexOf('%') > -1) {   
-          rate = rate.replace(/\%/g, '') / 100;   
-          rate = (( rate || 0 ) * VELOCITY);  
+        rate = rate || '';
+        if (rate.indexOf('%') > -1) {
+          rate = rate.replace(/\%/g, '') / 100;
+          rate = (( rate || 0 ) * VELOCITY);
         }
-        rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);  
-        VELOCITY += rate;  
+        rate = ((isNaN(rate) ? 0.005 : rate) || 0.005);
+        VELOCITY += rate;
         fire('accelerated');
       }
     };
@@ -889,7 +889,7 @@
     this.rotationResume = function(value) {
       // this is a single-purpose function
       rotationStart();
-      fire('resumed'); 
+      fire('resumed');
     };
 
     /**
@@ -1027,7 +1027,7 @@
         paths.transition()
             .duration(duration || 750)
             .attrTween('d', projectionTween(projection, projection = style.projection))
-            .each('end', function() { 
+            .each('end', function() {
                size -= 1;
                if (size < 1) {
                  finalize();
@@ -1104,9 +1104,9 @@
      * @return   {number}
      */
     function getScale() {
-      // D3 projections are based on an svg that is 960x500. Since determining 
+      // D3 projections are based on an svg that is 960x500. Since determining
       // the scale is complicated and not well-documented, and it seems rather
-      // arbitrary, it's easier to just just adjust the scale based on the 
+      // arbitrary, it's easier to just just adjust the scale based on the
       // width of the svg used for the map. This approach will work with nearly
       // all of the projections available in d3.geo - but some have buggy
       // implementations in this area, so we'll drop those.
@@ -1168,7 +1168,7 @@
                  ;
                  return ms;
                })
-              .style('stroke-width', function(d, i) { 
+              .style('stroke-width', function(d, i) {
                  var sz = d.marker.size;
                  sz *= (sz < 1) ? MARKER_SIZE : 1;
                  return sz;
@@ -1191,7 +1191,7 @@
                  ;
                  return ms;
                })
-              .style('stroke-width', function(d, i) { 
+              .style('stroke-width', function(d, i) {
                  var sz = d.marker.size;
                  sz *= (sz < 1) ? MARKER_SIZE : 1;
                  return sz;
@@ -1216,7 +1216,7 @@
       // if the largest size isn't set, set it to the marker size
       marker_lg = marker_lg || MARKER_SIZE;
 
-      // if the map has not been rendered yet then call the render method, 
+      // if the map has not been rendered yet then call the render method,
       // otherwise, go ahead and draw the markers
       if (!document.getElementById(ID+'-map')) {
         self.render();
@@ -1237,8 +1237,8 @@
                 ;
                 d.size = size;
                 d.rel_size = size / (lg || 1);
-                return { type:'Point', 
-                         coordinates:[ lon, lat ], 
+                return { type:'Point',
+                         coordinates:[ lon, lat ],
                          marker:d };
               })
              .attr('class', function(d) {
@@ -1290,7 +1290,7 @@
           ;
         }
 
-        // add a data table if one does not exist and columns have been 
+        // add a data table if one does not exist and columns have been
         // specified, using the same logic as cjl-scrollabletable
         if (!MARKER_TABLE && columns && columns.length) {
           // build the stylesheet
@@ -1299,7 +1299,7 @@
             style.setAttribute('id', id_style);
             style.setAttribute('type', 'text/css');
 
-            // write the sortable styles so we get the adjusted widths when we 
+            // write the sortable styles so we get the adjusted widths when we
             // write the scrollable styles
             if (style) {
               // style for a sortable table
@@ -1341,7 +1341,7 @@
                  .text(function(d, i) {
                     var name = d.name || d;
                     return name.replace(/\b\w+/g, function(s) {
-                      return s.charAt(0).toUpperCase() + 
+                      return s.charAt(0).toUpperCase() +
                              s.substr(1).toLowerCase();
                     });
                   })
@@ -1436,7 +1436,7 @@
             rules.push('#'+id_table+'.scrollable tbody { height:12em; overflow-y:scroll; }');
             rules.push('#'+id_table+'.scrollable tbody > tr { height:1.2em; margin:0; padding:0; }');
             rules.push('#'+id_table+'.scrollable tbody > tr > td { line-height:1.2em; margin:0; padding-bottom:0; padding-top:0; }');
-            rules.push('#'+id_table+'.scrollable tfoot { bottom:0; position:absolute; }'); 
+            rules.push('#'+id_table+'.scrollable tfoot { bottom:0; position:absolute; }');
             rules.push('#'+id_table+'.scrollable thead, #'+id_table+' tfoot, #'+id_table+' tbody { cursor:default; display:block; margin:0.5em 0; }');
             rules.push('tbody.banded tr:nth-child(odd) { background-color:rgba(187, 187, 187, 0.8); }');
 
@@ -1475,7 +1475,7 @@
      */
     function rotates() {
       // the map can rotate - i.e. it's a globe
-      return STYLE.rotates === true;                                                     
+      return STYLE.rotates === true;
     }
 
     /**
@@ -1499,7 +1499,7 @@
      */
     function rotationPause() {
       ROTATE_3D = false;
-      fire('paused');  
+      fire('paused');
     }
 
     /**
@@ -1507,7 +1507,7 @@
      * @return   {void}
      */
     function rotationStart() {
-      // update the ticker to reduce janky-ness and 
+      // update the ticker to reduce janky-ness and
       // reset the stopped and paused flags
       THEN = Date.now();
       ROTATE_3D = true;
@@ -1869,7 +1869,7 @@
       // set the map style
       STYLE = PROJECTIONS.map(STYLE || 'globe');
 
-      // check to make sure we have at least one projection available, 
+      // check to make sure we have at least one projection available,
       // otherwise we can't do anything
       if (STYLE.projection) {
         // make sure the polyfill for the Date.now method is present
