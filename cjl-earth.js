@@ -295,7 +295,7 @@
        * @param    {string[]} spec
        * @param    {HTMLElement} trow
        */
-      function data_element(spec, trow) {
+      function DataElement(spec, trow) {
         var ndx, obj = { };
         if (spec && trow) {
           for (ndx = 0; ndx < spec.length; ndx += 1) {
@@ -320,7 +320,7 @@
           tbody = table.getElementsByTagName('tbody').item(0);
           if (thead && tbody) {
             // get the column headers
-            tcells = thead.rows[0].cells
+            tcells = thead.rows[0].cells;
             for (index = 0; index < tcells.length; index += 1) {
               hdrs.push(tcells[index].innerHTML);
             }
@@ -328,7 +328,7 @@
             // get the data
             tcells = tbody.rows;
             for (index = 0; index < tcells.length; index += 1) {
-              MARKER_DATA.push(new data_element(hdrs, tcells[index]));
+              MARKER_DATA.push(new DataElement(hdrs, tcells[index]));
             }
 
             // set the flag so we don't generate the data table again
@@ -338,7 +338,7 @@
             fire('marker-data');
           }
         }
-      } catch (err) {
+      } catch (ignore) {
       }
     };
 
@@ -792,7 +792,7 @@
                         console.log('Error retrieving marker file');
                       }
                     } else if (markers) {
-                      MARKER_DATA = markers
+                      MARKER_DATA = markers;
                       fire('marker-data');
                     }
                   });
@@ -976,7 +976,8 @@
           ;
 
           function project(lambda, phi) {
-            lambda *= 180 / Math.PI, phi *= 180 / Math.PI;
+            lambda *= 180 / Math.PI;
+            phi *= 180 / Math.PI;
             var p0 = beginning([lambda, phi]), p1 = ending([lambda, phi]);
             return [(1 - t) * p0[0] + t * p1[0], (1 - t) * -p0[1] + t * -p1[1]];
           }
@@ -1017,7 +1018,7 @@
         rotationTimerEnd();
 
         // remove any markers
-        markerRemove();
+        markerDelete();
 
         // rotate to 0, 0
         rotateToLocation([0, 0, 0]);
@@ -1118,6 +1119,15 @@
     }
 
     /**
+     * Delete all the existing markers
+     * @return   {void}
+     */
+    function markerDelete() {
+      d3.select('#'+ID+'-markers-stable').remove();
+      d3.select('#'+ID+'-markers').remove();
+    }
+
+    /**
      * Draws the location markers based on the marker data
      * @return   {void}
      */
@@ -1128,7 +1138,6 @@
         , default_sort                              // column to default sort
         , id_style = 'cjl-STable-style'             // id for the style element
         , id_table = ID + '-markers-stable'         // unique table id
-        , markers                                   // markers collection
         , ndx                                       // loop index
         , rules = [ ]                               // stylesheet rules
         , style = document.getElementById(id_style) // style element
@@ -1139,9 +1148,6 @@
         , tfoot                                     // the table footer
         , thead                                     // the header of the table
         , trows                                     // rows in the table
-        , keys = { }                                // dataset properties
-        , prop                                      // property of an element
-        , row                                       // a specific data element
         , marker_lg                                 // the largest marker size
       ;
 
@@ -1150,58 +1156,58 @@
        * @return   {void}
        */
       function ping() {
-        var fade = d3.selectAll('path.marker')
-              .transition()
-                .duration(function(d) {
-                   // set the actual animation to 90% of the time
-                   // before setting the size-relative duration
-                   // and setting the duration to the minimum value
-                   var max_ms = Math.floor(MARKER_ANIMATION_DURATION * .9)
-                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)
-                     , ms = Math.min(rel_ms, max_ms)
-                   ;
-                   return ms;
-                 })
-                .style('stroke-width', function(d, i) { 
-                   var sz = d.marker.size;
-                   sz *= (sz < 1) ? MARKER_SIZE : 1;
-                   return sz;
-                 })
-              .transition()
-                .duration(0)
-                .style('stroke-width', 0)
+        d3.selectAll('path.marker')
+            .transition()
+              .duration(function(d) {
+                 // set the actual animation to 90% of the time
+                 // before setting the size-relative duration
+                 // and setting the duration to the minimum value
+                 var max_ms = Math.floor(MARKER_ANIMATION_DURATION * 0.9)
+                   , rel_ms = Math.floor(d.marker.rel_size * max_ms)
+                   , ms = Math.min(rel_ms, max_ms)
+                 ;
+                 return ms;
+               })
+              .style('stroke-width', function(d, i) { 
+                 var sz = d.marker.size;
+                 sz *= (sz < 1) ? MARKER_SIZE : 1;
+                 return sz;
+               })
+            .transition()
+              .duration(0)
+              .style('stroke-width', 0)
         ;
       }
       function pulse() {
-        var fade = d3.selectAll('path.marker')
-              .transition()
-                .duration(function(d) {
-                   // set the actual animation to .3 of 90% of the time
-                   // before setting the size-relative duration
-                   // and setting the duration to the minimum value
-                   var max_ms = Math.floor((MARKER_ANIMATION_DURATION*.9)/3)
-                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)
-                     , ms = Math.min(rel_ms, max_ms)
-                   ;
-                   return ms;
-                 })
-                .style('stroke-width', function(d, i) { 
-                   var sz = d.marker.size;
-                   sz *= (sz < 1) ? MARKER_SIZE : 1;
-                   return sz;
-                 })
-              .transition()
-                .duration(function(d, i) {
-                   // set the actual animation to .6 of 90% of the time
-                   // before setting the size-relative duration
-                   // and setting the duration to the minimum value
-                   var max_ms = Math.floor((MARKER_ANIMATION_DURATION*.9)/3)*2
-                     , rel_ms = Math.floor(d.marker.rel_size * max_ms)
-                     , ms = Math.min(rel_ms, max_ms)
-                   ;
-                   return ms;
-                 })
-                .style('stroke-width', 0)
+        d3.selectAll('path.marker')
+            .transition()
+              .duration(function(d) {
+                 // set the actual animation to .3 of 90% of the time
+                 // before setting the size-relative duration
+                 // and setting the duration to the minimum value
+                 var max_ms = Math.floor((MARKER_ANIMATION_DURATION * 0.9)/3)
+                   , rel_ms = Math.floor(d.marker.rel_size * max_ms)
+                   , ms = Math.min(rel_ms, max_ms)
+                 ;
+                 return ms;
+               })
+              .style('stroke-width', function(d, i) { 
+                 var sz = d.marker.size;
+                 sz *= (sz < 1) ? MARKER_SIZE : 1;
+                 return sz;
+               })
+            .transition()
+              .duration(function(d, i) {
+                 // set the actual animation to .6 of 90% of the time
+                 // before setting the size-relative duration
+                 // and setting the duration to the minimum value
+                 var max_ms = Math.floor((MARKER_ANIMATION_DURATION * 0.9)/3)*2
+                   , rel_ms = Math.floor(d.marker.rel_size * max_ms)
+                   , ms = Math.min(rel_ms, max_ms)
+                 ;
+                 return ms;
+               })
+              .style('stroke-width', 0)
         ;
       }
 
@@ -1216,7 +1222,7 @@
         self.render();
       } else {
         // delete all the existing markers
-        markerRemove();
+        markerDelete();
 
         // add the markers using the data provided
         d3.select('#'+ID+'-map').append('g').attr('id', ID+'-markers')
@@ -1237,7 +1243,7 @@
               })
              .attr('class', function(d) {
                 var country = (d.country || d.Country || '');
-                return (new Array('marker', country)).join(' ');
+                return ['marker', country].join(' ');
               })
              .attr('d', PROJECTION_PATH.pointRadius(1))
              .attr('data-description', function(d) {
@@ -1461,15 +1467,6 @@
           }
         }
       }
-    }
-
-    /**
-     * Delete all the existing markers
-     * @return   {void}
-     */
-    function markerRemove() {
-      d3.select('#'+ID+'-markers-stable').remove();
-      d3.select('#'+ID+'-markers').remove();
     }
 
     /**
@@ -1795,7 +1792,7 @@
     // add a 'size' method for d3 selections
     d3.selection.prototype.size = function() {
         var n = 0;
-        this.each(function() { ++n; });
+        this.each(function() { n += 1; });
         return n;
       };
 
