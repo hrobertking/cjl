@@ -343,6 +343,22 @@
     };
 
     /**
+     * Retrieves the marker data and fires an event when the marker data is retrieved. If an interval (in seconds) is specified, it is used to automatically refresh the marker data. The interval value must be greater than 59 seconds.
+     * @return   {void}
+     * @param    {string|number} interval
+     */
+    this.refreshMarkerData = function(interval) {
+      // get marker data
+      getMarkerData();
+
+      // if an interval is provided, set it to get the marker data
+      interval = Math.floor(interval || 0);
+      if (interval && interval > 59) {
+        setInterval(getMarkerData, (interval * 1000));
+      }
+    };
+
+    /**
      * Renders the map.
      * @return   {void}
      * @param    {string} style
@@ -772,34 +788,8 @@
                 ;
               }
 
-              if (MARKER_FILE.name && MARKER_FILE.type) {
-                if ((/csv/i).test(MARKER_FILE.type)) {
-                  // draw the markers
-                  d3.csv(MARKER_FILE.name, function(error, markers) {
-                    if (error) {
-                      if (console.log) {
-                        console.log('Error retrieving marker file');
-                      }
-                    } else if (markers) {
-                      MARKER_DATA = markers;
-                      fire('marker-data');
-                    }
-                  });
-                } else {
-                  d3.json(MARKER_FILE.name, function(error, markers) {
-                    if (error) {
-                      if (console.log) {
-                        console.log('Error retrieving marker file');
-                      }
-                    } else if (markers) {
-                      MARKER_DATA = markers;
-                      fire('marker-data');
-                    }
-                  });
-                }
-              } else if (MARKER_DATA.length) {
-                fire('marker-data');
-              }
+              // get marker data
+              getMarkerData();
 
               // add the map interaction handlers
               d3.select('#'+ID+'-map')
@@ -817,6 +807,14 @@
             });
         }
       }
+    };
+
+    /**
+     * Returns true if the map has been rendered
+     * @type     {boolean}
+     */
+    this.rendered = function(value) {
+      return is_rendered();
     };
 
     /**
@@ -1100,6 +1098,32 @@
     }
 
     /**
+     * Gets the marker data from the URI
+     * @return   {void}
+     */
+    function getMarkerData() {
+      // make sure we have everything we need before beginning
+      if (d3.csv && d3.json && MARKER_FILE.name && MARKER_FILE.type && is_rendered()) {
+        if ((/csv/i).test(MARKER_FILE.type)) {
+          // draw the markers
+          d3.csv(MARKER_FILE.name, function(error, markers) {
+            if (markers) {
+              MARKER_DATA = markers;
+              fire('marker-data');
+            }
+          });
+        } else {
+          d3.json(MARKER_FILE.name, function(error, markers) {
+            if (markers) {
+              MARKER_DATA = markers;
+              fire('marker-data');
+            }
+          });
+        }
+      }
+    }
+
+    /**
      * Gets the scale for a projection
      * @return   {number}
      */
@@ -1218,7 +1242,7 @@
 
       // if the map has not been rendered yet then call the render method,
       // otherwise, go ahead and draw the markers
-      if (!document.getElementById(ID+'-map')) {
+      if (!is_rendered()) {
         self.render();
       } else {
         // delete all the existing markers
@@ -1467,6 +1491,16 @@
           }
         }
       }
+    }
+
+    /**
+     * Returns true if the countries have been rendered
+     * @return   {boolean}
+     */
+    function is_rendered() {
+      // this is read-only
+      var node = document.getElementById(ID+'-countries');
+      return node ? true : false;
     }
 
     /**
