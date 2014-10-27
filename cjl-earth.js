@@ -93,6 +93,217 @@
     };
 
     /**
+     * Animates travel along routes defined in the specified data - identified by a resource object (i.e., a URL string or an object with 'name' and type' properties) or an array of objects with 'origin' and 'destination' properties - using the specified marker. The animation runs for the specified duration (in milliseconds) or 1000ms.
+     * @return   {void}
+     * @param    {string|object|object[]} data
+     * @param    {object} marker
+     * @param    {number} duration
+     * @param    {boolean} loop
+     */
+    this.fly = function(data, marker, duration, loop) {
+      /**
+       * Creates a route given an origin and a destination. Origin and destination are both an array of longitude and latitude, e.g., [-84.4389921196544, 33.63676942979369]
+       * @return   {void}
+       * @param    {number[]} origin
+       * @param    {number[]} destination
+       * @param    {string|number} id
+       */
+      function createRoute(origin, destination, id) {
+        /**
+         * Animate the travel along a path
+         * @return   {void}
+         */
+        function crawl(node, orient, icon) {
+          var l = node.getTotalLength()
+          ;
+          return function(i) {
+            return function(t) {
+              var a = node.getPointAtLength(Math.min(t + 0.05, 1) * l)
+                , p = node.getPointAtLength(t * l)
+                , o = icon.getBBox()
+                , x = a.x - p.x
+                , y = a.y - p.y
+                , adj_x = p.x - (3 * (x < 0 ? 1 : -1))
+                , adj_y = p.y - (((o.height/2) + 6) * (marker.scale || 1) * (x < 0 ? -1 : 1))
+                , r = null
+              ;
+
+              if (orient === true) {
+                r = 90 - Math.atan2(-y, x) * 180 / Math.PI;
+              }
+              return 'translate(' + adj_x + ',' + adj_y + ')' +
+                     (marker.scale ? 'scale(' + marker.scale + ')' : '') +
+                     (r !== null ? ' rotate(' + r + ')' : '')
+                ;
+            }
+          }
+        }
+
+        var icon
+          , len
+          , projection = (STYLE || { }).projection
+          , path = d3.geo.path().projection(projection)
+          , route
+        ;
+
+        origin = origin.length === 2 ? origin : null;
+        destination = destination.length === 2 ? destination : null;
+        id = isNaN(id) ? (id || 'route-' + Date.now()) : 'route-' + id;
+
+        // cancel out if anything is null
+        if (!origin || !destination || !projection) {
+          return;
+        }
+
+        origin = projection(origin);
+        destination = projection(destination);
+
+        if (origin && destination) {
+          if (marker) {
+            // draw a marker with animation along a route
+            // the routes may be shown using the 'travel-route' class
+            route = g.append('path')
+                       .attr('class', 'travel-route')
+                       .attr('d', 'M ' + origin.join(' ') +
+                                  ' L ' + destination.join(' '))
+                       .attr('id', id)
+              ;
+            if (loop) {
+              setInterval(function() {
+                  icon = g.append('path')
+                            .attr('class', 'travel-marker')
+                            .attr('d', marker.d)
+                            .attr('id', id + '-marker')
+                    ;
+                  icon.transition()
+                        .duration(duration)
+                        .attrTween('transform',
+                           crawl(route.node(), marker.orient, icon.node()))
+                        .remove()
+                    ;
+                }, (duration + 20));
+            } else {
+              icon = g.append('path')
+                        .attr('class', 'travel-marker')
+                        .attr('d', marker.d)
+                        .attr('id', id + '-marker')
+                ;
+              icon.transition()
+                    .duration(duration)
+                    .attrTween('transform',
+                       crawl(route.node(), marker.orient, icon.node()))
+                    .remove()
+                ;
+            }
+          } else {
+            // the class 'travel-route' should have a color for 'stroke'
+            // a width for 'stroke-width' and a 'fill' of 'none' because
+            // the route itself will be animated because there is no
+            // marker moving along the route as the animation
+            route = g.append('path')
+                       .attr('class', 'travel-route')
+                       .attr('d', 'M ' + origin.join(' ') +
+                                  ' L ' + destination.join(' '))
+                       .attr('id', id)
+              ;
+            len = route.node().getTotalLength();
+            if (loop) {
+              setInterval(function() {
+                  route.attr('stroke-dasharray', len + ' ' + len)
+                       .attr('stroke-dashoffset', len)
+                       .transition()
+                         .duration(duration)
+                         .ease('linear')
+                         .attr('stroke-dashoffset', 0)
+                    ;
+                }, (duration + 20));
+            } else {
+              route.attr('stroke-dasharray', len + ' ' + len)
+                   .attr('stroke-dashoffset', len)
+                   .transition()
+                     .duration(duration)
+                     .ease('linear')
+                     .attr('stroke-dashoffset', 0)
+                ;
+            }
+          }
+        }
+      }
+      /**
+       * Parses the data returned by the d3 ajax call
+       * @return   {void}
+       * @param    {object[]} data
+       */
+      function createRoutes(data) {
+        var n;
+
+        if (data) {
+          // create the group that will contain all the routes
+          g = d3.select('#'+ID+'-map')
+                .append('g')
+                .attr('id', ID+'-routes')
+            ;
+
+          // call the createRoute function for each route defined
+          for (n = 0; n < data.length; n += 1) {
+            if (data[n].origin && data[n].destination) {
+              createRoute(data[n].origin, data[n].destination, n);
+            }
+          }
+        }
+      }
+      /**
+       * Times the route generation
+       * @return   {void}
+       * @param    {object} error
+       * @param    {object[]} data
+       */
+      function callback(error, data) {
+        if (error) { return; }
+        self.on('rendered', function() { createRoutes(data); });
+      }
+
+
+      var g
+        , resource
+      ;
+
+      // normalize the duration parameter
+      duration = isNaN(duration) ? 1000 : Math.floor(duration);
+
+      // determine what sort of 'data' was passed in
+      if (typeof data === 'object' && data.name) {
+        // if 'data' is an object with 'name' - i.e., a resource
+        if (data.type && (/csv/i).test(data.type)) {
+          d3.csv(data.name, callback);
+        } else {
+          d3.json(data.name, callback);
+        }
+      } else if (data instanceof Array) {
+        // data is an array so pass the data directly into the subroutine
+        callback(null, data);
+      } else if (typeof data === 'string' || typeof data === 'number') {
+        // this will convert the string into a valid URL
+        // if the string passed in is not a valid URI, e.g., [-73,88]
+        // the string will be appended to the current (DOM) location,
+        // e.g., http://js.cathmhaol.com/[-73,88]
+        resource = document.createElement('a');
+        resource.href = data;
+
+        // check to see if the resource being requested is on the
+        // same domain and if so, just use the pathname in the request
+        // if it's not, then use the full href
+        if (resource.hostname === document.location.hostname) {
+          resource = resource.pathname;
+        } else {
+          resource = resource.href;
+        }
+
+        d3.json(resource, callback);
+      }
+    };
+
+    /**
      * The ID of the SVG used to display the map
      * @type     {string}
      */
