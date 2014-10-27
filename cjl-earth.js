@@ -138,6 +138,19 @@
             }
           }
         }
+        function waypoints(projection, stops) {
+           var segments, orig, point;
+
+           for (segments = 0; segments < stops.length; segments += 1) {
+             point = projection(stops[segments]);
+             if (point) {
+               stops[segments] = 'L ' + point.join(' ') + ' M ' + point.join(' ');
+             } else {
+               stops.splice(segments, 1);
+             }
+           }
+           return stops.join(' ');
+        }
 
         var icon
           , len
@@ -146,8 +159,12 @@
           , route
         ;
 
+        if (!(destination[0] instanceof Array)) {
+          destination = [destination];
+        }
+
         origin = origin.length === 2 ? origin : null;
-        destination = destination.length === 2 ? destination : null;
+        destination = destination[0].length === 2 ? destination : null;
         id = isNaN(id) ? (id || 'route-' + Date.now()) : 'route-' + id;
 
         // cancel out if anything is null
@@ -156,7 +173,6 @@
         }
 
         origin = projection(origin);
-        destination = projection(destination);
 
         if (origin && destination) {
           if (marker) {
@@ -165,7 +181,7 @@
             route = g.append('path')
                        .attr('class', 'travel-route')
                        .attr('d', 'M ' + origin.join(' ') +
-                                  ' L ' + destination.join(' '))
+                                  waypoints(projection, destination))
                        .attr('id', id)
               ;
             if (loop) {
@@ -203,7 +219,7 @@
             route = g.append('path')
                        .attr('class', 'travel-route')
                        .attr('d', 'M ' + origin.join(' ') +
-                                  ' L ' + destination.join(' '))
+                                  waypoints(projection, destination))
                        .attr('id', id)
               ;
             len = route.node().getTotalLength();
