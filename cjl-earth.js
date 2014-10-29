@@ -1783,6 +1783,7 @@
         , map = d3.select('#' + ID + '-map')
         , origin
         , projection = (STYLE || { }).projection
+        , routes
         , waypoint
       ;
 
@@ -1810,8 +1811,9 @@
 
           // if we have an origin and at least one waypoint
           if (origin && destinations) {
+            routes = routes || map.append('g').attr('id', ID + '-routes');
             // create the route group
-            group = map.append('g')
+            group = routes.append('g')
                    .attr('class', 'route')
               ;
             // add the paths to the route
