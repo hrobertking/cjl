@@ -1141,6 +1141,8 @@
             }
           });
         }
+      } else if (MARKER_DATA.length && is_rendered()) {
+        fire('marker-data');
       }
     }
 
