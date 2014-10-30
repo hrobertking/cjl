@@ -1042,15 +1042,16 @@
      * @param    {object} marker
      * @param    {number} duration
      * @param    {boolean} loop
+     * @param    {boolean} combined
      */
-    this.travel = function(data, marker, duration, loop) {
+    this.travel = function(data, marker, duration, loop, combined) {
       // if the map is rendered, execute the subroutine that draws routes
       // otherwise, register the subroutine as a callback on the render event
       if (this.rendered()) {
-        route(data, marker, duration, loop);
+        route(data, marker, duration, loop, combined);
       } else {
         this.on('rendered', function() {
-               route(data, marker, duration, loop);
+               route(data, marker, duration, loop, combined);
              });
       }
     };
@@ -1608,9 +1609,23 @@
      * @param    {object} marker
      * @param    {number} duration
      * @param    {boolean} loop
+     * @param    {boolean} combined
      */
-    function route(data, marker, duration, loop) {
+    function route(data, marker, duration, loop, combined) {
       var routes;
+
+      // normalize the animation parameters
+      marker = marker && marker.d ? marker : null;
+      duration = isNaN(duration) ? 1000 : Math.floor(duration);
+      loop = (loop === true);
+
+      // subscribe the handler to the creation event
+      EVENT_HANDLERS['routes-created'] = [function() {
+        d3.select('#'+ID+'-map').selectAll('g.route')
+                   .each(function() {
+                      routeAnimate(this, duration, loop, marker, combined);
+                    });
+      }];
 
       // determine what sort of 'data' was passed in
       if (typeof data === 'object' && data.name) {
@@ -1642,16 +1657,6 @@
 
         d3.json(resource, routeCreate);
       }
-
-      // normalize the animation parameters
-      marker = marker && marker.d ? marker : null;
-      duration = isNaN(duration) ? 1000 : Math.floor(duration);
-      loop = (loop === true);
-
-      d3.select('#'+ID+'-map').selectAll('g.route')
-                 .each(function() {
-                    routeAnimate(this, duration, loop, marker);
-                  });
     }
 
     /**
@@ -1661,8 +1666,9 @@
      * @param    {number} duration
      * @param    {boolean} loop
      * @param    {object} marker
+     * @param    {boolean} combined
      */
-    function routeAnimate(group, duration, loop, marker) {
+    function routeAnimate(group, duration, loop, marker, combined) {
       function travel(node, orient, icon) {
         var l = node.getTotalLength()
         ;
@@ -1705,19 +1711,37 @@
             routes.each(function(d, i) {
                      var route = d3.select(this)
                        , g = d3.select(route.node().parentNode)
-                       , icon = g.append('path')
-                               .attr('class', 'travel-marker')
-                               .attr('d', marker.d)
-                       ;
-                     icon.transition()
-                           .delay(duration * i)
-                           .duration(duration)
-                           .attrTween('transform',
-                              travel(route.node(), marker.orient, icon.node()))
-                           .remove()
+                       , len = route.node().getTotalLength()
+                       , icon
+                     ;
+
+                     if (combined) {
+                       route.attr('stroke-dasharray', len + ' ' + len)
+                            .attr('stroke-dashoffset', len)
+                         ;
+                     }
+                     route.transition()
+                            .delay(duration * i)
+                            .duration(duration)
+                            .each('start', function() {
+                               icon = g.append('path')
+                                       .attr('d', marker.d);
+                               icon.transition()
+                                     .duration(duration)
+                                     .attrTween('transform',
+                                         travel( route.node(),
+                                                 marker.orient,
+                                                 icon.node() )
+                                      )
+                                     .remove()
+                                 ;
+                             })
+                            .ease('linear')
+                            .attr((combined ? 'stroke-dashoffset' : 'data-d'),
+                                  (combined ? '0' : '0'))
                        ;
                    })
-             ;
+              ;
           }, (duration * count) + 20);
         } else if (loop) {
           setInterval( function() {
@@ -1725,13 +1749,15 @@
                       var route = d3.select(this)
                         , len = route.node().getTotalLength()
                       ;
+
                       route.attr('stroke-dasharray', len + ' ' + len)
                            .attr('stroke-dashoffset', len)
                            .transition()
                              .delay(duration * i)
                              .duration(duration)
                              .ease('linear')
-                             .attr('stroke-dashoffset', 0);
+                             .attr('stroke-dashoffset', 0)
+                        ;
                    })
              ;
           }, (duration * count * 2) + 20);
@@ -1739,31 +1765,51 @@
           routes.each(function(d, i) {
                    var route = d3.select(this)
                      , g = d3.select(route.node().parentNode)
-                     , icon = g.append('path')
-                             .attr('class', 'travel-marker')
-                             .attr('d', marker.d)
-                     ;
-                   icon.transition()
-                         .delay(duration * i)
-                         .duration(duration)
-                         .attrTween('transform',
-                            travel(route.node(), marker.orient, icon.node()))
-                         .remove()
+                     , len = route.node().getTotalLength()
+                     , icon
+                   ;
+
+                   if (combined) {
+                     route.attr('stroke-dasharray', len + ' ' + len)
+                          .attr('stroke-dashoffset', len)
+                       ;
+                   }
+                   route.transition()
+                          .delay(duration * i)
+                          .duration(duration)
+                          .each('start', function() {
+                             icon = g.append('path')
+                                     .attr('d', marker.d);
+                             icon.transition()
+                                   .duration(duration)
+                                   .attrTween('transform',
+                                       travel( route.node(),
+                                               marker.orient,
+                                               icon.node() )
+                                    )
+                                   .remove()
+                               ;
+                           })
+                          .ease('linear')
+                          .attr((combined ? 'stroke-dashoffset' : 'data-d'),
+                                (combined ? '0' : '0'))
                      ;
                  })
-           ;
+            ;
         } else {
           routes.each(function(d, i) {
                    var route = d3.select(this)
                      , len = route.node().getTotalLength()
                    ;
+
                    route.attr('stroke-dasharray', len + ' ' + len)
                         .attr('stroke-dashoffset', len)
                         .transition()
                           .delay(duration * i)
                           .duration(duration)
                           .ease('linear')
-                          .attr('stroke-dashoffset', 0);
+                          .attr('stroke-dashoffset', 0)
+                     ;
                  })
            ;
         }
@@ -1828,6 +1874,7 @@
             }
           }
         }
+        fire('routes-created');
       }
     }
 
@@ -2172,7 +2219,7 @@
           };
 
         // subscribe the markerDraw function to the 'marker-data' event
-        EVENT_HANDLERS['marker-data'] = new Array(markerDraw);
+        EVENT_HANDLERS['marker-data'] = [markerDraw];
 
         // set the container element
         if (typeof CONTAINER === 'string') {
