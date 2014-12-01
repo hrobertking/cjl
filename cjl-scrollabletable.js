@@ -21,6 +21,7 @@
    * @param    {string|HTMLElement} container  The HTML element that will contain the table
    * @param    {string[]} columns              A string array containing column names corresponding to property names in D3 data
    * @param    {object[]} data                 The D3 data collection
+   * @param    {string} sorton
    *
    * @requires d3            http://d3js.org/d3.v3.min.js
    *
@@ -28,7 +29,7 @@
    *
    * @example  d3.csv('/my_rest_api?format=csv', function(error, data) { if (error) { throw new ReferenceError('Data not available'); } else if (data) { var table = new Cathmhaol.ScrollableTable(document.body, ['foo', 'bar', 'snafu'], data); }
    */
-  Cathmhaol.ScrollableTable = function(container, columns, data) {
+  Cathmhaol.ScrollableTable = function(container, columns, data, sorton) {
     var default_sort
       , id_style = 'cjl-STable-style'                                                 // id for the style element
       , id_table = 'cjl-STable-' + (new Date()).getTime()                             // unique table id
@@ -305,12 +306,14 @@
         // sort the table on the first sortable column by default
         ndx = columns.length;
         while (ndx -= 1 > -1) {
-          if (columns[ndx].sortable !== false && columns[ndx].sort) {
+          prop = columns[ndx];
+          if (prop.sortable !== false && (sorton === null || sorton === undefined || (sorton.toLowerCase() === prop.name.toLowerCase()))) {
             break;
           }
         }
         ndx = Math.max(0, ndx);
-        default_sort = d3.select('th.sortable.' + (columns[ndx].name || columns[ndx])).node() || d3.select('th.sortable').node();
+        prop = (columns[ndx].name || columns[ndx]).toLowerCase().replace(/\s/, '-');
+        default_sort = d3.select('th.sortable.' + prop).node() || d3.select('th.sortable').node();
         if (default_sort) {
           default_sort.click();
         }
