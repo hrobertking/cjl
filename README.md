@@ -25,6 +25,13 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 * topoJSON --- http://d3js.org/topojson.v1.min.js
 * topoJSONdata --- e.g. world-110m.json
 
+#### Events
+- ***accelerated* is fired when the rotation of a globe is accelerated
+- ***paused* is fired when the rotation of a globe is paused
+- ***rendered* is fired when the map is rendered
+- ***resumed* is fired when the rotation of a globe is restarted/resumed
+- ***slowed* is fired when the rotation of a globe is slowed
+
 #### Properties
 
 #### Methods
