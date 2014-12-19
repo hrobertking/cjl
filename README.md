@@ -5,7 +5,7 @@ cjl
 
 ## What is this?
 
-**cjl** is, simply, a collection of JavaScript libraries that began their life over at [link](http://js.cathmhaol.com) many years ago and are now being (slowly) refactored and ported over to where they're more accessible.
+**cjl** is, simply, a collection of JavaScript libraries that began their life over at [cathmhaol.com](http://js.cathmhaol.com) many years ago and are now being (slowly) refactored and ported over to where they're more accessible.
 
 Each library is documented as much as possible, and none are minified. If you want a minified version, please feel free to run the code through a minifier. It is my intention to only commit un-minified versions to this repo so that all of the comments are intact and other engineers can easily see what I'm doing, how I'm doing it, and *most importantly*, why I'm doing it.
 
