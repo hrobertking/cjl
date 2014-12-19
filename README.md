@@ -13,6 +13,18 @@ Each library is documented as much as possible, and none are minified. If you wa
 
 Not all libraries have been refactored, so your choice of weapons is somewhat limited. Feel free to grab stuff off http://js.cathmhaol.com, however.
 
+### *Calendar*
+
+#### Requires
+
+#### Demo
+
+#### Events
+
+#### Properties
+
+#### Methods
+
 ### *Earth*
 A handy little library for quickly developing a map with location markers. You can see a working prototype over at http://products.cathmhaol.com/prototypes/earth/.
 
@@ -24,6 +36,9 @@ Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 * d3.geo --- http://d3js.org/d3.geo.projection.v0.min.js
 * topoJSON --- http://d3js.org/topojson.v1.min.js
 * topoJSONdata --- e.g. world-110m.json
+
+#### Demo
+- [cathmhaol.com](http://products.cathmhaol.com/prototypes/earth/)
 
 #### Events
 - ***accelerated*** is fired when the rotation of a globe is accelerated
@@ -126,6 +141,19 @@ clicked, and will hae the following properties:
   </tbody>  
 </table>  
 ```
+
+### *Profile*
+
+#### Requires
+
+#### Demo
+- [cathmhaol.com](http://products.cathmhaol.com/prototypes/profile/)
+
+#### Events
+
+#### Properties
+
+#### Methods
 
 ### *ScrollableTable*
 A handy little library for quickly developing a scrollable, sortable table. The constructor can accept columns specified as strings, e.g.,
@@ -258,6 +286,11 @@ Example:
 #### Requires:
 * d3 --- http://d3js.org/d3.v3.min.js
 
+#### Demo
+- [cathmhaol.com](http://products.cathmhaol.com/prototypes/scrollabletable/)
+
+#### Events
+
 #### Properties
 
 #### Methods
@@ -297,6 +330,12 @@ A handy little collection of SVG shapes a method to draw them and a method to re
 
 *object* Cathmhaol.Shapes;  
 Example: Cathmhaol.Shapes.Airplane;
+
+#### Requires
+
+#### Demo
+
+#### Events
 
 #### Properties
 - **Airplane**: An airplane facing north
