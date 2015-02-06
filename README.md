@@ -14,42 +14,131 @@ Each library is documented as much as possible, and none are minified. If you wa
 Not all libraries have been refactored, so your choice of weapons is somewhat limited. Feel free to grab stuff off http://js.cathmhaol.com, however.
 
 ### *Calendar*
+A handy little library that facilitates date arithmetic and internationalization.
 
-#### Requires
+###### Constructor Parameters
 
-#### Demo
+###### Example
+var thanksgiving = Cathmhaol.Calendar.ordinalDate(2015, Cathmhaol.Calendar.NOVEMBER, 3, Cathmhaol.Calendar.THURSDAY);
 
-#### Events
+##### Requires
 
-#### Properties
+##### Demo
 
-#### Methods
+##### Events
+
+##### Properties
+- ***APRIL***: Numerical constant 3.
+- ***AUGUST***: Numerical constant 7.
+- ***DAYS***: A collection of day names (longName and shortName) for several languages. For example, Cathmhaol.Calendar.DAYS['de'][0].longName = 'Sonntag' and Cathmhaol.Calendar.DAYS['en'][6].shortName = 'Sun'.
+- ***DECEMBER***: Numerical constant 11.
+- ***FEBRUARY***: Numerical constant 1.
+- ***FRIDAY***: Numerical constant 5.
+- ***JANUARY***: Numerical constant 0.
+- ***JULY***: Numerical constant 6.
+- ***JUNE***: Numerical constant 5.
+- ***MARCH***: Numerical constant 2.
+- ***MAY***: Numerical constant 4.
+- ***MONDAY***: Numerical constant 1.
+- ***MONTHS***: A collection of month names (longName and shortName) for several languages. For example, Cathmhaol.Calendar.MONTHS['es'][3].longName = 'abril' and Cathmhaol.Calendar.MONTHS['en'][9].shortName = 'Oct'.
+- ***NOVEMBER***: Numerical constant 10.
+- ***OCTOBER***: Numerical constant 9.
+- ***PERIODS***: A collection of periods, each period contains a code, abbreviation, and name. For example, Cathmhaol.Calendar.PERIODS.DAY.name = 'day' and Cathmhaol.Calendar.PERIODS.MONTH.code = 'm'.
+    * DAY
+    * HOUR
+    * MINUTE
+    * MONTH
+    * QUARTER
+    * SECOND
+    * WEEK
+    * YEAR
+- ***SATURDAY***: Numerical constant 6.
+- ***SEPTEMBER***: Numerical contant 8.
+- ***SUNDAY***: Numerical constant 0.
+- ***THURSDAY***: Numerical constant 4.
+- ***TUESDAY***: Numerical constant 2.
+- ***WEDNESDAY***: Numerical constant 3.
+
+##### Methods
+- ***date* dateAdd(*string*|*Cathmhaol.Calendar.PERIOD* period, *number* periods, *date*|*number*|*string* start)**: Adds the specified number of periods to the starting date and returns the result.
+- ***float* dateDiff(*string*|*Cathmhaol.Calendar.PERIOD* period, *date*|*number*|*string* start, *date*|*number*|*string* end)**: Returns the number of periods between the start and end dates
+- ***integer* dayOfTheWeek(*date*|*number*|*string* date)**: Returns a number between 0 and 6 representing the day of the week. Sunday is 0 and Saturday is 6.
+- ***integer* daysInMonth(*date*|*number*|*string* date)**: Returns the number of days in the month represented by the date provided.
+- ***object* getLocalizedDate(*date*|*number*|*string* date, *string* language)**: Returns an object containing the 'date', 'day', 'dayName', 'month', 'monthName', and 'year' representing the specified date for the given ISO 639-1 language code.
+- ***boolean* isDate(*object* date)**: Returns true if the provided object is a date object.
+- ***boolean* isLeapYear(*date*|*number*|*string* date)**: Returns true if the provided date is during a leap year.
+- ***boolean* isSupportedLanguage(*string* language)**: Returns true if the provided ISO 639-1 code represents a supported language.
+- ***date* ordinalDate(*number* year, *number* month, *number* ordinalIndex, *number* dayOfTheWeek)**: Returns a date representing the ordinal day of the week. For example, the 3rd Monday in January of 2015 (var d = Cathmhaol.Calendar.ordinalDate(2015, Cathmhaol.Calendar.JANUARY, 3, Cathmhaol.Calendar.MONDAY) would return January 19th, 2015.
+- ***date* parse(*date*|*number*|*string* date[, *boolean* default])**: Returns a parsed date. If the parsed date is invalid, the value returned is either null or the current date (if the 'default' parameter is true).
+- ***string[] supportedLanguages()**: Returns an array of supported ISO 639-1 language codes.
+
+### *CreditCard*
+This library facilitates the validation of credit cards, relying on the validation engine built using the Validator library. The CreditCard object can be created by passing the
+form elements into the constructor using the named parameters below.
+
+###### Constructor Parameters
+- ***string|HTMLElement* acct**:
+- ***string|HTMLElement* mm**:
+- ***string|HTMLElement* yy**:
+- ***string|HTMLElement* csc**:
+- ***string|HTMLElement* type**:
+
+###### Example
+var ccn = new Cathmhaol.CreditCard(document.getElementById('card-number'), document.getElementById('card-exp-mo'), document.getElementById('card-exp-yr'), document.getElementById('card-cscnum'));
+
+##### Requires
+- Cathmhaol.Validator --- http://js.cathmhaol.com/cjl-validator.js
+- Cathmhaol.Validation --- http://js.cathmhoal.com/cjl-validation.js
+
+##### Demo
+- [cathmhaol.com](http://products.cathmhaol.com/prototypes/cc-input/)
+
+##### Events
+- ***acct*** is fired when the account number is invalid.
+- ***cvv*** is fired when the CVV (or CSC) is invalid.
+- ***expired*** is fired when the card is expired.
+- ***typeChanged*** is fired when the card type is changed.
+
+##### Properties
+- ***string* type**: One of Cathmhaol.Validation.Types.CREDIT_CARD.types, e.g., AMEX, CHINA_UNION_PAY, DISCOVER, or VISA
+
+##### Methods
+- ***string* getAccount()**: Returns the account number.
+- ***string* getCVV2()**: Returns the CVV
+- ***string* getExpiry()**: Returns the expiration date.
 
 ### *Earth*
 A handy little library for quickly developing a map with location markers. You can see a working prototype over at http://products.cathmhaol.com/prototypes/earth/.
 
-*object* Cathmhaol.Earth([*HTMLElement|string* element[, *string* topoJSONuri[, *number* height]]]);  
-Example: var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
+###### Constructor Parameters
+- ***string|HTMLElement* container**: The unique ID of the HTML element to contain the object
+- ***string* topo**: The URI of a topo file
+- ***number* width**: The diameter of the globe or the width of the map in pixels
+- ***string* style**: The style to use
+- ***string|HTMLElement* descriptor**: The element (or unique id identifying it) to contain the descriptor table
 
-#### Requires:
-* d3 --- http://d3js.org/d3.v3.min.js
-* d3.geo --- http://d3js.org/d3.geo.projection.v0.min.js
-* topoJSON --- http://d3js.org/topojson.v1.min.js
-* topoJSONdata --- e.g. world-110m.json
+###### Example
+var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 
-#### Demo
+##### Requires:
+- d3 --- http://d3js.org/d3.v3.min.js
+- d3.geo --- http://d3js.org/d3.geo.projection.v0.min.js
+- topoJSON --- http://d3js.org/topojson.v1.min.js
+- topoJSONdata --- e.g. world-110m.json
+
+##### Demo
 - [cathmhaol.com](http://products.cathmhaol.com/prototypes/earth/)
 
-#### Events
+##### Events
 - ***accelerated*** is fired when the rotation of a globe is accelerated
 - ***paused*** is fired when the rotation of a globe is paused
 - ***rendered*** is fired when the map is rendered
 - ***resumed*** is fired when the rotation of a globe is restarted/resumed
 - ***slowed*** is fired when the rotation of a globe is slowed
 
-#### Properties
+##### Properties
 
-#### Methods
+##### Methods
 - ***void* addOnCountryClick(*function* handler)**: Adds an event handler for the click event for a country. Inside the handler, the 'this' keyword refers to the country clicked, and will have the following properties:
     * color: the index of the palette color used
     * geometry: object containing the type of shape, e.g., Polygon or MultiPolygon, called 'type' and a floating point array called 'coordinates'
@@ -94,7 +183,7 @@ clicked, and will hae the following properties:
 - ***void* transition(*string* style[, *number* duration])**: Animates the transition from the current map style to the map style provided (an enum of supportedTypes). Animation runs for the specified duration (in milliseconds) or 750ms. Because of the overhead involved in transitions, it is recommended to limit the number of transitions, also, be aware that there may be some difficulties in transitioning between two different projections and it may be better to render the new style rather than animate the transition.
 - ***void* travel(*string*|*object*|*object[]* data[, *object* marker[, *number* duration[, *boolean* loop[, *boolean* combineAnimation]]]])**: Animates travel along routes defined in the specified data - identified by a resource object (i.e., a URL string or an object with 'name' and type' properties) or an array of objects with 'origin' and 'destination' properties - using the specified marker. The animation runs for the specified duration (in milliseconds) or 1000ms and will loop when specified. For example, earth.travel([ { origin:[-84.428067, 33.636719], destination:[[-115.15225, 36.080056], [-115.15225, 36.080056], [-104.673178, 39.861656], [-87.904842, 41.978603], [0.461389, 51.4775]] } ], {d:"m25.21488,3.93375c-0.44355,0 -0.84275,0.18332 -1.17933,0.51592c-0.33397,0.33267 -0.61055,0.80884 -0.84275,1.40377c-0.45922,1.18911 -0.74362,2.85964 -0.89755,4.86085c-0.15655,1.99729 -0.18263,4.32223 -0.11741,6.81118c-5.51835,2.26427 -16.7116,6.93857 -17.60916,7.98223c-1.19759,1.38937 -0.81143,2.98095 -0.32874,4.03902l18.39971,-3.74549c0.38616,4.88048 0.94192,9.7138 1.42461,13.50099c-1.80032,0.52703 -5.1609,1.56679 -5.85232,2.21255c-0.95496,0.88711 -0.95496,3.75718 -0.95496,3.75718l7.53,-0.61316c0.17743,1.23545 0.28701,1.95767 0.28701,1.95767l0.01304,0.06557l0.06002,0l0.13829,0l0.0574,0l0.01043,-0.06557c0,0 0.11218,-0.72222 0.28961,-1.95767l7.53164,0.61316c0,0 0,-2.87006 -0.95496,-3.75718c-0.69044,-0.64577 -4.05363,-1.68813 -5.85133,-2.21516c0.48009,-3.77545 1.03061,-8.58921 1.42198,-13.45404l18.18207,3.70115c0.48009,-1.05806 0.86881,-2.64965 -0.32617,-4.03902c-0.88969,-1.03062 -11.81147,-5.60054 -17.39409,-7.89352c0.06524,-2.52287 0.04175,-4.88024 -0.1148,-6.89989l0,-0.00476c-0.15655,-1.99844 -0.44094,-3.6683 -0.90277,-4.8561c-0.22699,-0.59493 -0.50356,-1.07111 -0.83754,-1.40377c-0.33658,-0.3326 -0.73578,-0.51592 -1.18194,-0.51592l0,0l-0.00001,0l0,0l0.00002,0.00001z", orient:true, scale:0.3 }, 2000, true); will create an animated loop that will show airplanes flying from LAX to LAS, LAS to DEN, DEN to ORD, and ORD to LHR.
 
-#### Marker Data Examples
+##### Marker Data Examples
 *JSON*
 
     [
@@ -142,18 +231,41 @@ clicked, and will hae the following properties:
 </table>  
 ```
 
-### *Profile*
+### *ProfileProgress*
+A small library that will draw an avatar with a progress bar, showing the degree of profile completion. The constructor can accept
+either several parameters, as listed below, or a single configuration object with properties named according to the parameter names,
+e.g., { 'animate':true, 'img':'http://www.cathmhaol.com/images/home.gif', 'comp':oUserProfile.completion, 'canvas':'profile' }.
 
-#### Requires
+###### Constructor Parameters
+- ***string|HTMLElement* img**: Profile image
+- ***number* comp**: Percentage complete
+- ***string|HTMLElement* canvas**: The canvas element
+- ***number* imgHeight**: Height of the profile picture
+- ***number* height**: Height of profile component
+- ***number* width**: Width of profile component
+- ***number* thickness**: Thickness of the progress bar
+- ***string|object* color**: Color to be used for the progress bar/circle
+- ***string|object* bgColor**: Color to be used for the uncompleted portion of the progress bar/circle
+- ***string* overlay**: Overlay percentage complete as text
+- ***string* font**: Font to use for overlay
+- ***boolean* animate**: Animate the progress
+- ***boolean* bar**: Use a bar instead of a circle
+- ***boolean* sqr**: The profile picture should be square
 
-#### Demo
+###### Example
+var prof = new Cathmhaol.ProfileProgress( { img:'http://www.cathmhaol.com/images/home.gif', comp:user_profile.completion * 100, canvas:'profile', height:300, thickness:10, color:{red:124, green:192, blue:220}, overlay:comp.innerHTML, font:'20px Verdana', animate:true });
+
+##### Requires
+
+##### Demo
 - [cathmhaol.com](http://products.cathmhaol.com/prototypes/profile/)
 
-#### Events
+##### Events
 
-#### Properties
+##### Properties
 
-#### Methods
+##### Methods
+- ***void* animate()**: Animates the progress bar.
 
 ### *ScrollableTable*
 A handy little library for quickly developing a scrollable, sortable table. The constructor can accept columns specified as strings, e.g.,
@@ -167,10 +279,12 @@ If the *element* parameter is a table node, the table is not appended to the ele
 table. Columns are considered to be 'sortable' unless they are specifically identified as not sortable. You can see a working prototype over at 
 http://products.cathmhaol.com/prototypes/scrollabletable/
 
+###### Constructor Parameters
+- ***string|HTMLElement* element**: The table element or the element to contain the scrollable table
+- ***string[]|object[]* columns**: A collection of column names or objects containing column names.
+- ***object[]* data**: A d3 dataset.
 
-*object* Cathmhaol.ScrollableTable(*HTMLElement|string* element, *string[]|object[]* columns, *object[]* data);  
-Example:
-
+###### Example
     d3.csv('/my_rest_api?format=json', function(error, data) {  
      if (error) {
        throw new ReferenceError('Data not available');
@@ -283,19 +397,19 @@ Example:
     </style>
 
 
-#### Requires:
-* d3 --- http://d3js.org/d3.v3.min.js
+##### Requires:
+- d3 --- http://d3js.org/d3.v3.min.js
 
-#### Demo
+##### Demo
 - [cathmhaol.com](http://products.cathmhaol.com/prototypes/scrollabletable/)
 
-#### Events
+##### Events
 
-#### Properties
+##### Properties
 
-#### Methods
+##### Methods
 
-#### Data File Examples
+##### Data File Examples
 *JSON*
 
     [
@@ -323,27 +437,93 @@ Example:
     US,64.729444,-158.074167,2,#663399,9012,Nulato 
 
 ### *Shapes*
-A handy little collection of SVG shapes a method to draw them and a method to resize and center them. Shapes have the following properties:
+A handy little collection of SVG shapes a method to draw them and a method to resize and center them. Each shapes has the following properties:
 - ***d***: The value to use as the 'd' attribute of a path element
 - ***orient***: The 'front' of the object, e.g., an airplane, faces north and should be oriented during movement.
 - ***size***: The pixel size. Contains both height and width properties.
 
-*object* Cathmhaol.Shapes;  
-Example: Cathmhaol.Shapes.Airplane;
+###### Example
+var shape = Cathmhaol.Shapes.Airplane;
 
-#### Requires
+##### Requires
 
-#### Demo
+##### Demo
 
-#### Events
+##### Events
 
-#### Properties
+##### Properties
 - **Airplane**: An airplane facing north
 - **MapMarker**: A circle inside a teardrop pointing south
 
-#### Methods
+##### Methods
 - ***void* draw(*shape* shape, *string*|*HTMLElement* container[, *string*|*number* width[, *string*|*number* height]])**: Draws the specified shape, using the specified dimensions or the height and width of the container. Example: Cathmhaol.Shapes.draw(Cathmhaol.Shapes.Airplane, document.body, 100, 100);
 - ***string* matrix(*object* shape, (*string*|*HTMLElement* container | *string*|*number* width, *string*|*number* height))**: Returns the maxtrix string for transformation. Example: path.setAttribute('transform', 'matrix(''matrix(' + Cathmhaol.Shapes.matrix(Cathmhaol.Shapes.MapMarker, 50, 50) + ')'); or path.setAttribute('transform', 'matrix(''matrix(' + Cathmhaol.Shapes.matrix(Cathmhaol.Shapes.MapMarker, document.getElementById('foo')) + ')');
+
+### *Validation*
+Each validation object will have the properties 'key' and 'complete', and may have one or more of the following properties: 'max' - the maximum numeric value the type may hold (e.g., 12 for MONTH
+or 31 for DAY); 'min' - the minimum numeric value the type may hold (e.g., 1 for MONTH or DAY); and 'restricted' - the completed value must be valid according to the 'completed' regular expression.
+
+The CREDIT_CARD type has a 'types' property that is a collection of objects, each containing a 'bin', a 'csc', a 'lengths' array, and a 'validation' flag. Additionally, the CREDIT_CARD
+'types' property has two methods: 'lookup', which takes an account number as a string as a parameter and returns the matching CREDIT_CARD.types object, and 'toString', which returns
+a string array of card types (e.g., ['AMEX', 'CHINA_UNION_PAY', 'JCB', 'MASTERCARD', 'VISA']).
+
+##### Requires
+
+##### Demo
+- [cathmhaol.com](http://products.cathmhaol.com/prototypes/profile/)
+
+##### Events
+
+##### Properties
+- ***object* Types**:
+    * ***object* ALPHA**: Alpha characters only. Valid characters are A to Z and Unicode characters 00A1 through FFFF.
+    * ***object* CREDIT_CARD**: Credit/debit card types
+    * ***object* DAY**: A numeric value 1 to 31
+    * ***object* EMAIL**: A valid email address.
+    * ***object* INTEGER**: Any integer.
+    * ***object* HEX**: A hexadecimal number, represented by (case-insensitive) characters 0 through 9 and A through F
+    * ***object* FLOAT**: A floating-point number.
+    * ***object* MONTH**: A numeric value 1 to 12.
+    * ***object* NAME**: Characters typically used in an individual's name, i.e., A to Z, Unicode characters 00A1 through FFFF, comma, hyphen, and space.
+    * ***object* SIGNED**: A signed floating-point number
+    * ***object* TIME**: Digits separated by a colon.
+    * ***object* YEAR_FUTURE**: A four-digit integer, with the minimum value equal to the current year.
+    * ***object* YEAR_PAST**: An integer, with the maximum value equal to the current year.
+    * ***object* YR_FUTURE**: A two-digit integer, with the minimum value equal to the current year.
+    * ***object* YR_PAST**: A two-digit integer, with the maximum value equal to the current year.
+
+##### Methods
+
+### *Validator*
+This library is the Cathmhaol validation engine. With it, validation routines can be assigned to HTMLElements with ease, including enhanced validation (beyond the
+keystroke and completion validation easily implemented with the Cathmhaol Validation library.
+
+###### Constructor Parameters
+- ***string|HTMLElement* node**: The a string containing the id of the HTMLElement, or the HTMLElement itself, that should be validated.
+- ***boolean* required**: When true, marks the HTMLElement validation as requiring a non-empty string.
+- ***Cathmhaol.Validation.Types* type**: The validation type, e.g., Cathmhaol.Validation.Types.INTEGER or Cathmhaol.Validation.Types.EMAIL.
+- ***function[]* validators**: Additional validation methods.
+
+###### Example
+var pHtmCCAcct = new Cathmhaol.Validator(acct, true, Cathmhaol.Validation.Types.INTEGER, [validationLuhn, validationLength]);
+
+##### Requires
+- Cathmhaol.Validation --- http://js.cathmhoal.com/cjl-validation.js
+
+##### Demo
+- [cathmhaol.com](http://products.cathmhaol.com/prototypes/cc-input/)
+
+##### Events
+- ***invalid*** is fired when the value in the input is invalid. Additionally, the class 'invalid' is added to the element.
+- ***missing*** is fired when the value in the input is missing. Additionally, the class 'missing' is added to the element.
+- ***valid*** is fired when the value in the input is valid. Additionally, the class 'validated' is added to the element.
+
+##### Properties
+- ***HTMLElement* element**: The HTMLElement object being validated.
+
+##### Methods
+- ***void* addClass(*string* class)**:
+- ***void* removeClass(*string* class)**:
 
 ## Licensing
 

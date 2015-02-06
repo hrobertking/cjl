@@ -24,6 +24,18 @@
    */
   Cathmhaol.Calendar = {
     /**
+     * Constant numeric value of April
+     * @type     {number}
+     */
+    APRIL: 3,
+
+    /**
+     * Constant numeric value of August
+     * @type     {number}
+     */
+    AUGUST:7,
+
+    /**
      * Hash of day names that uses an ISO 639-1 code as a key. Each language code property contains an array of objects, each element of which contains a longName and shortName for the day. Sunday is element 0, Saturday is element 6.
      * @type     {object}
      */
@@ -148,10 +160,52 @@
     },
 
     /**
+     * Constant numeric value of December
+     * @type     {number}
+     */
+    DECEMBER: 11,
+
+    /**
+     * Constant numeric value of February
+     * @type     {number}
+     */
+    FEBRUARY: 1,
+
+    /**
      * Constant numeric value of Friday
      * @type     {number}
      */
     FRIDAY: 5,
+
+    /**
+     * Constant numeric value of January
+     * @type     {number}
+     */
+    JANUARY: 0,
+
+    /**
+     * Constant numeric value of July
+     * @type     {number}
+     */
+    JULY: 6,
+
+    /**
+     * Constant numeric value of June
+     * @type     {number}
+     */
+    JUNE: 5,
+
+    /**
+     * Constant numeric value of March
+     * @type     {number}
+     */
+    MARCH: 2,
+
+    /**
+     * Constant numeric value of May
+     * @type     {number}
+     */
+    MAY: 4,
 
     /**
      * Constant numeric value of Monday
@@ -349,6 +403,18 @@
     },
 
     /**
+     * Constant numeric value of November
+     * @type     {number}
+     */
+    NOVEMBER: 10,
+
+    /**
+     * Constant numeric value of October
+     * @type     {number}
+     */
+    OCTOBER: 9,
+
+    /**
      * An enumeration of periods
      * @type     {object}
      */
@@ -442,6 +508,12 @@
      * @type     {number}
      */
     SATURDAY: 6,
+
+    /**
+     * Constant numeric value of September
+     * @type     {number}
+     */
+    SEPTEMBER: 8,
 
     /**
      * Constant numeric value of Sunday
