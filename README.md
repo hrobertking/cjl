@@ -75,7 +75,7 @@ var thanksgiving = Cathmhaol.Calendar.ordinalDate(2015, Cathmhaol.Calendar.NOVEM
 - ***boolean* isSupportedLanguage(*string* language)**: Returns true if the provided ISO 639-1 code represents a supported language.
 - ***date* ordinalDate(*number* year, *number* month, *number* ordinalIndex, *number* dayOfTheWeek)**: Returns a date representing the ordinal day of the week. For example, the 3rd Monday in January of 2015 (var d = Cathmhaol.Calendar.ordinalDate(2015, Cathmhaol.Calendar.JANUARY, 3, Cathmhaol.Calendar.MONDAY) would return January 19th, 2015.
 - ***date* parse(*date*|*number*|*string* date[, *boolean* default])**: Returns a parsed date. If the parsed date is invalid, the value returned is either null or the current date (if the 'default' parameter is true).
-- ***string[] supportedLanguages()**: Returns an array of supported ISO 639-1 language codes.
+- ***string[]* supportedLanguages()**: Returns an array of supported ISO 639-1 language codes.
 
 -----
 ### *CreditCard*
