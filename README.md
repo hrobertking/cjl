@@ -13,19 +13,24 @@ Each library is documented as much as possible, and none are minified. If you wa
 
 Not all libraries have been refactored, so your choice of weapons is somewhat limited. Feel free to grab stuff off http://js.cathmhaol.com, however.
 
+-----
 ### *Calendar*
 A handy little library that facilitates date arithmetic and internationalization.
 
 ###### Constructor Parameters
+- None
 
 ###### Example
 var thanksgiving = Cathmhaol.Calendar.ordinalDate(2015, Cathmhaol.Calendar.NOVEMBER, 3, Cathmhaol.Calendar.THURSDAY);
 
 ##### Requires
+- None
 
 ##### Demo
+- None
 
 ##### Events
+- None
 
 ##### Properties
 - ***APRIL***: Numerical constant 3.
@@ -72,6 +77,7 @@ var thanksgiving = Cathmhaol.Calendar.ordinalDate(2015, Cathmhaol.Calendar.NOVEM
 - ***date* parse(*date*|*number*|*string* date[, *boolean* default])**: Returns a parsed date. If the parsed date is invalid, the value returned is either null or the current date (if the 'default' parameter is true).
 - ***string[] supportedLanguages()**: Returns an array of supported ISO 639-1 language codes.
 
+-----
 ### *CreditCard*
 This library facilitates the validation of credit cards, relying on the validation engine built using the Validator library. The CreditCard object can be created by passing the
 form elements into the constructor using the named parameters below.
@@ -107,6 +113,7 @@ var ccn = new Cathmhaol.CreditCard(document.getElementById('card-number'), docum
 - ***string* getCVV2()**: Returns the CVV
 - ***string* getExpiry()**: Returns the expiration date.
 
+-----
 ### *Earth*
 A handy little library for quickly developing a map with location markers. You can see a working prototype over at http://products.cathmhaol.com/prototypes/earth/.
 
@@ -137,6 +144,7 @@ var earth = Cathmhaol.Earth('map', '/popmap/world-110m.json', 320);
 - ***slowed*** is fired when the rotation of a globe is slowed
 
 ##### Properties
+- None
 
 ##### Methods
 - ***void* addOnCountryClick(*function* handler)**: Adds an event handler for the click event for a country. Inside the handler, the 'this' keyword refers to the country clicked, and will have the following properties:
@@ -183,7 +191,7 @@ clicked, and will hae the following properties:
 - ***void* transition(*string* style[, *number* duration])**: Animates the transition from the current map style to the map style provided (an enum of supportedTypes). Animation runs for the specified duration (in milliseconds) or 750ms. Because of the overhead involved in transitions, it is recommended to limit the number of transitions, also, be aware that there may be some difficulties in transitioning between two different projections and it may be better to render the new style rather than animate the transition.
 - ***void* travel(*string*|*object*|*object[]* data[, *object* marker[, *number* duration[, *boolean* loop[, *boolean* combineAnimation]]]])**: Animates travel along routes defined in the specified data - identified by a resource object (i.e., a URL string or an object with 'name' and type' properties) or an array of objects with 'origin' and 'destination' properties - using the specified marker. The animation runs for the specified duration (in milliseconds) or 1000ms and will loop when specified. For example, earth.travel([ { origin:[-84.428067, 33.636719], destination:[[-115.15225, 36.080056], [-115.15225, 36.080056], [-104.673178, 39.861656], [-87.904842, 41.978603], [0.461389, 51.4775]] } ], {d:"m25.21488,3.93375c-0.44355,0 -0.84275,0.18332 -1.17933,0.51592c-0.33397,0.33267 -0.61055,0.80884 -0.84275,1.40377c-0.45922,1.18911 -0.74362,2.85964 -0.89755,4.86085c-0.15655,1.99729 -0.18263,4.32223 -0.11741,6.81118c-5.51835,2.26427 -16.7116,6.93857 -17.60916,7.98223c-1.19759,1.38937 -0.81143,2.98095 -0.32874,4.03902l18.39971,-3.74549c0.38616,4.88048 0.94192,9.7138 1.42461,13.50099c-1.80032,0.52703 -5.1609,1.56679 -5.85232,2.21255c-0.95496,0.88711 -0.95496,3.75718 -0.95496,3.75718l7.53,-0.61316c0.17743,1.23545 0.28701,1.95767 0.28701,1.95767l0.01304,0.06557l0.06002,0l0.13829,0l0.0574,0l0.01043,-0.06557c0,0 0.11218,-0.72222 0.28961,-1.95767l7.53164,0.61316c0,0 0,-2.87006 -0.95496,-3.75718c-0.69044,-0.64577 -4.05363,-1.68813 -5.85133,-2.21516c0.48009,-3.77545 1.03061,-8.58921 1.42198,-13.45404l18.18207,3.70115c0.48009,-1.05806 0.86881,-2.64965 -0.32617,-4.03902c-0.88969,-1.03062 -11.81147,-5.60054 -17.39409,-7.89352c0.06524,-2.52287 0.04175,-4.88024 -0.1148,-6.89989l0,-0.00476c-0.15655,-1.99844 -0.44094,-3.6683 -0.90277,-4.8561c-0.22699,-0.59493 -0.50356,-1.07111 -0.83754,-1.40377c-0.33658,-0.3326 -0.73578,-0.51592 -1.18194,-0.51592l0,0l-0.00001,0l0,0l0.00002,0.00001z", orient:true, scale:0.3 }, 2000, true); will create an animated loop that will show airplanes flying from LAX to LAS, LAS to DEN, DEN to ORD, and ORD to LHR.
 
-##### Marker Data Examples
+###### Marker Data Examples
 *JSON*
 
     [
@@ -231,6 +239,7 @@ clicked, and will hae the following properties:
 </table>  
 ```
 
+-----
 ### *ProfileProgress*
 A small library that will draw an avatar with a progress bar, showing the degree of profile completion. The constructor can accept
 either several parameters, as listed below, or a single configuration object with properties named according to the parameter names,
@@ -256,17 +265,21 @@ e.g., { 'animate':true, 'img':'http://www.cathmhaol.com/images/home.gif', 'comp'
 var prof = new Cathmhaol.ProfileProgress( { img:'http://www.cathmhaol.com/images/home.gif', comp:user_profile.completion * 100, canvas:'profile', height:300, thickness:10, color:{red:124, green:192, blue:220}, overlay:comp.innerHTML, font:'20px Verdana', animate:true });
 
 ##### Requires
+- None
 
 ##### Demo
 - [cathmhaol.com](http://products.cathmhaol.com/prototypes/profile/)
 
 ##### Events
+- None
 
 ##### Properties
+- None
 
 ##### Methods
 - ***void* animate()**: Animates the progress bar.
 
+-----
 ### *ScrollableTable*
 A handy little library for quickly developing a scrollable, sortable table. The constructor can accept columns specified as strings, e.g.,
 ['city', 'country', 'latitude', 'longitude'], objects, e.g., [{name:'city', sortable:true}, {name:'country', sortable:true, sort:true}, 
@@ -404,12 +417,15 @@ http://products.cathmhaol.com/prototypes/scrollabletable/
 - [cathmhaol.com](http://products.cathmhaol.com/prototypes/scrollabletable/)
 
 ##### Events
+- None
 
 ##### Properties
+- None
 
 ##### Methods
+- None
 
-##### Data File Examples
+###### Data File Examples
 *JSON*
 
     [
@@ -436,6 +452,7 @@ http://products.cathmhaol.com/prototypes/scrollabletable/
     US,40.777245,-73.872608,2,#663399,5678,New York  
     US,64.729444,-158.074167,2,#663399,9012,Nulato 
 
+-----
 ### *Shapes*
 A handy little collection of SVG shapes a method to draw them and a method to resize and center them. Each shapes has the following properties:
 - ***d***: The value to use as the 'd' attribute of a path element
@@ -446,10 +463,13 @@ A handy little collection of SVG shapes a method to draw them and a method to re
 var shape = Cathmhaol.Shapes.Airplane;
 
 ##### Requires
+- None
 
 ##### Demo
+- None
 
 ##### Events
+- None
 
 ##### Properties
 - **Airplane**: An airplane facing north
@@ -459,6 +479,7 @@ var shape = Cathmhaol.Shapes.Airplane;
 - ***void* draw(*shape* shape, *string*|*HTMLElement* container[, *string*|*number* width[, *string*|*number* height]])**: Draws the specified shape, using the specified dimensions or the height and width of the container. Example: Cathmhaol.Shapes.draw(Cathmhaol.Shapes.Airplane, document.body, 100, 100);
 - ***string* matrix(*object* shape, (*string*|*HTMLElement* container | *string*|*number* width, *string*|*number* height))**: Returns the maxtrix string for transformation. Example: path.setAttribute('transform', 'matrix(''matrix(' + Cathmhaol.Shapes.matrix(Cathmhaol.Shapes.MapMarker, 50, 50) + ')'); or path.setAttribute('transform', 'matrix(''matrix(' + Cathmhaol.Shapes.matrix(Cathmhaol.Shapes.MapMarker, document.getElementById('foo')) + ')');
 
+-----
 ### *Validation*
 Each validation object will have the properties 'key' and 'complete', and may have one or more of the following properties: 'max' - the maximum numeric value the type may hold (e.g., 12 for MONTH
 or 31 for DAY); 'min' - the minimum numeric value the type may hold (e.g., 1 for MONTH or DAY); and 'restricted' - the completed value must be valid according to the 'completed' regular expression.
@@ -468,11 +489,13 @@ The CREDIT_CARD type has a 'types' property that is a collection of objects, eac
 a string array of card types (e.g., ['AMEX', 'CHINA_UNION_PAY', 'JCB', 'MASTERCARD', 'VISA']).
 
 ##### Requires
+- None
 
 ##### Demo
 - [cathmhaol.com](http://products.cathmhaol.com/prototypes/profile/)
 
 ##### Events
+- None
 
 ##### Properties
 - ***object* Types**:
@@ -493,7 +516,9 @@ a string array of card types (e.g., ['AMEX', 'CHINA_UNION_PAY', 'JCB', 'MASTERCA
     * ***object* YR_PAST**: A two-digit integer, with the maximum value equal to the current year.
 
 ##### Methods
+- None
 
+-----
 ### *Validator*
 This library is the Cathmhaol validation engine. With it, validation routines can be assigned to HTMLElements with ease, including enhanced validation (beyond the
 keystroke and completion validation easily implemented with the Cathmhaol Validation library.
