@@ -268,6 +268,7 @@
       if (pvtThis.element && pvtThis.element.value !== '') {
         // we have a value - do a valid format test if one is specified
         if (pvtConfig.type) {
+          // test the format using the regular expression
           if (!pvtConfig.type.complete.test(pvtThis.element.value)) {
             pvtThis.removeClass('validated');
             pvtThis.removeClass('invalid');
@@ -277,6 +278,7 @@
               this.invalid.trigger();
             }
           }
+          // check to see if the value is within bounds
           if (pvtConfig.type.max || pvtConfig.type.min) {
             // a bounds test is specified
             if ( !isNaN(pvtThis.element.value) && 
@@ -291,6 +293,11 @@
               }
             }
           }
+          // if there is a special validation routine, run it
+          if (pvtConfig.type.validator && pvtConfig.type.validator.call) {
+            isValid = pvtConfig.type.validator.call(pvtConfig.type, pvtThis.element.value);
+          }
+          // if there are user-defined functions, run them
           if (pvtBlur) {
             // a user-defined onblur test is specified
             for (index = pvtBlur.length - 1; index > -1; index -= 1) {

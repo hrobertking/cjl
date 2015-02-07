@@ -256,6 +256,76 @@
          */
         complete: new RegExp('[\\w\\!\\#\\$\\%\\&\\x27\\"\\*\\+\\-\\/\\=\\?\\^\\`\\{\\|\\}\\~\\.]+\\@((([a-z0-9]+\\-?)+\\.)+([a-z0-9]+))', 'i')
       },
+      IBAN: {
+        /**
+         * Valid individual keypress - digits
+         * @type     {RegExp}
+         */
+        key: new RegExp('[a-z\\d\\s]', 'i'),
+
+        /**
+         * Valid value when complete
+         * @type     {RegExp}
+         */
+        complete: new RegExp('^([a-z]{2})\\s*(\\d{2})\\s*([a-z\\d\\s]{1,30})$', 'i'),
+
+        /**
+         * Special validation function. Returns an object that contains two properties: 'status' and 'message'.
+         * @return   {object}
+         * @param    {string} value
+         */
+        validator: function(value) {
+           var bites = this.completed.exec(value)
+             , hashed = bites && bites.length > 3 ?
+                          (bites[3] + bites[1] + bites[2]).replace(/\s*/g, '') : 
+                          value
+             , indx = ''
+             , len
+             , result = { status:null, message:'' }
+           ;
+
+           // replace letters with numeric constants
+           function normalize(str) {
+             var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+               , ndx
+               , offset = 10
+             ;
+             for (ndx = 0; ndx < letters.length; ndx += 1) {
+               str = str.replace(new RegExp(letters[ndx], 'gi'), offset + ndx);
+             }
+             return str;
+           }
+
+           if (!bites) {
+             result.status = false;
+             result.message = 'Format invalid';
+             if ((/[\W\_]+/).test(value)) {
+               result.message = 'Invalid characters in account number';
+             } else if (!(/^[a-z]{2}/i).test(value)) {
+               result.message = 'Missing country code';
+             } else if (!(/^[a-z]{2}\s*\d{2}/i).test(value)) {
+               result.message = 'Missing check digits';
+             }
+           } else {
+             // Convert alpha to number
+             hashed = normalized(hashed);
+         
+             // This could be a 38-digit number, so we have to do the MOD-97-10
+             // validation (ISO/IEC 7064:2003) in chunks
+             while (hashed.length > 0 && !isNaN(hashed) && !isNaN(indx)) {
+               indx = (indx !== '' && indx < 10 ? '0' : '') + indx;
+               len = 9 - indx.length;
+               indx = ((indx + hashed.substr(0, len)) % 97).toString();
+               hashed = hashed.slice(len);
+             }
+             result.status = !(isNaN(indx) || isNaN(hashed) || (indx * 1) !== 1);
+             if (!result.status) {
+               result.message = 'Validation failed';
+             }
+           }
+           return result;
+        }
+      },
       INTEGER: {
         /**
          * Valid individual keypress - digits

@@ -482,7 +482,7 @@ var shape = Cathmhaol.Shapes.Airplane;
 -----
 ### *Validation*
 Each validation object will have the properties 'key' and 'complete', and may have one or more of the following properties: 'max' - the maximum numeric value the type may hold (e.g., 12 for MONTH
-or 31 for DAY); 'min' - the minimum numeric value the type may hold (e.g., 1 for MONTH or DAY); and 'restricted' - the completed value must be valid according to the 'completed' regular expression.
+or 31 for DAY); 'min' - the minimum numeric value the type may hold (e.g., 1 for MONTH or DAY); and 'restricted' - the value after a keypress must be valid according to the 'completed' regular expression.
 
 The CREDIT_CARD type has a 'types' property that is a collection of objects, each containing a 'bin', a 'csc', a 'lengths' array, and a 'validation' flag. Additionally, the CREDIT_CARD
 'types' property has two methods: 'lookup', which takes an account number as a string as a parameter and returns the matching CREDIT_CARD.types object, and 'toString', which returns
@@ -503,6 +503,7 @@ a string array of card types (e.g., ['AMEX', 'CHINA_UNION_PAY', 'JCB', 'MASTERCA
     * ***object* CREDIT_CARD**: Credit/debit card types
     * ***object* DAY**: A numeric value 1 to 31
     * ***object* EMAIL**: A valid email address.
+    * ***object* IBAN**: An International Bank Account Number (see [wikipedia](http://en.wikipedia.org/wiki/International_Bank_Account_Number) for more details).
     * ***object* INTEGER**: Any integer.
     * ***object* HEX**: A hexadecimal number, represented by (case-insensitive) characters 0 through 9 and A through F
     * ***object* FLOAT**: A floating-point number.
