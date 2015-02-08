@@ -18,18 +18,18 @@
   /**
    * Credit card validation object
    *
-   * @param    {string|HTMLElement} acct
-   * @param    {string|HTMLElement} mm
-   * @param    {string|HTMLElement} yy
-   * @param    {string|HTMLElement} csc
-   * @param    {string|HTMLElement} type
+   * @param     {string|HTMLElement} acct
+   * @param     {string|HTMLElement} mm
+   * @param     {string|HTMLElement} yy
+   * @param     {string|HTMLElement} csc
+   * @param     {string|HTMLElement} type
    *
    * @requires  Cathmhaol.Validation
    *
-   * @author  Robert King (hrobertking@cathmhaol.com)
+   * @author    Robert King (hrobertking@cathmhaol.com)
    *
-   * @version  1.1  Added type
-   * @version  1.0
+   * @version   1.1  Added type
+   * @version   1.0
    */
   Cathmhaol.CreditCard = function(acct, mm, yy, csc, type) {
     /**

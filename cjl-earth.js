@@ -18,19 +18,20 @@
   /**
    * Creates a world map. Map can be rendered as 2D (Equirectangular) or as a globe (Orthographic), which is the default
    *
-   * @param {string|HTMLElement} CONTAINER   The unique ID of the HTML element to contain the object
-   * @param {string} TOPO                    The URI of a topo file
-   * @param {number} WIDTH                   The diameter of the globe or the width of the map in pixels
-   * @param {string} STYLE                   The style to use
-   * @param {string|HTMLElement} DESCRIPTOR  The element (or unique id identifying it) to contain the descriptor table
+   * @param     {string|HTMLElement} CONTAINER   The unique ID of the HTML element to contain the object
+   * @param     {string} TOPO                    The URI of a topo file
+   * @param     {number} WIDTH                   The diameter of the globe or the width of the map in pixels
+   * @param     {string} STYLE                   The style to use
+   * @param     {string|HTMLElement} DESCRIPTOR  The element (or unique id identifying it) to contain the descriptor table
    *
-   * @requires d3            http://d3js.org/d3.v3.min.js
-   * @requires d3.geo        http://d3js.org/d3.geo.projection.v0.min.js
-   * @requires topoJSON      http://d3js.org/topojson.v1.min.js
-   * @requires topoJSONdata  e.g. world-110m.json
+   * @requires  d3            (http://d3js.org/d3.v3.min.js)
+   * @requires  d3.geo        (http://d3js.org/d3.geo.projection.v0.min.js)
+   * @requires  topoJSON      (http://d3js.org/topojson.v1.min.js)
+   * @requires  topoJSONdata  (e.g. world-110m.json)
    *
-   * @author Robert King (hrobertking@cathmhaol.com)
+   * @author    Robert King (hrobertking@cathmhaol.com)
    *
+   * @version   3.2
    */
   Cathmhaol.Earth = function(CONTAINER, TOPO, WIDTH, STYLE, DESCRIPTOR) {
     /**

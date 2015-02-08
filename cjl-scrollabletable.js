@@ -18,16 +18,16 @@
   /**
    * Creates a scrollable, sortable table
    *
-   * @param    {string|HTMLElement} container  The HTML element that will contain the table
-   * @param    {string[]} columns              A string array containing column names corresponding to property names in D3 data
-   * @param    {object[]} data                 The D3 data collection
-   * @param    {string} sorton
+   * @param     {string|HTMLElement} container  The HTML element that will contain the table
+   * @param     {string[]} columns              A string array containing column names corresponding to property names in D3 data
+   * @param     {object[]} data                 The D3 data collection
+   * @param     {string} sorton
    *
-   * @requires d3            http://d3js.org/d3.v3.min.js
+   * @requires  d3 (http://d3js.org/d3.v3.min.js)
    *
-   * @author   Robert King (hrobertking@cathmhaol.com)
+   * @author    Robert King (hrobertking@cathmhaol.com)
    *
-   * @example  d3.csv('/my_rest_api?format=csv', function(error, data) { if (error) { throw new ReferenceError('Data not available'); } else if (data) { var table = new Cathmhaol.ScrollableTable(document.body, ['foo', 'bar', 'snafu'], data); }
+   * @example   d3.csv('/my_rest_api?format=csv', function(error, data) { if (error) { throw new ReferenceError('Data not available'); } else if (data) { var table = new Cathmhaol.ScrollableTable(document.body, ['foo', 'bar', 'snafu'], data); }
    */
   Cathmhaol.ScrollableTable = function(container, columns, data, sorton) {
     var default_sort

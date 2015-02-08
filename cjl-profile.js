@@ -18,24 +18,24 @@
   /**
    * Creates profile image with a profile progress/completion bar
    *
-   * @param  {string|HTMLElement} img     Profile image
-   * @param  {number} comp                Percentage complete
-   * @param  {string|HTMLElement} canvas  The canvas element
-   * @param  {number} imgHeight           Height of the profile picture
-   * @param  {number} height              Height of profile component
-   * @param  {number} width               Width of profile component
-   * @param  {number} thickness           Thickness of the progress bar
-   * @param  {string|object} color        Color to be used for the progress bar/circle
-   * @param  {string|object} bgColor      Color to be used for the uncompleted portion of the progress bar/circle
-   * @param  {string} overlay             Overlay percentage complete as text
-   * @param  {string} font                Font to use for overlay
-   * @param  {boolean} animate            Animate the progress
-   * @param  {boolean} bar                Use a bar instead of a circle
-   * @param  {boolean} sqr                The profile picture should be square
+   * @param     {string|HTMLElement} img     Profile image
+   * @param     {number} comp                Percentage complete
+   * @param     {string|HTMLElement} canvas  The canvas element
+   * @param     {number} imgHeight           Height of the profile picture
+   * @param     {number} height              Height of profile component
+   * @param     {number} width               Width of profile component
+   * @param     {number} thickness           Thickness of the progress bar
+   * @param     {string|object} color        Color to be used for the progress bar/circle
+   * @param     {string|object} bgColor      Color to be used for the uncompleted portion of the progress bar/circle
+   * @param     {string} overlay             Overlay percentage complete as text
+   * @param     {string} font                Font to use for overlay
+   * @param     {boolean} animate            Animate the progress
+   * @param     {boolean} bar                Use a bar instead of a circle
+   * @param     {boolean} sqr                The profile picture should be square
    *
-   * @author	Robert King (hrobertking@cathmhaol.com)
+   * @author    Robert King (hrobertking@cathmhaol.com)
    *
-   * @version  1.0
+   * @version   1.0
    */
   Cathmhaol.ProfileProgress = function(img, comp, canvas, imgHeight, height, width, thickness, color, bgColor, overlay, font, animate, bar, sqr) {
     /**

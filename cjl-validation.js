@@ -18,9 +18,9 @@
   /**
    * Shared validation methods
    *
-   * @author	Robert King (hrobertking@cathmhaol.com)
+   * @author    Robert King (hrobertking@cathmhaol.com)
    *
-   * @version  1.0
+   * @version   1.0
    */
   Cathmhaol.Validation = {
     /**

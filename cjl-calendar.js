@@ -18,9 +18,9 @@
   /**
    * Extends the functionality offered in the Date object
    *
-   * @author	Robert King (hrobertking@cathmhaol.com)
+   * @author    Robert King (hrobertking@cathmhaol.com)
    *
-   * @example	var sShortDayName = Cathmhaol.Calendar.DAYS['en'][Cathmhaol.Calendar.SUNDAY].shortName
+   * @example   var sShortDayName = Cathmhaol.Calendar.DAYS['en'][Cathmhaol.Calendar.SUNDAY].shortName
    */
   Cathmhaol.Calendar = {
     /**

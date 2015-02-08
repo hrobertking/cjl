@@ -3,7 +3,7 @@ var Cathmhaol = window.Cathmhaol || {};
 /**
  * A collection of shapes as SVG path objects. Each shape contains a 'd' property that corresponds to the 'd' attribute of an SVG path, and an optionally an 'orient' property that identifies if the shape is oriented so the 'front' is pointing up.
  *
- * @author Robert King (hrobertking@cathmhaol.com)
+   * @author    Robert King (hrobertking@cathmhaol.com)
  *
  */
 Cathmhaol.Shapes = {

@@ -18,16 +18,16 @@
   /**
    * Input validation object. Takes a string or node as an argument and attaches the validation listeners accordingly.
    *
-   * @param    {string|HTMLElement} node
-   * @param    {boolean} required
-   * @param    {Cathmhaol.Validation.Types} type
-   * @param    {function[]} validators
+   * @param     {string|HTMLElement} node
+   * @param     {boolean} required
+   * @param     {Cathmhaol.Validation.Types} type
+   * @param     {function[]} validators
    *
    * @requires  Cathmhaol.Validation
    *
-   * @author  Robert King (hrobertking@cathmhaol.com)
+   * @author    Robert King (hrobertking@cathmhaol.com)
    *
-   * @version  1.0
+   * @version   1.0
    */
   Cathmhaol.Validator = function(node, required, type, validators) {
     /**
