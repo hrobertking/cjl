@@ -83,11 +83,11 @@ This library facilitates the validation of credit cards, relying on the validati
 form elements into the constructor using the named parameters below.
 
 ###### Constructor Parameters
-- ***string|HTMLElement* acct**:
-- ***string|HTMLElement* mm**:
-- ***string|HTMLElement* yy**:
-- ***string|HTMLElement* csc**:
-- ***string|HTMLElement* type**:
+- ***string|HTMLElement* acct**: The HTML element (or a string that matches the ID attribute of the element) that contains the account number input.
+- ***string|HTMLElement* mm**: The HTML element (or a string that matches the ID attribute of the element) that contains the expiration month input.
+- ***string|HTMLElement* yy**: The HTML element (or a string that matches the ID attribute of the element) that contains the expiration year input.
+- ***string|HTMLElement* csc**: The HTML element (or a string that matches the ID attribute of the element) that contains the CVV2 or Card Security Code (CSC) input.
+- ***string|HTMLElement* type**: The HTML element (or a string that matches the ID attribute of the element) that contains the card type (e.g., Visa, Mastercard, or Discover) input.
 
 ###### Example
 var ccn = new Cathmhaol.CreditCard(document.getElementById('card-number'), document.getElementById('card-exp-mo'), document.getElementById('card-exp-yr'), document.getElementById('card-cscnum'));
