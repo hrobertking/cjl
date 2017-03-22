@@ -244,17 +244,17 @@
       EMAIL: {
         /**
          * Valid individual keypress - alpha, digits, any of 
-         * !#$%&'*+-/=?^_`{|}~. Space and (),:;<>[\] are allowed by RFC 5322,
+         * !#$%&'*+-/=?^_`{|}~><. Space and (),:;[\] are allowed by RFC 5322,
          * but disallowed by this type
          * @type     {RegExp}
          */
-        key: new RegExp('[\\w\\!\\#\\$\\%\\&\\x27\\"\\*\\+\\-\\/\\=\\?\\^\\`\\{\\|\\}\\~\\.\\@]', 'i'),
+        key: new RegExp('[\\w\\!\\#\\$\\%\\&\\x27\\"\\*\\+\\-\\/\\=\\?\\^\\_\\`\\{\\|\\}\\~\\.\\@\\>\\<]', 'i'),
 
         /**
          * Valid value when complete
          * @type     {RegExp}
          */
-        complete: new RegExp('[\\w\\!\\#\\$\\%\\&\\x27\\"\\*\\+\\-\\/\\=\\?\\^\\`\\{\\|\\}\\~\\.]+\\@((([a-z0-9]+\\-?)+\\.)+([a-z0-9]+))', 'i')
+        complete: new RegExp('[\\w\\!\\#\\$\\%\\&\\x27\\"\\*\\+\\-\\/\\=\\?\\^\\_\\`\\{\\|\\}\\~\\.\\>\\<]+\\@((([a-z0-9]+\\-?)+\\.)+([a-z0-9]+))', 'i')
       },
       IBAN: {
         /**
@@ -398,16 +398,16 @@
       },
       NAME: {
         /**
-         * Valid individual keypress - alpha key, comma, hyphen, or space
+         * Valid individual keypress - alpha key, unicode characters, comma, hyphen, space, or single quote
          * @type     {RegExp}
          */
-        key: new RegExp('[a-z\\u00A1-\\uFFFF\\,\\-\\s]', 'i'),
+        key: new RegExp('[a-z\\u00A1-\\uFFFF\\,\\-\\s\\x27]', 'i'),
 
         /**
          * Valid value when complete
          * @type     {RegExp}
          */
-        complete: new RegExp('[a-z\\,\\-\\s]+', 'i')
+        complete: new RegExp('[a-z\\u00A1-\\uFFFF\\,\\-\\s\\x27]+', 'i')
       },
       SIGNED: {
         /**
